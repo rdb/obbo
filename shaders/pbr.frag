@@ -12,7 +12,7 @@
 const float WRAPPED_LAMBERT_W = 0.1;
 const float RIM_LIGHT_POWER = 0.2;
 const float DIFFUSE_STEP_EDGE = 0.01;
-const float SPECULAR_STEP_EDGE = 0.01;
+const float SPECULAR_STEP_EDGE = 0.1;
 const float SPECULAR_CONTRIB_MAX = 0.5;
 
 uniform struct p3d_MaterialParameters {
@@ -131,8 +131,8 @@ void main() {
         float alpha2 = alpha_roughness * alpha_roughness;
         float shininess = 2.0 / alpha2 - 2.0;
         float n_dot_h = clamp(dot(n, h), 0.001, 1.0);
-        float specular = pow(n_dot_h, shininess) / (PI * alpha2);
-        float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
+        float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
+        float stepped_specular = step(SPECULAR_STEP_EDGE, specular);
         vec3 spec_contrib = vec3(stepped_specular);
 
         color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
