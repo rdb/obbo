@@ -35,7 +35,7 @@ class Player(PlanetObject):
     def update(self, dt):
         if self.target_pos:
             # Not quite correct, but probably good enough
-            pos = self.get_pos()
+            pos = self.get_pos() * self.root.get_scale(core.NodePath())[0] * 0.1
             delta = (self.target_pos - pos)
             dist = delta.length()
             if dist == 0:
