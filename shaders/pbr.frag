@@ -132,7 +132,7 @@ void main() {
         float shininess = 2.0 / alpha2 - 2.0;
         float n_dot_h = clamp(dot(n, h), 0.001, 1.0);
         float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
-        float stepped_specular = step(SPECULAR_STEP_EDGE, specular);
+        float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
         vec3 spec_contrib = vec3(stepped_specular);
 
         color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
