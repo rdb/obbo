@@ -14,8 +14,8 @@ def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=in
     twopi = np.linspace(-np.pi, np.pi, xy, endpoint=False)
     radius = radius or np.sqrt(((xy / 2) ** 2) * 2)
     step_size = 2 * np.pi * radius / xy
-    x_mesh = np.round(np.cos(twopi) * radius)
-    y_mesh = np.round(np.sin(twopi) * radius)
+    x_mesh = np.cos(twopi) * radius
+    y_mesh = np.sin(twopi) * radius
     z_mesh = np.linspace(0, z * step_size, z)
     points = 4 * z * xy
     coords = np.empty((4, points), np.float32)
@@ -24,6 +24,7 @@ def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=in
         dim_off = dim * z
         for zid in range(z):
             z_factor = 1 - abs(zid - z_half) / z_half
+            z_factor = z_factor * 0.5 + 0.5
             z_off = zid * xy + dim_off
             rad_off = dim * radius * 3
             coords[0, z_off:z_off + xy] = x_mesh + rad_off
