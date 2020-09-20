@@ -24,6 +24,7 @@ setup(
             'include_patterns': [
                 CONFIG['build']['export_dir']+'/**',
                 'settings.prc',
+                'shaders/**',
             ],
             'rename_paths': {
                 CONFIG['build']['export_dir']: 'assets/',
