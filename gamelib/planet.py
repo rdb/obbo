@@ -92,9 +92,11 @@ class PlanetSide:
         self.dots.set_render_mode_thickness(0.01)
         self.dots.set_render_mode_perspective(True)
         self.dots.set_antialias(core.AntialiasAttrib.M_point)
-        self.dots.set_color_scale((1, 1, 1, 0.5))
+        self.dots.set_color_scale((1, 0, 0, 0.5))
         self.dots.set_light_off(1)
         self.dots.set_bin('transparent', 10)
+        self.dots.set_depth_write(False)
+        self.dots.set_shader_off(1)
 
 
 class PlanetObject:
