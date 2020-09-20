@@ -14,6 +14,16 @@ class Player(PlanetObject):
         model.set_z(1)
         self.model = model
 
+        # Give Material and Texture to fix rendering
+        material = core.Material()
+        material.base_color = (1, 1, 1, 1)
+        model.set_material(material)
+        texture = core.Texture('jack-base_color')
+        texture.setup_2d_texture(1, 1, core.Texture.T_unsigned_byte, core.Texture.F_rgba)
+        texture.clear_color = (1, 1, 1, 1)
+        texture.make_ram_image()
+        model.set_texture(texture)
+
         self.target_pos = None
 
     def move_to(self, pos):
