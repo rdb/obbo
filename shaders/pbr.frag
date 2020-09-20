@@ -10,7 +10,7 @@
 #endif
 
 const float WRAPPED_LAMBERT_W = 0.1;
-const float RIM_LIGHT_POWER = 0.2;
+const float RIM_LIGHT_POWER = 0.1;
 const float DIFFUSE_STEP_EDGE = 0.01;
 const float SPECULAR_STEP_EDGE = 0.1;
 const float SPECULAR_CONTRIB_MAX = 0.5;
