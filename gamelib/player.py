@@ -36,9 +36,12 @@ class Player(PlanetObject):
             pos = self.get_pos()
             delta = (self.target_pos - pos)
             dist = delta.length()
-            delta *= 1.0 / dist
-            if (delta * dt).length() > dist:
-                self.set_pos(self.target_pos)
+            if dist == 0:
                 self.target_pos = None
             else:
-                self.set_pos(pos + delta * dt)
+                delta *= 1.0 / dist
+                if (delta * dt).length() > dist:
+                    self.set_pos(self.target_pos)
+                    self.target_pos = None
+                else:
+                    self.set_pos(pos + delta * dt)
