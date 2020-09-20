@@ -2,3 +2,4 @@ panda3d~=1.10.7
 panda3d_pman
 limeade
 opensimplex
+numpy
