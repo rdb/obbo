@@ -2,6 +2,7 @@ from panda3d import core
 
 from .player import Player
 from .planet import Planet, PlanetObject
+from .asteroid import Asteroid
 from .util import srgb_color
 
 import math
@@ -29,6 +30,8 @@ class Universe:
 
         self.player = Player(self.planet)
         self.player.set_pos((0, 0, 1))
+
+        self.asteroids = [Asteroid(self.planet) for _ in range(15)]
 
         # Temporary
         base.cam.reparent_to(self.player.model)
