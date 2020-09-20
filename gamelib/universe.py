@@ -1,8 +1,10 @@
 from panda3d import core
 
 from .player import Player
-from .planet import Planet
+from .planet import Planet, PlanetObject
 from .util import srgb_color
+
+import math
 
 
 class Universe:
@@ -12,7 +14,6 @@ class Universe:
         self.root = base.render.attach_new_node("universe")
 
         self.traverser = core.CollisionTraverser()
-        self.traverser.show_collisions(self.root)
 
         self.planet = Planet()
         self.planet.root.reparent_to(self.root)
@@ -44,6 +45,7 @@ class Universe:
         self.traverser.add_collider(self.picker, self.picker_handler)
 
         self.cursor_pos = None
+        self.cursor = Cursor(self.planet)
 
     def on_click(self):
         #XXX move elsewhere?
@@ -62,7 +64,30 @@ class Universe:
                 point = self.picker_handler.get_entry(0).get_surface_point(self.root)
                 point.normalize()
                 self.cursor_pos = point
+
+                self.cursor.set_pos(self.cursor_pos)
+                self.cursor.model.show()
+            else:
+                self.cursor.model.hide()
         else:
             self.cursor_pos = None
+            self.cursor.model.hide()
 
         self.player.update(dt)
+        self.cursor.model.set_scale(5.0 + math.sin(globalClock.frame_time * 5))
+
+
+class Cursor(PlanetObject):
+    def __init__(self, planet):
+        super().__init__(planet)
+
+        self.model = loader.load_model("models/planet.blend")
+        self.model.reparent_to(self.root)
+        self.model.set_scale(0.04)
+        self.model.flatten_light()
+
+        self.model.set_shader_off(1)
+        self.model.set_light_off(1)
+        self.model.set_alpha_scale(0.5)
+        self.model.set_transparency(core.TransparencyAttrib.M_alpha)
+        self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_scale))
