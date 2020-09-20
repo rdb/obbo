@@ -17,6 +17,8 @@ class Player(PlanetObject):
         # Give Material and Texture to fix rendering
         material = core.Material()
         material.base_color = (1, 1, 1, 1)
+        material.roughness = 0.8
+        material.metallic = 0
         model.set_material(material)
         texture = core.Texture('jack-base_color')
         texture.setup_2d_texture(1, 1, core.Texture.T_unsigned_byte, core.Texture.F_rgba)

@@ -12,7 +12,6 @@
 const float WRAPPED_LAMBERT_W = 0.1;
 const float RIM_LIGHT_POWER = 0.2;
 const float DIFFUSE_STEP_EDGE = 0.01;
-const float BLINN_PHONG_SHININESS_MAX = 255.0;
 const float SPECULAR_STEP_EDGE = 0.01;
 const float SPECULAR_CONTRIB_MAX = 0.5;
 
@@ -63,6 +62,7 @@ uniform sampler2D p3d_TextureNormal;
 uniform sampler2D p3d_TextureEmission;
 
 const vec3 F0 = vec3(0.04);
+const float PI = 3.141592653589793;
 const float SPOTSMOOTH = 0.001;
 const float LIGHT_CUTOFF = 0.001;
 
@@ -80,8 +80,8 @@ float saturate(float val) {
 
 void main() {
     vec4 metal_rough = texture2D(p3d_TextureMetalRoughness, v_texcoord);
-    float perceptual_roughness = clamp(p3d_Material.roughness * metal_rough.g,  0.0, 1.0);
-    float alpha_roughness = perceptual_roughness * perceptual_roughness;
+    float perceptual_roughness = saturate(p3d_Material.roughness * metal_rough.g);
+    float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
     vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
     vec3 diffuse_color = base_color.rgb * (vec3(1.0) - F0);
 #ifdef USE_NORMAL_MAP
@@ -128,9 +128,10 @@ void main() {
         vec3 diffuse_contrib = diffuse_color * stepped_diffuse;
 
         // Blinn Phong specular
-        float shininess = BLINN_PHONG_SHININESS_MAX * alpha_roughness;
-        float n_dot_h = saturate(dot(n, h));
-        float specular = pow(n_dot_h, shininess);
+        float alpha2 = alpha_roughness * alpha_roughness;
+        float shininess = 2.0 / alpha2 - 2.0;
+        float n_dot_h = clamp(dot(n, h), 0.001, 1.0);
+        float specular = pow(n_dot_h, shininess) / (PI * alpha2);
         float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
         vec3 spec_contrib = vec3(stepped_specular);
 
