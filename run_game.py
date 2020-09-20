@@ -20,8 +20,15 @@ class GameApp(ShowBase):
 
         self.universe = Universe()
 
+        self.accept('mouse1', self.universe.on_click)
         self.accept('f3', self.toggle_wireframe)
         self.disable_mouse()
+
+        self.task_mgr.add(self.__update)
+
+    def __update(self, task):
+        self.universe.update(globalClock.dt)
+        return task.cont
 
 
 def main():

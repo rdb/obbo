@@ -20,6 +20,12 @@ class Planet:
 
         self.sphere.set_color(srgb_color(0xffb2d4))
 
+        csphere = core.CollisionSphere((0, 0, 0), 1)
+        self.collide = self.root.attach_new_node(core.CollisionNode("collision"))
+        self.collide.node().add_solid(csphere)
+        self.collide.node().set_from_collide_mask(0)
+        self.collide.node().set_into_collide_mask(1)
+
         self.sides = [
             PlanetSide(self, (1, 0, 0)),
             PlanetSide(self, (0, 1, 0)),
@@ -95,7 +101,11 @@ class PlanetObject:
     def __init__(self, planet):
         self.pivot = planet.root.attach_new_node("pivot")
         self.root = self.pivot.attach_new_node("root")
-        self.root.set_pos(0, 0, 1)
+        self.root.set_pos(0, 1, 0)
+        self.root.set_hpr(0, -90, 0)
 
-    def set_pos(self, hpr):
-        self.pivot.set_hpr(hpr)
+    def get_pos(self):
+        return self.pivot.get_quat().get_forward()
+
+    def set_pos(self, pos):
+        self.pivot.look_at(core.Vec3(*pos).normalized())
