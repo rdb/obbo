@@ -46,10 +46,12 @@ class Universe:
 
         self.cursor_pos = None
         self.cursor = Cursor(self.planet)
+        self.target = Cursor(self.planet)
 
     def on_click(self):
         #XXX move elsewhere?
         if self.cursor_pos:
+            self.target.set_pos(self.cursor_pos)
             self.player.move_to(self.cursor_pos)
 
     def update(self, dt):
@@ -74,7 +76,7 @@ class Universe:
             self.cursor.model.hide()
 
         self.player.update(dt)
-        self.cursor.model.set_scale(5.0 + math.sin(globalClock.frame_time * 5))
+        self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
 
 
 class Cursor(PlanetObject):
@@ -83,7 +85,7 @@ class Cursor(PlanetObject):
 
         self.model = loader.load_model("models/planet.blend")
         self.model.reparent_to(self.root)
-        self.model.set_scale(0.04)
+        self.model.set_scale(0.1, 0.1, 0.0001)
         self.model.flatten_light()
 
         self.model.set_shader_off(1)
