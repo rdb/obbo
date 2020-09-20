@@ -3,6 +3,7 @@ import sys
 from direct.showbase.ShowBase import ShowBase
 import panda3d
 import pman.shim
+import limeade
 
 from gamelib.universe import Universe
 
@@ -22,6 +23,7 @@ class GameApp(ShowBase):
 
         self.accept('mouse1', self.universe.on_click)
         self.accept('f3', self.toggle_wireframe)
+        self.accept('f5', limeade.refresh)
         self.disable_mouse()
 
         self.task_mgr.add(self.__update)
