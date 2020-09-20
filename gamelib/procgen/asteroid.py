@@ -92,7 +92,7 @@ def generate(bounds:Vec3, color1:Vec3, color2:Vec3, noise_radius=2.0, seed=None)
     mesh_drawer.setup(Vec3(0), Vec3(0, 1, 0))
     seg_len = min(bounds) / 4
     segments = LVecBase3i(*map(int, bounds / seg_len)) + 1
-    h_segments = (sum(segments.xy) - 2) * 4
+    h_segments = (sum(segments.xy) - 2) * 2
     p_segments = h_segments // 2 + 1
     h_noise, p_noise, radius_noise, color_noise = noise \
         .asteroid_noise(h_segments, p_segments, noise_radius, seed)
