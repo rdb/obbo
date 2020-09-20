@@ -25,6 +25,7 @@ class GameApp(ShowBase):
 
         self.accept('mouse1', self.universe.on_click)
         self.accept('f3', self.toggle_wireframe)
+        self.accept('f4', self.screenshot)
         self.accept('f5', limeade.refresh)
         self.disable_mouse()
 
