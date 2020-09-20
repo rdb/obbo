@@ -5,6 +5,7 @@ import panda3d
 import pman.shim
 import limeade
 
+import renderer
 from gamelib.universe import Universe
 
 
@@ -17,6 +18,7 @@ class GameApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         pman.shim.init(self)
+        self.render_pipeline = renderer.Pipeline()
         self.accept('escape', sys.exit)
 
         self.universe = Universe()

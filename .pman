@@ -1,2 +1,5 @@
 [run]
 main_file = "run_game.py"
+
+[blend2bam]
+material_mode = "pbr"
