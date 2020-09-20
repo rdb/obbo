@@ -139,9 +139,8 @@ class PlanetEye(PlanetObject):
         super().__init__(planet)
 
         self.model = loader.load_model("models/planet.blend")
-        self.model.set_scale(0.15, 0.15, 0.001)
+        self.model.set_scale(0.15/4, 0.15/4, 0.001/4)
         self.model.set_color((0, 0, 0, 1), 1)
-        self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_scale))
         self.model.reparent_to(self.root)
 
 
@@ -150,7 +149,7 @@ class PlanetMouth(PlanetObject):
         super().__init__(planet)
 
         cm = core.CardMaker("")
-        cm.set_frame(-0.4, 0.4, -0.4, 0.4)
+        cm.set_frame(-0.1, 0.1, -0.1, 0.1)
 
         tex = loader.load_texture("textures/mouth.png")
         tex.wrap_u = core.Texture.WM_clamp
@@ -164,5 +163,4 @@ class PlanetMouth(PlanetObject):
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
         self.model.set_hpr(180, -90, 0)
-        self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_scale))
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
