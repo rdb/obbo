@@ -1,5 +1,10 @@
 from panda3d import core
+from direct.task.Task import Task
+
 from .util import srgb_color
+
+
+base_radius = 3
 
 
 class Planet:
@@ -29,11 +34,15 @@ class Planet:
         #FIXME remove, just for debugging
         base.accept('space', self.grow)
 
-    def grow(self):
-        self.set_size(self.size + 1)
+    async def grow(self):
+        new_size = self.size + 2
+        self.root.scaleInterval(0.5, base_radius + new_size ** 1.5, blendType='easeInOut').start()
+        await Task.pause(0.5)
+        self.set_size(new_size)
 
     def set_size(self, size):
         self.size = size
+        self.root.set_scale(base_radius + self.size ** 1.5)
 
         for side in self.sides:
             side._size_changed(size)
@@ -74,9 +83,19 @@ class PlanetSide:
         gnode.add_geom(geom)
 
         self.dots = self.root.attach_new_node(gnode)
-        self.dots.set_render_mode_thickness(0.1)
+        self.dots.set_render_mode_thickness(0.01)
         self.dots.set_render_mode_perspective(True)
         self.dots.set_antialias(core.AntialiasAttrib.M_point)
         self.dots.set_color_scale((1, 1, 1, 0.5))
         self.dots.set_light_off(1)
         self.dots.set_bin('transparent', 10)
+
+
+class PlanetObject:
+    def __init__(self, planet):
+        self.pivot = planet.root.attach_new_node("pivot")
+        self.root = self.pivot.attach_new_node("root")
+        self.root.set_pos(0, 0, 1)
+
+    def set_pos(self, hpr):
+        self.pivot.set_hpr(hpr)

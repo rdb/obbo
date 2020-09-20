@@ -19,7 +19,9 @@ class GameApp(ShowBase):
         self.accept('escape', sys.exit)
 
         self.universe = Universe()
-        base.cam.set_y(-10)
+
+        self.accept('f3', self.toggle_wireframe)
+        self.disable_mouse()
 
 
 def main():
