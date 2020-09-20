@@ -3,7 +3,7 @@
 //  * https://github.com/Moguri/panda3d-simplepbr/
 //  * https://kink3d.github.io/blog/2017/10/04/Physically-Based-Toon-Shading-In-Unity
 
-#version 130
+#version 120
 
 #ifndef MAX_LIGHTS
     #define MAX_LIGHTS 8
