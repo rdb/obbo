@@ -5,7 +5,7 @@ import panda3d
 import pman.shim
 import limeade
 
-import renderer
+from gamelib import renderer
 from gamelib.universe import Universe
 
 
