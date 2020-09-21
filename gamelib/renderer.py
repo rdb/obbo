@@ -36,10 +36,10 @@ def _add_shader_defines(shaderstr, defines):
     )
 
 
-def _load_shader_str(shaderpath, defines=None):
-    shader_dir = os.path.join(os.path.dirname(__file__), 'shaders')
+def _load_shader_str(shadername, defines=None):
+    shaderpath = p3d.Filename.expand_from(f'$MAIN_DIR/shaders/{shadername}').to_os_specific()
 
-    with open(os.path.join(shader_dir, shaderpath)) as shaderfile:
+    with open(shaderpath) as shaderfile:
         shaderstr = shaderfile.read()
 
     if defines is not None:
