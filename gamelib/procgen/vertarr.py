@@ -4,8 +4,11 @@ Provides the VertexArray class for easier writing a Geom and exporting as Node.
 
 # pylint: disable=no-name-in-module
 from panda3d.core import (Geom, GeomNode, GeomVertexData,GeomVertexFormat,
-                          GeomVertexWriter, GeomTriangles)
+                          GeomVertexWriter, GeomTriangles, Vec4)
 # pylint: enable=no-name-in-module
+
+
+NORMAL_AS_COLOR = False
 
 
 class VertexArray:
@@ -28,7 +31,7 @@ class VertexArray:
         """Add a row of vertex data."""
         self._vwriter.add_data3(pos)
         self._nwriter.add_data3(normal)
-        self._cwriter.add_data4(color)
+        self._cwriter.add_data4(Vec4(*normal, 1) if NORMAL_AS_COLOR else color)
         self._vid += 1
         return self._vid - 1
 
