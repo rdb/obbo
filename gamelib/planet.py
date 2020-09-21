@@ -15,7 +15,7 @@ class Planet:
     """
     def __init__(self):
         self.root = core.NodePath("planet")
-        self.sphere = loader.load_model("models/planet.blend")
+        self.sphere = loader.load_model("models/planet.bam")
         self.sphere.reparent_to(self.root)
 
         self.sphere.set_color(srgb_color(0xffb2d4))
@@ -138,7 +138,7 @@ class PlanetEye(PlanetObject):
     def __init__(self, planet):
         super().__init__(planet)
 
-        self.model = loader.load_model("models/planet.blend")
+        self.model = loader.load_model("models/planet.bam")
         self.model.set_scale(0.15/4, 0.15/4, 0.001/4)
         self.model.set_color((0, 0, 0, 1), 1)
         self.model.reparent_to(self.root)
