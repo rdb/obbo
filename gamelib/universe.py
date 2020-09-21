@@ -31,7 +31,7 @@ class Universe:
         self.player = Player(self.planet)
         self.player.set_pos((0, 0, 1))
 
-        self.asteroids = [Asteroid(self.planet) for _ in range(15)]
+        self.asteroids = [Asteroid(self.planet) for _ in range(10)]
 
         # Temporary
         base.cam.reparent_to(self.player.model)
