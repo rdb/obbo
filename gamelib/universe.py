@@ -6,6 +6,7 @@ from .player import Player
 from .planet import Planet, PlanetObject
 from .asteroid import Asteroid
 from .util import srgb_color
+from .skybox import Skybox
 
 class Universe:
     def __init__(self):
@@ -14,6 +15,8 @@ class Universe:
         self.root = base.render.attach_new_node("universe")
 
         self.traverser = core.CollisionTraverser()
+
+        self.skybox = Skybox(self.root)
 
         self.planet = Planet()
         self.planet.root.reparent_to(self.root)
