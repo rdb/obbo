@@ -3,7 +3,7 @@
 import random
 
 import numpy as np
-from opensimplex import OpenSimplex
+from pyfastnoiselite.pyfastnoiselite import FastNoiseLite
 
 
 def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=invalid-name
@@ -31,15 +31,11 @@ def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=in
             coords[0, z_off:z_off + xy] = x_mesh * z_cos[zid] + rad_off
             coords[1, z_off:z_off + xy] = y_mesh * z_cos[zid] + rad_off
             coords[2, z_off:z_off + xy] = z_val[zid]
-    arr = np.empty((points,), np.float32)
 
     seed = seed or random.randrange(2 ** 31)
-    osn = OpenSimplex()
-    try:
-        for i in range(points):
-            arr[i] = osn.noise3d(coords[0, i], coords[1, i], coords[2, i])
-    except (ValueError, OverflowError):
-        return asteroid_noise(xy, z, radius, random.randrange(2 ** 31))
+    fnl = FastNoiseLite(seed)
+    fnl.frequency = 0.04
+    arr = fnl.gen_from_coords(coords)
 
     retval = []
     for dim in range(4):
