@@ -2,8 +2,8 @@ import sys
 
 from direct.showbase.ShowBase import ShowBase
 import panda3d
+import pman
 import pman.shim
-import limeade
 
 from gamelib import renderer
 from gamelib.universe import Universe
@@ -26,7 +26,14 @@ class GameApp(ShowBase):
         self.accept('mouse1', self.universe.on_click)
         self.accept('f3', self.toggle_wireframe)
         self.accept('f4', self.screenshot)
-        self.accept('f5', limeade.refresh)
+        if not pman.is_frozen():
+            try:
+                import limeade # pylint:disable=import-outside-toplevel
+                self.accept('f5', limeade.refresh)
+            except ImportError:
+                print(
+                    'Warning: Could not import limeade, module hot-reload will be unavailble'
+                )
         self.disable_mouse()
 
         self.task_mgr.add(self.__update)

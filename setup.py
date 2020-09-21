@@ -32,6 +32,11 @@ setup(
             'gui_apps': {
                 APP_NAME: CONFIG['run']['main_file'],
             },
+            'exclude_modules': {
+                '*': [
+                    'limeade',
+                ]
+            },
             'plugins': [
                 'pandagl',
                 'p3openal_audio',
