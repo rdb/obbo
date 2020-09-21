@@ -10,10 +10,12 @@
 #endif
 
 const float WRAPPED_LAMBERT_W = 0.1;
-const float RIM_LIGHT_POWER = 0.1;
 const float DIFFUSE_STEP_EDGE = 0.01;
 const float SPECULAR_STEP_EDGE = 0.1;
 const float SPECULAR_CONTRIB_MAX = 0.5;
+const vec3 RIM_LIGHT_COLOR = vec3(1.2);
+const float RIM_LIGHT_WIDTH = 0.4;
+const float RIM_LIGHT_DIFFUSE_BLEND = 0.2;
 
 uniform struct p3d_MaterialParameters {
     vec4 baseColor;
@@ -137,8 +139,8 @@ void main() {
 
         color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
 
-        float rim_light_term = 1 - pow(dot(v, n), RIM_LIGHT_POWER);
-        color.rgb += vec3(rim_light_term);
+        float rim_light_term = max(RIM_LIGHT_WIDTH - n_dot_v, 0.0);
+        color.rgb += mix(RIM_LIGHT_COLOR, diffuse_color, RIM_LIGHT_DIFFUSE_BLEND) * rim_light_term;
     }
 
     // Ambient
