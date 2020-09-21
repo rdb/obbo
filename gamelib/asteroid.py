@@ -23,10 +23,13 @@ class Asteroid(PlanetObject):
         self.rotation = baserot.attach_new_node('Rotation')
         self.rotation.set_pos(0, 0, -1)
         self.asteroid = self.rotation.attach_new_node(node)
-        self.asteroid.set_pos(planet.size * random.uniform(1.1, 1.6), planet.size * random.uniform(1.1, 1.6), 0)
+        self.asteroid.set_pos(
+            planet.size * random.uniform(1.1, 1.6),
+            planet.size * random.uniform(1.1, 1.6),
+            0
+        )
         mat = core.Material()
         mat.set_roughness(1)
         self.asteroid.set_material(mat)
         LerpHprInterval(self.rotation, 10.0, (360, 0, 0)).loop()
         LerpHprInterval(self.asteroid, 3.0, (360, 360, 0)).loop()
-

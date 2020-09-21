@@ -1,12 +1,11 @@
+import math
+
 from panda3d import core
 
 from .player import Player
 from .planet import Planet, PlanetObject
 from .asteroid import Asteroid
 from .util import srgb_color
-
-import math
-
 
 class Universe:
     def __init__(self):

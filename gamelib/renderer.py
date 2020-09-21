@@ -1,6 +1,4 @@
 # Based heavily on the BSD licensed panda3d-simplepbr (https://github.com/Moguri/panda3d-simplepbr/)
-import os
-
 import panda3d.core as p3d
 
 from direct.filter.CommonFilters import CommonFilters

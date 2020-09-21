@@ -4,7 +4,7 @@ from direct.task.Task import Task
 from .util import srgb_color
 
 
-base_radius = 3
+BASE_RADIUS = 3
 
 
 class Planet:
@@ -49,16 +49,16 @@ class Planet:
 
     async def grow(self):
         new_size = self.size + 2
-        self.root.scaleInterval(0.5, base_radius + new_size ** 1.5, blendType='easeInOut').start()
+        self.root.scaleInterval(0.5, BASE_RADIUS + new_size ** 1.5, blendType='easeInOut').start()
         await Task.pause(0.5)
         self.set_size(new_size)
 
     def set_size(self, size):
         self.size = size
-        self.root.set_scale(base_radius + self.size ** 1.5)
+        self.root.set_scale(BASE_RADIUS + self.size ** 1.5)
 
         for side in self.sides:
-            side._size_changed(size)
+            side._size_changed(size) # pylint: disable=protected-access
 
 
 class PlanetSide:
@@ -148,8 +148,8 @@ class PlanetMouth(PlanetObject):
     def __init__(self, planet):
         super().__init__(planet)
 
-        cm = core.CardMaker("")
-        cm.set_frame(-0.1, 0.1, -0.1, 0.1)
+        cardmaker = core.CardMaker("")
+        cardmaker.set_frame(-0.1, 0.1, -0.1, 0.1)
 
         tex = loader.load_texture("textures/mouth.png")
         tex.wrap_u = core.Texture.WM_clamp
@@ -158,7 +158,7 @@ class PlanetMouth(PlanetObject):
         mat = core.Material()
         mat.base_color = (1, 1, 1, 1)
 
-        self.model = self.root.attach_new_node(cm.generate())
+        self.model = self.root.attach_new_node(cardmaker.generate())
         self.model.set_material(mat)
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)

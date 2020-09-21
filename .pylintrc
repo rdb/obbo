@@ -60,7 +60,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=missing-docstring,r
+disable=missing-docstring,r,c-extension-no-member,fixme,unused-wildcard-import,wildcard-import
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -169,7 +169,11 @@ good-names=i,
            ex,
            Run,
            _,
-           dt
+           dt,
+           x,
+           y,
+           u,
+           v
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no
@@ -359,7 +363,7 @@ min-similarity-lines=4
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
-additional-builtins=base
+additional-builtins=base,loader,globalClock
 
 # Tells whether unused global variables should be treated as a violation.
 allow-global-unused-variables=yes
