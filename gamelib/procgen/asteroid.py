@@ -14,7 +14,6 @@ def _triangle_line_connect(upper, lower, wrap_around, ccw):
     steps = max(upper, lower)
     upper_edges = np.linspace(0, upper, steps, endpoint=False, dtype=np.int32)
     lower_edges = np.linspace(0, lower, steps, endpoint=False, dtype=np.int32)
-    lower_edges = np.roll(lower_edges, 1)
     if ccw:
         upper_edges = upper_edges[::-1]
         lower_edges = lower_edges[::-1]
@@ -104,8 +103,8 @@ def generate(bounds:Vec3, color1:Vec3, color2:Vec3, noise_radius=2.0, seed=None)
     base_radius *= 0.5
     top_radius = np.average(radius_noise[-1]) + np.average(radius_noise[-2])
     top_radius *= 0.5
-    base_color = np.average(color_noise[0])
-    top_color = np.average(color_noise[-1])
+    base_color = np.average(color_noise[1])
+    top_color = np.average(color_noise[-2])
     p_steps = np.linspace(-90, 90, p_segments)
     p_step = (p_steps[1] - p_steps[0]) * 0.9
     h_steps = np.linspace(0, 360, h_segments, endpoint=False)
