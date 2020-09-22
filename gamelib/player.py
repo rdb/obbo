@@ -28,7 +28,8 @@ class Player(PlanetObject):
     def move_to(self, pos):
         self.target_pos = core.Vec3(*pos)
         self.target_pos.normalize()
-        self.walk_ctr.loop('walk')
+        if not self.walk_ctr.is_playing():
+            self.walk_ctr.loop('walk')
 
     def update(self, dt):
         if self.target_pos:
