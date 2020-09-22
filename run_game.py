@@ -21,6 +21,7 @@ class GameApp(ShowBase):
         pman.shim.init(self)
         self.luttext = self.load_lut('lut.png')
         self.render_pipeline = renderer.Pipeline(
+            lut_texture=self.luttext
         )
         self.accept('escape', sys.exit)
 
