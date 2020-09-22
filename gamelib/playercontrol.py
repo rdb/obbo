@@ -8,7 +8,7 @@ from .player import Player
 from .planet import PlanetObject
 
 
-DEFAULT_POS = (0, -15, 30)
+DEFAULT_POS = (0, -18, 14)
 CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
 
