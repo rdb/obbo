@@ -23,7 +23,8 @@ class GameApp(ShowBase):
 
         self.universe = Universe()
 
-        self.accept('mouse1', self.universe.on_click)
+        self.accept('mouse1', self.universe.on_down)
+        self.accept('mouse1-up', self.universe.on_click)
         self.accept('f3', self.toggle_wireframe)
         self.accept('f4', self.screenshot)
         if not pman.is_frozen():
