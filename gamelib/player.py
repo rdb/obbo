@@ -2,6 +2,7 @@ from panda3d import core
 from direct.actor.Actor import Actor
 
 from .planet import PlanetObject
+from .util import clamp_angle
 
 
 class Player(PlanetObject):
@@ -12,7 +13,7 @@ class Player(PlanetObject):
         self.model_pos = self.root.attach_new_node('heading')
         self.model_pos.set_effect(core.CompassEffect.make(core.NodePath(),
                                   core.CompassEffect.P_scale))
-        self.model_pos.set_z(0.3)
+        self.model_pos.set_z(0)
         model = Actor("models/obbo.bam")
         model.reparent_to(self.model_pos)
         self.from_np = core.NodePath('from')
@@ -53,7 +54,7 @@ class Player(PlanetObject):
             self.from_np.set_pos(pos)
             self.to_np.set_pos(target)
             self.from_np.look_at(self.to_np)
-            delta_h = self.from_np.get_h(self.root) - self.model.get_h()
+            delta_h = clamp_angle(self.from_np.get_h(self.root)) - clamp_angle(self.model.get_h())
             dist = delta.length()
             if dist == 0:
                 self.target_pos = None

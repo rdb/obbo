@@ -10,3 +10,11 @@ def srgb_color(color, alpha = 255):
         core.decode_sRGB_float((color >> 8) & 0xff),
         core.decode_sRGB_float(color & 0xff),
         alpha / 255.0)
+
+
+def clamp_angle(deg):
+    while deg > 180:
+        deg -= 180
+    while deg < -180:
+        deg += 180
+    return deg
