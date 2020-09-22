@@ -8,6 +8,47 @@ __all__ = [
     'Pipeline'
 ]
 
+class CommonFiltersEx(CommonFilters):
+    def reconfigure(self, fullrebuild, changed):
+        retval = super().reconfigure(fullrebuild, changed)
+
+        if not retval:
+            return retval
+
+        lut_texture = self.configuration.get('ColorGrade', None)
+        if lut_texture is not None:
+            shader = self.finalQuad.get_shader()
+            text = shader.get_text()
+            text = text.replace(
+                'float2 l_texcoord : TEXCOORD0,',
+                'float2 l_texcoord : TEXCOORD0,\n  uniform sampler3D k_txlut,'
+            )
+            text = '\n'.join(text.split('\n')[:-2])
+            text += '\n'
+            # out = LUT(origColor * scale + offset)
+            # A LUT size of 64x64x64 is assumed for scale and offset values
+            text += '  o_color.rgb = tex3D(k_txlut, o_color.rgb * 0.984375 + 0.0078125);\n'
+            text += '}\n'
+            shader = p3d.Shader.make(text, p3d.Shader.SL_Cg)
+            if not shader:
+                return False
+            self.finalQuad.setShader(shader)
+            self.finalQuad.set_shader_input('txlut', lut_texture)
+
+    def setColorGrade(self, lut_texture): # pylint: disable=invalid-name
+        """Transforms pixels using the supplied lookup texture"""
+        old_lut = self.configuration.get('ColorGrade', None)
+        if old_lut != lut_texture:
+            self.configuration['ColorGrade'] = lut_texture
+            return self.reconfigure(True, 'ColorGrade')
+        return True
+
+    def delColorGrade(self): # pylint: disable=invalid-name
+        if 'ColorGrade' in self.configuration:
+            del self.configuration['ColorGrade']
+            return self.reconfigure(True, 'ColorGrade')
+        return True
+
 
 def _add_shader_defines(shaderstr, defines):
     shaderlines = shaderstr.split('\n')
@@ -60,7 +101,8 @@ class Pipeline:
             exposure=0.0,
             enable_shadows=True,
             enable_fog=True,
-            use_occlusion_maps=False
+            use_occlusion_maps=False,
+            lut_texture=None,
     ):
         if render_node is None:
             render_node = base.render
@@ -85,9 +127,10 @@ class Pipeline:
         self.enable_fog = enable_fog
         self.exposure = exposure
         self.use_occlusion_maps = use_occlusion_maps
+        self.lut_texture = lut_texture
 
         # Create a CommonFilters instance
-        self.filters = CommonFilters(window, camera_node)
+        self.filters = CommonFiltersEx(window, camera_node)
 
         # Do not force power-of-two textures
         p3d.Texture.set_textures_power_2(p3d.ATS_none)
@@ -124,6 +167,8 @@ class Pipeline:
             self._recompile_pbr()
         elif name == 'exposure':
             self.filters.setExposureAdjust(self.exposure)
+        elif name == 'lut_texture':
+            self.filters.setColorGrade(value)
 
     def _recompile_pbr(self):
         pbr_defines = {
@@ -163,6 +208,7 @@ class Pipeline:
         self.filters.setSrgbEncode()
         self.filters.setHighDynamicRange()
         self.filters.setExposureAdjust(self.exposure)
+        self.filters.setColorGrade(self.lut_texture)
 
     def get_all_casters(self):
         return [
