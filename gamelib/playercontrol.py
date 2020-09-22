@@ -12,6 +12,7 @@ from .util import cfg_tuple
 DEFAULT_POS = (0, -18, 10)
 CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
+AIM_SPEED_MULT = 25
 
 
 class PlayerControl:
@@ -29,6 +30,7 @@ class PlayerControl:
 
         self.player = Player(universe.planet)
         self.player.set_pos((0, 0, 1))
+        self.crosshair = Crosshair()
 
         self.cursor_pos = None
         self.down_pos = None
@@ -39,6 +41,9 @@ class PlayerControl:
 
         self.cam_dummy = self.player.model.attach_new_node('cam')
         self.focus = self.player.model.attach_new_node('focus')
+        self.target_mode = False
+        self.mouse_delta = None
+        self.mouse_last = None
 
         # FIXME: Not sure if we may need universe later again
         self.universe = universe
@@ -55,9 +60,12 @@ class PlayerControl:
         if view == 'default':
             self.cam_dummy.reparent_to(self.player.model_pos)
             pos = DEFAULT_POS
+            self.crosshair.hide()
+            self.target_mode = False
         elif view == 'charging':
             self.cam_dummy.reparent_to(self.player.model)
             pos = CAST_POS
+            self.crosshair.show()
 
         if pos is None:
             raise RuntimeError(f'Unknown view "{view}"')
@@ -88,6 +96,7 @@ class PlayerControl:
         if value:
             self.player.start_charge()
             self.toggle_cam_view('charging')
+            self.target_mode = True
         else:
             self.player.stop_charge()
             self.toggle_cam_view()
@@ -96,7 +105,7 @@ class PlayerControl:
     def start_cast(self):
         pass
 
-    def update_cam(self, dt):
+    def update_cam(self, dt, mpos):
         delta = self.cam_dummy.get_pos(base.cam)
         if delta.length() > 0:
             offset = delta.normalized() * CAM_POS_SPEED * dt
@@ -105,6 +114,13 @@ class PlayerControl:
             else:
                 base.cam.set_pos(base.cam, offset)
             base.cam.look_at(self.focus)
+        elif mpos and self.target_mode:
+            current = core.Vec2(mpos.x, mpos.y)
+            if self.mouse_last:
+                self.mouse_delta = current - self.mouse_last
+                base.cam.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
+                base.cam.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
+            self.mouse_last = current
 
     def update(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -134,10 +150,39 @@ class PlayerControl:
         else:
             self.cursor_pos = None
             self.cursor.model.hide()
+            mpos = None
 
-        self.update_cam(dt)
+        self.update_cam(dt, mpos)
         self.player.update(dt)
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
+
+
+class Crosshair:
+    def __init__(self):
+        cardmaker = core.CardMaker("")
+        cardmaker.set_frame(-2, 2, -2, 2)
+
+        tex = loader.load_texture("textures/crosshair.png")
+        tex.wrap_u = core.Texture.WM_clamp
+        tex.wrap_v = core.Texture.WM_clamp
+
+        mat = core.Material()
+        mat.base_color = (1, 1, 1, 1)
+
+        self.model = base.cam.attach_new_node(cardmaker.generate())
+        self.model.set_material(mat)
+        self.model.set_texture(tex)
+        self.model.set_color((1, 1, 1, 1), 1)
+        self.model.set_pos(0, 50, 8)
+        #self.model.set_hpr(180, -90, 0)
+        self.model.set_transparency(core.TransparencyAttrib.M_binary)
+        #self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_all))
+
+    def show(self):
+        self.model.show()
+
+    def hide(self):
+        self.model.hide()
 
 
 class Cursor(PlanetObject):
