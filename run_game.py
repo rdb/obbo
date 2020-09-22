@@ -14,6 +14,12 @@ panda3d.core.load_prc_file(
     panda3d.core.Filename.expand_from('$MAIN_DIR/settings.prc')
 )
 
+USER_CONFIG_PATH = panda3d.core.Filename.expand_from(
+    '$MAIN_DIR/user.prc'
+)
+if USER_CONFIG_PATH.exists():
+    panda3d.core.load_prc_file(USER_CONFIG_PATH)
+
 
 class GameApp(ShowBase):
     def __init__(self):
