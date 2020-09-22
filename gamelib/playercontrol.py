@@ -6,9 +6,10 @@ from direct.interval.IntervalGlobal import *
 
 from .player import Player
 from .planet import PlanetObject
+from .util import cfg_tuple
 
 
-DEFAULT_POS = (0, -18, 14)
+DEFAULT_POS = (0, -18, 10)
 CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
 
@@ -50,12 +51,17 @@ class PlayerControl:
         """Clean up?"""
 
     def toggle_cam_view(self, view='default'):
+        pos = None
         if view == 'default':
             self.cam_dummy.reparent_to(self.player.model_pos)
-            self.lerp_cam(DEFAULT_POS)
+            pos = DEFAULT_POS
         elif view == 'charging':
             self.cam_dummy.reparent_to(self.player.model)
-            self.lerp_cam(CAST_POS, core.Vec3(0, 0, 1))
+            pos = CAST_POS
+
+        if pos is None:
+            raise RuntimeError(f'Unknown view "{view}"')
+        self.lerp_cam(cfg_tuple(f'cam-{view}-pos', pos))
 
     def lerp_cam(self, target_pos, view_offset=core.Vec3(0)):
         self.cam_dummy.set_pos(target_pos)
@@ -120,7 +126,7 @@ class PlayerControl:
 
             if self.down_time is not None:
                 self.down_time += dt
-                hold_threshold = core.ConfigVariableDouble('click-hold-threshold', 0.5).get_value()
+                hold_threshold = core.ConfigVariableDouble('click-hold-threshold', 0.3).get_value()
                 if self.down_time > hold_threshold:
                     self.set_aim(True)
                     self.is_hold = True

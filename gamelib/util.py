@@ -18,3 +18,11 @@ def clamp_angle(deg):
     while deg < -180:
         deg += 180
     return deg
+
+
+def cfg_tuple(name, default, convert=float):
+    if isinstance(default, (tuple, list)):
+        default = ' '.join([str(i) for i in default])
+    sval = core.ConfigVariableString(name, default).get_value()
+    return tuple(
+        (convert(i) for i in sval.strip().replace(',', ' ').split(' ') if i))
