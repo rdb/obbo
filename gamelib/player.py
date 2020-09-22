@@ -20,6 +20,9 @@ class Player(PlanetObject):
         self.model = model
         self.walk_ctr = self.model.get_anim_control('walk')
 
+        # Disable back-face culling on the face
+        model.find('**/Plane.001').set_two_sided(True)
+
         self.target_pos = None
 
     def move_to(self, pos):
