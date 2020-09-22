@@ -51,8 +51,10 @@ class PlayerControl:
 
     def toggle_cam_view(self, view='default'):
         if view == 'default':
+            self.cam_dummy.reparent_to(self.player.model_pos)
             self.lerp_cam(DEFAULT_POS)
         elif view == 'charging':
+            self.cam_dummy.reparent_to(self.player.model)
             self.lerp_cam(CAST_POS, core.Vec3(0, 0, 1))
 
     def lerp_cam(self, target_pos, view_offset=core.Vec3(0)):
