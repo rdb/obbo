@@ -1,4 +1,5 @@
 panda3d~=1.10.7
+panda3d-gltf>=0.8
 panda3d-blend2bam>=0.16
 panda3d_pman
 pyfastnoiselite
