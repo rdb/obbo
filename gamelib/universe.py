@@ -70,10 +70,15 @@ class Universe:
             self.player.move_to(self.down_pos)
             self.down_pos = None
             self.down_time = None
+        if self.is_hold:
+            self.set_aim(False)
         self.is_hold = False
 
-    def toggle_aim(self):
-        print('hold')
+    def set_aim(self, value):
+        if value:
+            self.player.start_charge()
+        else:
+            self.player.stop_charge()
 
     def update(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -96,7 +101,7 @@ class Universe:
             if self.down_time is not None:
                 self.down_time += dt
                 if self.down_time > HOLD_THRESHOLD:
-                    self.toggle_aim()
+                    self.set_aim(True)
                     self.is_hold = True
                     self.down_time = None
         else:

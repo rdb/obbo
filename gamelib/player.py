@@ -19,11 +19,20 @@ class Player(PlanetObject):
         self.to_np = core.NodePath('to')
         self.model = model
         self.walk_ctr = self.model.get_anim_control('walk')
+        self.cast_ctr = self.model.get_anim_control('fish_charge')
 
         # Disable back-face culling on the face
         model.find('**/Plane.001').set_two_sided(True)
 
         self.target_pos = None
+
+    def start_charge(self):
+        self.cast_ctr.set_play_rate(2.0)
+        self.cast_ctr.play()
+
+    def stop_charge(self):
+        self.cast_ctr.set_play_rate(-2.0)
+        self.cast_ctr.play()
 
     def move_to(self, pos):
         self.target_pos = core.Vec3(*pos)
