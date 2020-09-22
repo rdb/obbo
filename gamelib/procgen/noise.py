@@ -3,7 +3,7 @@
 import random
 
 import numpy as np
-from pyfastnoiselite.pyfastnoiselite import FastNoiseLite
+from pyfastnoiselite.pyfastnoiselite import FastNoiseLite, FractalType
 
 
 def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=invalid-name
@@ -34,7 +34,8 @@ def asteroid_noise(xy:int, z:int, radius=None, seed=None):  # pylint: disable=in
 
     seed = seed or random.randrange(2 ** 31)
     fnl = FastNoiseLite(seed)
-    fnl.frequency = 0.04
+    fnl.frequency = 0.045
+    fnl.fractal_type = FractalType.FractalType_FBm
     arr = fnl.gen_from_coords(coords)
 
     retval = []

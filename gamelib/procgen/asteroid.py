@@ -91,7 +91,7 @@ def generate(bounds:Vec3, color1:Vec3, color2:Vec3, noise_radius=2.0, seed=None)
     mesh_drawer.setup(Vec3(0), Vec3(0, 1, 0))
     seg_len = min(bounds) / 4
     segments = LVecBase3i(*map(int, bounds / seg_len)) + 1
-    h_segments = (sum(segments.xy) - 2) * 2
+    h_segments = (sum(segments.xy) - 2) * 3
     p_segments = h_segments // 2 + 1
     h_noise, p_noise, radius_noise, color_noise = noise \
         .asteroid_noise(h_segments, p_segments, noise_radius, seed)
@@ -99,12 +99,10 @@ def generate(bounds:Vec3, color1:Vec3, color2:Vec3, noise_radius=2.0, seed=None)
     p_noise = [i * 0.75 for i in p_noise]
     radius_noise = [i * 0.5 for i in radius_noise]
     color_noise = [1 / (i.max() - i.min()) * (i - i.min()) for i in color_noise]
-    base_radius = np.average(radius_noise[0]) + np.average(radius_noise[1])
-    base_radius *= 0.5
-    top_radius = np.average(radius_noise[-1]) + np.average(radius_noise[-2])
-    top_radius *= 0.5
-    base_color = np.average(color_noise[1])
-    top_color = np.average(color_noise[-2])
+    base_radius = np.average(radius_noise[0])
+    top_radius = np.average(radius_noise[-1])
+    base_color = np.average(color_noise[0])
+    top_color = np.average(color_noise[-1])
     p_steps = np.linspace(-90, 90, p_segments)
     p_step = (p_steps[1] - p_steps[0]) * 0.9
     h_steps = np.linspace(0, 360, h_segments, endpoint=False)
