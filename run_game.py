@@ -32,9 +32,8 @@ class GameApp(ShowBase):
         self.accept('escape', sys.exit)
 
         self.universe = Universe()
+        self.universe.request('Universe')
 
-        self.accept('mouse1', self.universe.on_down)
-        self.accept('mouse1-up', self.universe.on_click)
         self.accept('f1', self.screenshot)
         def save_lut_screen():
             self.screenshot(embedLUT=True)
