@@ -20,13 +20,6 @@ class Player(PlanetObject):
         self.model = model
         self.walk_ctr = self.model.get_anim_control('walk')
 
-        # Give Material and Texture to fix rendering
-        material = core.Material()
-        material.base_color = (1, 1, 1, 1)
-        material.roughness = 0.8
-        material.metallic = 0
-        model.set_material(material)
-
         self.target_pos = None
 
     def move_to(self, pos):
