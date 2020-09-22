@@ -12,7 +12,7 @@ class Player(PlanetObject):
         self.model_pos = self.root.attach_new_node('heading')
         self.model_pos.set_effect(core.CompassEffect.make(core.NodePath(),
                                   core.CompassEffect.P_scale))
-        self.model_pos.set_z(1)
+        self.model_pos.set_z(0.3)
         model = Actor("models/obbo.bam")
         model.reparent_to(self.model_pos)
         self.from_np = core.NodePath('from')

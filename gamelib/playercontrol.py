@@ -1,9 +1,16 @@
 import math
 
 from panda3d import core
+from direct.interval.LerpInterval import *
+from direct.interval.IntervalGlobal import *
 
 from .player import Player
 from .planet import PlanetObject
+
+
+DEFAULT_POS = (0, -15, 30)
+CAST_POS = (-12, 0, 7)
+CAM_POS_SPEED = 70
 
 
 class PlayerControl:
@@ -29,16 +36,30 @@ class PlayerControl:
         self.cursor = Cursor(universe.planet)
         self.target = Cursor(universe.planet)
 
+        self.cam_dummy = self.player.model.attach_new_node('cam')
+        self.focus = self.player.model.attach_new_node('focus')
+
         # FIXME: Not sure if we may need universe later again
         self.universe = universe
 
     def enter(self):
         base.cam.reparent_to(self.player.model_pos)
-        base.cam.set_pos((0, -15, 30))
-        base.cam.look_at(self.player.model_pos)
+        self.toggle_cam_view()
 
     def exit(self):
         """Clean up?"""
+
+    def toggle_cam_view(self, view='default'):
+        if view == 'default':
+            self.lerp_cam(DEFAULT_POS)
+        elif view == 'charging':
+            self.lerp_cam(CAST_POS, core.Vec3(0, 0, 1))
+
+    def lerp_cam(self, target_pos, view_offset=core.Vec3(0)):
+        self.cam_dummy.set_pos(target_pos)
+        self.focus.set_pos(self.player.model, view_offset)
+        view_up = self.player.model.get_quat().get_up()
+        self.cam_dummy.look_at(self.focus, view_up)
 
     def on_down(self):
         if self.cursor_pos:
@@ -58,8 +79,24 @@ class PlayerControl:
     def set_aim(self, value):
         if value:
             self.player.start_charge()
+            self.toggle_cam_view('charging')
         else:
             self.player.stop_charge()
+            self.toggle_cam_view()
+            self.start_cast()
+
+    def start_cast(self):
+        pass
+
+    def update_cam(self, dt):
+        delta = self.cam_dummy.get_pos(base.cam)
+        if delta.length() > 0:
+            offset = delta.normalized() * CAM_POS_SPEED * dt
+            if offset.length() >= delta.length():
+                base.cam.set_pos(self.cam_dummy, 0, 0, 0)
+            else:
+                base.cam.set_pos(base.cam, offset)
+            base.cam.look_at(self.focus)
 
     def update(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -90,6 +127,7 @@ class PlayerControl:
             self.cursor_pos = None
             self.cursor.model.hide()
 
+        self.update_cam(dt)
         self.player.update(dt)
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
 
