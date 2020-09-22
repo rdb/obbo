@@ -8,7 +8,6 @@ from .asteroid import Asteroid
 from .util import srgb_color
 from .skybox import Skybox
 
-HOLD_THRESHOLD = 0.5
 
 class Universe:
     def __init__(self):
@@ -100,7 +99,8 @@ class Universe:
 
             if self.down_time is not None:
                 self.down_time += dt
-                if self.down_time > HOLD_THRESHOLD:
+                hold_threshold = core.ConfigVariableDouble('click-hold-threshold', 0.5).get_value()
+                if self.down_time > hold_threshold:
                     self.set_aim(True)
                     self.is_hold = True
                     self.down_time = None
