@@ -11,6 +11,7 @@ from panda3d.core import (
     LVecBase3f,
     LVecBase4f,
     TextNode,
+    NodePath,
     Vec3,
     Point3,
     OmniBoundingVolume
@@ -70,13 +71,15 @@ class PieMenu:
             self.buttons.append(self.createButton(x,y,item))
 
     def createButton(self, x, y, item):
-        geom = self.buildings.find("**/{}".format(item.buildingName))
+        building = self.buildings.find("**/{}".format(item.buildingName))
+        geom = NodePath("geom")
         geom.setDepthWrite(True)
         geom.setDepthTest(True)
         geom.setTransparency(0,10)
         geom.setPos(0,0,-0.5)
         geom.setHpr(-45, 15, 15)
         geom.set_texture_off(10)
+        building.copy_to(geom).clear_transform()
 
         btn = DirectButton(
             text=item.name,
@@ -97,10 +100,9 @@ class PieMenu:
         btn.setBin('gui-popup', 2)
         btn.setTransparency(1)
 
-        #TODO: This doesn't work yet.
-        #ival = btn["geom"].hprInterval(2, Vec3(0, 0, 0), Vec3(360, 0, 0))
-        #btn.bind(DGG.ENTER, lambda x: ival.start())
-        #btn.bind(DGG.EXIT, lambda x: ival.finish())
+        ival = btn["geom2_geom"].get_child(0).hprInterval(1, (360, 0, 0), (0, 0, 0))
+        btn.bind(DGG.ENTER, lambda x: ival.loop())
+        btn.bind(DGG.EXIT, lambda x: ival.finish())
         return btn
 
     def show(self, x=None, y=None):
