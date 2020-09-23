@@ -37,12 +37,12 @@ class PlayerControl(FSM):
 
         self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
         self.bobber.reparent_to(self.player.model)
-        self.bobber.hide()
+        self.bobber.stash()
         bobbercol = core.CollisionNode('Bobber')
         bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
         bobbercol = self.bobber.attach_new_node(bobbercol)
+        self.bobber_collider = bobbercol
         self.asteroid_handler = core.CollisionHandlerQueue()
-        self.traverser.add_collider(bobbercol, self.asteroid_handler)
 
         self.cursor_pos = None
         self.down_pos = None
@@ -161,8 +161,9 @@ class PlayerControl(FSM):
 
     def enterCast(self):
         # FIXME: Make proper mechanic, this is just a test
-        self.bobber.show()
+        self.bobber.unstash()
         self.bobber.set_pos((-1, 0, 1))
+        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
         cam_pos = base.camera.get_pos(self.bobber)
@@ -188,7 +189,8 @@ class PlayerControl(FSM):
             self.request('Reel', hit_asteroids[0])
 
     def exitCast(self):
-        self.bobber.hide()
+        self.traverser.remove_collider(self.bobber_collider)
+        self.bobber.stash()
 
     def enterReel(self, asteroid=None):
         if asteroid is not None:
