@@ -241,7 +241,8 @@ class PlayerControl(FSM):
             print('hit an asteroid!')
             asteroid.destroy()
 
-        self.player.reel_ctr.play()
+        if not self.player.reel_ctr.playing:
+            self.player.reel_ctr.play()
 
     def updateReel(self, dt):
         # Reel in
