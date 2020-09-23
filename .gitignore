@@ -9,6 +9,7 @@ __pycache__/
 /*.egg-info/
 /dist/
 /screenshot-*.jpg
+/screenshot-*.png
 
 /*.core
 /core
