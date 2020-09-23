@@ -285,14 +285,21 @@ class PlayerControl(FSM, DirectObject):
         if bobber_dst > REEL_MIN_DISTANCE:
             bobber_dir = bobber_pos / bobber_dst
             self.bobber.set_pos(self.bobber.get_pos() - bobber_dir * min(bobber_dst, REEL_SPEED * dt))
+        elif self.catch:
+            self.request('Consume', self.catch)
+            self.catch = None
         else:
             self.request('Normal')
 
     def exitReel(self):
         self.player.reel_ctr.stop()
-        if self.catch:
-            self.catch.destroy()
-            self.catch = None
+
+    def enterConsume(self, catch):
+        Sequence(
+            catch.asteroid.scaleInterval(1.0, 0.0001),
+            Func(catch.destroy),
+            Func(lambda: self.request('Normal')),
+        ).start()
 
     def enterBuild(self):
         # TODO: Display building types from current tech tree
