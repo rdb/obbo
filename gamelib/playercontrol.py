@@ -24,15 +24,18 @@ CAM_CAST_X_SENSITIVITY = 1.0
 CHARGE_MAX_TIME = 2.0
 
 BOBBER_SPIN_SPEED = 0.1
-MAGNET_RADIUS = 1.5
+MAGNET_RADIUS = 1.0
 
 CAST_TIME = 1.0
+CAST_MIN_DISTANCE = 3.0
 CAST_MAX_DISTANCE = 15.0
+
+MAGNET_SNAP_TIME = 0.15
 
 REEL_SPEED = 4.0
 
 # How close the bobber can get to Obbo before ending the reel
-REEL_MIN_DISTANCE = 1.0
+REEL_MIN_DISTANCE = 0.8
 
 assert CAM_CAST_X_SENSITIVITY > 0.5
 
@@ -63,12 +66,13 @@ class PlayerControl(FSM, DirectObject):
 
         self.bobber = base.loader.load_model('models/bobber.bam')
         self.bobber.reparent_to(self.player.model)
-        self.bobber.set_scale(0.1)
+        self.bobber.set_scale(0.05)
         self.bobber.flatten_light()
         self.bobber.stash()
+        self.magnet_snap_point = core.Point3(0, 1, -0.05)
         bobbercol = core.CollisionNode('Bobber')
-        bobbercol.add_solid(core.CollisionSphere(center=(-0.6, 2, -0.1), radius=MAGNET_RADIUS))
-        bobbercol.add_solid(core.CollisionSphere(center=(0.6, 2, -0.1), radius=MAGNET_RADIUS))
+        bobbercol.add_solid(core.CollisionSphere(center=(-0.3, 1, -0.05), radius=MAGNET_RADIUS))
+        bobbercol.add_solid(core.CollisionSphere(center=(0.3, 1, -0.05), radius=MAGNET_RADIUS))
         bobbercol.set_from_collide_mask(0b0100)
         bobbercol.set_into_collide_mask(0b0000)
         self.bobber_collider = self.bobber.attach_new_node(bobbercol)
@@ -225,16 +229,16 @@ class PlayerControl(FSM, DirectObject):
         self.crosshair.hide()
 
     def enterCast(self, power):
-        distance = min(power, 1) * CAST_MAX_DISTANCE
+        distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
         self.bobber.unstash()
         rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
-        self.bobber.set_pos(rod_tip_pos + (-1, 0, 1))
-        self.bobber.set_hpr(-45, 15, 0)
-        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        self.bobber.set_pos(rod_tip_pos + direction * 3)
+        self.bobber.look_at(rod_tip_pos + direction * distance)
+        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         Parallel(
             LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
-            LerpHprInterval(self.bobber, CAST_TIME, (-45, 15, 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+            LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
         ).start()
         self.down_time = None
 
@@ -265,13 +269,15 @@ class PlayerControl(FSM, DirectObject):
             asteroid.stop()
             asteroid.asteroid.wrt_reparent_to(self.bobber)
 
-            asteroid.asteroid.posInterval(0.1, (0.6, 2, 0.1)).start()
+            asteroid.asteroid.posInterval(MAGNET_SNAP_TIME, self.magnet_snap_point).start()
             self.catch = asteroid
 
         if not self.player.reel_ctr.playing:
             self.player.reel_ctr.play()
 
     def updateReel(self, dt):
+        self.update_cast_cam()
+
         # Reel in
         rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
         bobber_pos = self.bobber.get_pos() - rod_tip_pos
