@@ -283,7 +283,7 @@ class AssetSlot(PlanetObject):
         model = loader.load_model("jack")
         model.reparent_to(self.slot_node)
         model.set_scale(0.1)
-        model.flatten_light()
+        #model.flatten_light()
         self.placeholder = model
 
         self.sprouted = False

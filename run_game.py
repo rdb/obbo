@@ -56,7 +56,7 @@ class GameApp(ShowBase):
         if not pman.is_frozen():
             try:
                 import limeade # pylint:disable=import-outside-toplevel
-                self.accept('f5', limeade.refresh)
+                self.accept('f5', self.refresh)
             except ImportError:
                 print(
                     'Warning: Could not import limeade, module hot-reload will be unavailble'
@@ -64,6 +64,17 @@ class GameApp(ShowBase):
         self.disable_mouse()
 
         self.task_mgr.add(self.__update)
+
+    def refresh(self):
+        import limeade
+        limeade.refresh()
+
+        panda3d.core.ModelPool.release_all_models()
+        for root in self.render.find_all_matches("**/+ModelRoot"):
+            if root.node().fullpath:
+                root.node().remove_all_children()
+                model = loader.load_model(root.node().fullpath)
+                root.node().steal_children(model.node())
 
     def __update(self, task):
         self.gamestate.update(globalClock.dt)
