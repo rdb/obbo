@@ -2,6 +2,7 @@ window-title Panda3D Game
 framebuffer-srgb true
 background-color 0 0 0
 screenshot-extension png
+text-default-font assets/fonts/GochiHand-Regular.ttf
 
 click-hold-threshold 0.3
 cam-default-pos 0 -18 10

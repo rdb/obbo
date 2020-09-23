@@ -46,7 +46,7 @@ class PieMenu:
         self.cancelFrame.hide()
 
     def updateCircle(self, newItems):
-        self.numItems = len(items)
+        self.numItems = len(newItems)
         self.items = newItems
 
         self.menuCircle = DirectFrame(
@@ -62,14 +62,12 @@ class PieMenu:
 
         self.buttons = []
 
-        i = 0
-        for item in self.items:
+        for i, item in enumerate(self.items):
 
             x = 0.75*math.cos(i*degreeSteps*math.pi/180)
             y = 0.75*math.sin(i*degreeSteps*math.pi/180)
 
             self.buttons.append(self.createButton(x,y,item))
-            i += 1
 
     def createButton(self, x, y, item):
         geom = self.buildings.find("**/{}".format(item.buildingName))
@@ -84,6 +82,7 @@ class PieMenu:
             text=item.name,
             text_scale=0.5,
             text_pos=(0,-1),
+            text_fg=(1, 1, 1, 1),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
             pos=LPoint3f(x, 0, y),
             relief=None,
