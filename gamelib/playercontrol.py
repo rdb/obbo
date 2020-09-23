@@ -200,9 +200,8 @@ class Crosshair:
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
         self.model.set_pos(0, 50, 8)
-        #self.model.set_hpr(180, -90, 0)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
-        #self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_all))
+        self.model.hide()
 
     def show(self):
         self.model.show()
