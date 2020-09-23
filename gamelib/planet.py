@@ -1,5 +1,7 @@
 from panda3d import core
 from direct.task.Task import Task
+from direct.interval.LerpInterval import *
+from direct.interval.IntervalGlobal import *
 
 from .util import srgb_color
 import random
@@ -43,6 +45,7 @@ class Planet:
         ]
 
         self.root.set_scale(BASE_RADIUS + 1)
+        self.new_build_slots = 1
         self.set_size(1)
 
         #FIXME remove, just for debugging
@@ -57,14 +60,17 @@ class Planet:
 
     def grow(self):
         new_size = self.size + 1
+        self.new_build_slots = 2
         self.set_size(new_size)
 
     def set_size(self, size):
         self.size = size
         #self.root.set_scale(BASE_RADIUS + size ** 1.5)
+        slots = [random.randrange(6) for _ in range(self.new_build_slots)]
 
-        for side in self.sides:
-            side._size_changed(size) # pylint: disable=protected-access
+
+        for i, side in enumerate(self.sides):
+            side._size_changed(size, slots.count(i)) # pylint: disable=protected-access
 
         self.root.scaleInterval(GROWTH_TIME, BASE_RADIUS + size ** 1.5, blendType='easeInOut').start()
         taskMgr.add(self.__resize)
@@ -97,7 +103,7 @@ class PlanetSide:
         self.grid = []
         self.props = []
 
-    def __grow_grid(self):
+    def __grow_grid(self, build_slots):
         # No idea if this calculation works, it's a random guess at a formula
         # to roughly evenly distribute the new rows without spacing starting
         # buildings too far apart
@@ -109,7 +115,8 @@ class PlanetSide:
             row.insert(insert_at, slot)
             new_slots.append(slot)
 
-        new_row = [AssetSlot(self.planet) for i in range(new_size)]
+        slots = random.sample(list(range(new_size)), build_slots)
+        new_row = [AssetSlot(self.planet, i in slots) for i in range(new_size)]
         self.grid.insert(insert_at, new_row)
         new_slots += new_row
 
@@ -175,9 +182,9 @@ class PlanetSide:
         #    self.props.append(prop)
         #    prop.sprout()
 
-    def _size_changed(self, size):
+    def _size_changed(self, size, build_slots=0):
         while size > len(self.grid):
-            self.__grow_grid()
+            self.__grow_grid(build_slots)
 
         for x in range(size):
             for y in range(size):
@@ -307,7 +314,7 @@ class AssetSlot(PlanetObject):
 
     _asset_cache = {}
 
-    def __init__(self, planet):
+    def __init__(self, planet, build_slot=False):
         super().__init__(planet)
 
         self.slot_node = self.root.attach_new_node("slot")
@@ -322,10 +329,15 @@ class AssetSlot(PlanetObject):
         #model.flatten_light()
         self.placeholder = model
 
+        self.build_slot = build_slot
+        self.building_placed = False
         self.sprouted = False
 
     def attach_model(self, fn):
         self.placeholder.remove_node()
+
+        if self.build_slot:
+            fn = "models/BuildSpaceSign.bam"
 
         if fn in self._asset_cache:
             cached_asset = self._asset_cache[fn]
@@ -338,9 +350,24 @@ class AssetSlot(PlanetObject):
         model = cached_asset.instance_to(self.slot_node)
         model.set_h(random.random() * 360)
         self.model = model
+        if self.build_slot:
+            self.model.set_z(0.7)
+            Sequence(
+                LerpHprInterval(self.model, 0.75, (180, 0, 0),
+                    startHpr=(0, 0, 0)),
+                LerpHprInterval(self.model, 0.75, (360, 0, 0),
+                    startHpr=(180, 0, 0))
+            ).loop()
 
         lower = fn.lower()
-        if 'flower' not in lower and 'grass' not in lower and 'smallrock' not in lower and 'crater' not in lower:
+        mfilter = (
+            'flower',
+            'grass',
+            'smallrock',
+            'crater',
+            'buildspacesign'
+        )
+        if sum([i in lower for i in mfilter]) == 0:
             radius = 0.5
             if 'mountain' in lower:
                 radius *= 4
@@ -349,6 +376,13 @@ class AssetSlot(PlanetObject):
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0010)
             #self.collider.show()
+        elif 'buildspacesign' in lower:
+            radius = 1
+            self.collider = model.attach_new_node(core.CollisionNode("build_spot"))
+            self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), radius))
+            self.collider.node().set_from_collide_mask(0b0000)
+            self.collider.node().set_into_collide_mask(0b0001)
+            self.collider.node().set_tag('pick_type', 'build_spot')
 
         face = model.find("**/Face/+GeomNode")
         if face:

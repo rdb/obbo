@@ -5,10 +5,12 @@ from panda3d import core
 from direct.fsm.FSM import FSM
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
+from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
 from .util import cfg_tuple
+from .pieMenu import PieMenu, PieMenuItem
 
 
 DEFAULT_POS = (0, -18, 10)
@@ -34,9 +36,10 @@ REEL_MIN_DISTANCE = 1.0
 assert CAM_CAST_X_SENSITIVITY > 0.5
 
 
-class PlayerControl(FSM):
+class PlayerControl(FSM, DirectObject):
     def __init__(self, universe):
-        super().__init__('Normal')
+        FSM.__init__(self, 'Normal')
+        DirectObject.__init__(self)
         self.traverser = core.CollisionTraverser()
         self.ray = core.CollisionRay()
         self.root = universe.root
@@ -69,6 +72,7 @@ class PlayerControl(FSM):
         self.asteroid_handler = core.CollisionHandlerQueue()
 
         self.cursor_pos = None
+        self.cursor_on_build_spot = False
         self.down_pos = None
         self.down_time = None
         self.cursor = Cursor(universe.planet)
@@ -114,17 +118,23 @@ class PlayerControl(FSM):
             self.down_pos = self.cursor_pos
         self.down_time = globalClock.frame_time
 
-        if self.state == 'Cast':
+        if self.state == 'Cast' and not self.cursor_on_build_spot:
             self.player.reel_ctr.play()
+        elif self.state == 'Build' and not self.cursor_on_build_spot:
+            self.request('Normal')
 
     def on_mouse_up(self):
         if self.down_time is None:
             return
 
-        if self.state == 'Cast':
+        if self.cursor_on_build_spot:
+            self.request('Build')
+            self.cursor_on_build_spot = False
+
+        elif self.state == 'Cast':
             self.player.reel_ctr.stop()
 
-        if self.state == 'Charge':
+        elif self.state == 'Charge':
             time = globalClock.frame_time - self.down_time
             self.request('Cast', time / CHARGE_MAX_TIME)
 
@@ -166,6 +176,13 @@ class PlayerControl(FSM):
                 self.picker_handler.sort_entries()
                 point = self.picker_handler.get_entry(0).get_surface_point(self.root)
                 point.normalize()
+                pick_type = self.picker_handler.get_entry(0).get_into_node_path() \
+                    .node().get_tag('pick_type')
+
+                if pick_type == 'build_spot':
+                    self.cursor_on_build_spot = True
+                else:
+                    self.cursor_on_build_spot = False
                 self.cursor_pos = point
 
                 self.cursor.set_pos(self.cursor_pos)
@@ -258,6 +275,33 @@ class PlayerControl(FSM):
 
     def exitReel(self):
         self.player.reel_ctr.stop()
+
+    def enterBuild(self):
+        # TODO: Display building types from current tech tree
+        items = [
+            PieMenuItem("Tent", "build_tent", "tent"),
+            PieMenuItem("Windmill", "build_windmill", "windmill"),
+            PieMenuItem("Chest", "build_chest", "chest"),
+            PieMenuItem("Replicator", "build_replicator", "replicator"),
+            PieMenuItem("Garage", "build_garage", "garage")
+        ]
+        self.pie_menu = PieMenu(items)
+        for item in items:
+            self.accept_once(item.event, self.build, [item.event, self.down_pos])
+        self.down_pos = None
+        self.pie_menu.show()
+
+    def updateBuild(self, dt):
+        self.updateNormal(dt)
+
+    def exitBuild(self):
+        self.pie_menu.hide()
+
+    def build(self, building, location):
+        # TODO: Make obbo build here
+        self.player.move_to(tuple(location))
+        print(f'wants to build: {building} @ {location}')
+        self.request('Normal')
 
     def update_cast_cam(self):
         ptr = base.win.get_pointer(0)

@@ -92,7 +92,7 @@ class PieMenu:
             parent=self.menuCircle,
             pressEffect=False,
             command=base.messenger.send,
-            extraArgs=item.event
+            extraArgs=(item.event,)
         )
         btn.setBin('gui-popup', 2)
         btn.setTransparency(1)
