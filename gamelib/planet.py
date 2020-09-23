@@ -2,6 +2,7 @@ from panda3d import core
 from direct.task.Task import Task
 
 from .util import srgb_color
+import random
 
 
 BASE_RADIUS = 3
@@ -73,16 +74,14 @@ class Planet:
                 for cell in row:
                     cell.set_pos(cell.new_pos * growth + cell.old_pos * (1 - growth))
 
-        # Sprout new cells when done
-        if growth >= 1.0:
+        # Begin to sprout new cells when halfway done
+        if growth >= 0.5:
             for side in self.sides:
                 for row in side.grid:
                     for cell in row:
                         cell.sprout()
 
-            return task.done
-        else:
-            return task.cont
+        return task.done if growth >= 1.0 else task.cont
 
 
 class PlanetSide:
@@ -98,10 +97,38 @@ class PlanetSide:
         # buildings too far apart
         new_size = len(self.grid) + 1
         insert_at = ((len(self.grid) - 1) * 2) % new_size
+        new_slots = []
         for row in self.grid:
-            row.insert(insert_at, BuildingSlot(self.planet))
+            slot = AssetSlot(self.planet)
+            row.insert(insert_at, slot)
+            new_slots.append(slot)
 
-        self.grid.insert(insert_at, [BuildingSlot(self.planet) for i in range(new_size)])
+        new_row = [AssetSlot(self.planet) for i in range(new_size)]
+        self.grid.insert(insert_at, new_row)
+        new_slots += new_row
+
+        for slot in new_slots:
+            slot.attach_model(random.choice([
+                "models/Environment/Bushes/Bush1.bam",
+                "models/Environment/Bushes/Bush2.bam",
+                "models/Environment/Craters/Crater1.bam",
+                "models/Environment/Craters/Crater2.bam",
+                "models/Environment/Flowers/Flower1.bam",
+                "models/Environment/Flowers/Flower2.bam",
+                "models/Environment/Grass/grass1.bam",
+                "models/Environment/Grass/grass2.bam",
+                "models/Environment/Rocks/mediumRock1.bam",
+                "models/Environment/Rocks/mediumRock2.bam",
+                "models/Environment/Rocks/mountain1.bam",
+                "models/Environment/Rocks/mountain2.bam",
+                "models/Environment/Rocks/smallRock1.bam",
+                "models/Environment/Rocks/smallRock2.bam",
+                "models/Environment/Rocks/smallRock3.bam",
+                "models/Environment/Trees/Tree1.bam",
+                "models/Environment/Trees/Tree2.bam",
+                "models/Environment/Trees/Tree3.bam",
+                "models/Environment/Trees/Tree4.bam",
+            ]))
 
     def _size_changed(self, size):
         while size > len(self.grid):
@@ -126,8 +153,12 @@ class PlanetSide:
                     pos = core.Vec3(u, v, -1)
 
                 pos.normalize()
-                self.grid[x][y].old_pos = self.grid[x][y].get_pos()
-                self.grid[x][y].new_pos = pos
+                slot = self.grid[x][y]
+                if slot.sprouted:
+                    slot.old_pos = slot.get_pos()
+                else:
+                    slot.old_pos = pos
+                slot.new_pos = pos
 
 
 class PlanetObject:
@@ -193,25 +224,52 @@ class PlanetMouth(PlanetObject):
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
 
 
-class BuildingSlot(PlanetObject):
+class AssetSlot(PlanetObject):
     def __init__(self, planet):
         super().__init__(planet)
 
+        self.slot_node = self.root.attach_new_node("slot")
+        self.slot_node.set_effect(core.CompassEffect.make(core.NodePath(),
+                                  core.CompassEffect.P_scale))
+        self.slot_node.hide()
+        self.slot_node.set_scale(0.00000000001)
+
         model = loader.load_model("jack")
-        model.reparent_to(self.root)
+        model.reparent_to(self.slot_node)
         model.set_scale(0.1)
         model.flatten_light()
-        model.set_effect(core.CompassEffect.make(core.NodePath(),
-                         core.CompassEffect.P_scale))
-        self.model = model
-        self.model.hide()
-        self.model.set_scale(0.00000000001)
+        self.placeholder = model
+
         self.sprouted = False
+
+    def attach_model(self, fn):
+        self.placeholder.remove_node()
+
+        model = loader.load_model(fn)
+        model.reparent_to(self.slot_node)
+        model.set_scale(0.25)
+        model.set_h(random.random() * 360)
+        self.model = model
+
+        face = model.find("**/Face/+GeomNode")
+        if face:
+            self.face = face
+            self.randomize_face()
+            # Change face every 3-9 seconds
+            taskMgr.do_method_later(random.random() * 6 + 3, self.__cycle_face, 'cycle-face')
+
+    def randomize_face(self):
+        offset = random.choice([(0, 0), (0.5, 0), (0, 0.25), (0, 0.5), (0, 0.75)])
+        self.face.set_shader_input('uv_shift', offset, priority=1)
+
+    def __cycle_face(self, task):
+        self.randomize_face()
+        return task.again
 
     def sprout(self):
         if self.sprouted:
             return
 
-        self.model.show()
-        self.model.scaleInterval(SPROUT_TIME, 1.0).start()
+        self.slot_node.show()
+        self.slot_node.scaleInterval(SPROUT_TIME, 1.0).start()
         self.sprouted = True

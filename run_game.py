@@ -32,6 +32,8 @@ class GameApp(ShowBase):
         )
         self.accept('escape', sys.exit)
 
+        self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
+
         self.transitions.fadeScreen(1.0)
 
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()

@@ -28,6 +28,8 @@ attribute vec3 p3d_Normal;
 attribute vec4 p3d_Tangent;
 attribute vec2 p3d_MultiTexCoord0;
 
+uniform vec2 uv_shift;
+
 
 varying vec3 v_position;
 varying vec4 v_color;
@@ -42,7 +44,7 @@ void main() {
     v_position = vec3(vert_pos4);
     v_color = p3d_Color;
     vec3 normal = normalize(p3d_NormalMatrix * p3d_Normal);
-    v_texcoord = p3d_MultiTexCoord0;
+    v_texcoord = p3d_MultiTexCoord0 + uv_shift;
 #ifdef ENABLE_SHADOWS
     for (int i = 0; i < p3d_LightSource.length(); ++i) {
         v_shadow_pos[i] = p3d_LightSource[i].shadowViewMatrix * vert_pos4;
