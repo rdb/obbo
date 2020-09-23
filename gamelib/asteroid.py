@@ -36,5 +36,7 @@ class Asteroid(PlanetObject):
 
         collide = core.CollisionNode('asteroid')
         collide.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=0.3))
+        collide.set_into_collide_mask(0b0100)
+        collide.set_from_collide_mask(0b0000)
         collide = self.asteroid.attach_new_node(collide)
         collide.set_python_tag('asteroid', self)

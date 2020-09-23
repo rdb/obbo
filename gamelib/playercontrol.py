@@ -14,7 +14,8 @@ from .util import cfg_tuple
 DEFAULT_POS = (0, -18, 10)
 CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
-AIM_SPEED_MULT = 25
+AIM_SPEED_MULT = 50
+CAM_ROTATE_SPEED = 5.0
 
 
 class PlayerControl(FSM):
@@ -45,8 +46,9 @@ class PlayerControl(FSM):
         self.bobber.stash()
         bobbercol = core.CollisionNode('Bobber')
         bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
-        bobbercol = self.bobber.attach_new_node(bobbercol)
-        self.bobber_collider = bobbercol
+        bobbercol.set_from_collide_mask(0b0100)
+        bobbercol.set_into_collide_mask(0b0000)
+        self.bobber_collider = self.bobber.attach_new_node(bobbercol)
         self.asteroid_handler = core.CollisionHandlerQueue()
 
         self.cursor_pos = None
@@ -56,8 +58,12 @@ class PlayerControl(FSM):
         self.cursor = Cursor(universe.planet)
         self.target = Cursor(universe.planet)
 
-        self.cam_dummy = self.player.model.attach_new_node('cam')
-        self.focus = self.player.model.attach_new_node('focus')
+        self.cam_dummy = self.player.root.attach_new_node('cam')
+        self.cam_dummy.set_effect(core.CompassEffect.make(core.NodePath(),
+                                  core.CompassEffect.P_scale))
+        self.cam_target_h = 0
+        self.cam_target_p = 0
+        self.focus = self.player.root.attach_new_node('focus')
         self.aim_mode = False
         self.mouse_delta = None
         self.mouse_last = None
@@ -68,7 +74,9 @@ class PlayerControl(FSM):
         self.universe = universe
 
     def enter(self):
-        base.camera.reparent_to(self.player.model_pos)
+        base.camera.reparent_to(self.cam_dummy)
+        base.camera.set_pos((0, -20, 20))
+        base.camera.look_at(self.cam_dummy)
 
     def exit(self):
         """Clean up?"""
@@ -76,24 +84,14 @@ class PlayerControl(FSM):
     def toggle_cam_view(self, view='default'):
         pos = None
         if view == 'default':
-            self.cam_dummy.reparent_to(self.player.model_pos)
-            pos = DEFAULT_POS
+            self.cam_dummy.reparent_to(self.player.root)
             self.aim_mode = False
             self.crosshair.hide()
         elif view == 'charging':
-            self.cam_dummy.reparent_to(self.player.model)
-            pos = CAST_POS
+            self.cam_dummy.reparent_to(self.player.model_pos)
             self.crosshair.show()
-
-        if pos is None:
+        else:
             raise RuntimeError(f'Unknown view "{view}"')
-        self.lerp_cam(cfg_tuple(f'cam-{view}-pos', pos))
-
-    def lerp_cam(self, target_pos, view_offset=core.Vec3(0)):
-        self.cam_dummy.set_pos(target_pos)
-        self.focus.set_pos(self.player.model, view_offset)
-        view_up = self.player.model.get_quat().get_up()
-        self.cam_dummy.look_at(self.focus, view_up)
 
     def on_down(self):
         if self.cursor_pos:
@@ -105,8 +103,9 @@ class PlayerControl(FSM):
             self.request('Cast')
 
         if self.cursor_pos and not self.is_hold:
-            self.target.set_pos(self.down_pos)
-            self.player.move_to(self.down_pos)
+            if self.down_pos:
+                self.target.set_pos(self.down_pos)
+                self.player.move_to(self.down_pos)
             self.down_pos = None
             self.down_time = None
         self.is_hold = False
@@ -117,14 +116,17 @@ class PlayerControl(FSM):
     def enterNormal(self):
         self.crosshair.hide()
         self.toggle_cam_view()
-        cam_pos = base.camera.get_pos(self.player.model_pos)
-        base.camera.reparent_to(self.player.model_pos)
-        base.camera.set_pos(cam_pos)
+        #cam_pos = base.camera.get_pos(self.player.model_pos)
+        #base.camera.reparent_to(self.player.model_pos)
+        #base.camera.set_pos(cam_pos)
 
     def updateNormal(self, dt):
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
+
+            self.cam_target_h = mpos.x * 10
+            self.cam_target_p = mpos.y * -45
 
             self.traverser.traverse(self.root)
 
@@ -160,7 +162,17 @@ class PlayerControl(FSM):
     def enterCharge(self):
         self.player.start_charge()
         self.toggle_cam_view('charging')
+        self.cam_target_p = 45
         self.crosshair.show()
+
+    def updateCharge(self, dt):
+        if base.mouseWatcherNode.has_mouse():
+            mpos = base.mouseWatcherNode.get_mouse()
+
+            self.cam_target_h = mpos.x * 180
+            self.cam_target_p = mpos.y * -45
+
+        self.player.model.set_h(self.cam_dummy.get_h() + 45)
 
     def exitCharge(self):
         self.player.stop_charge()
@@ -174,9 +186,9 @@ class PlayerControl(FSM):
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
-        cam_pos = base.camera.get_pos(self.bobber)
-        base.camera.reparent_to(self.bobber)
-        base.camera.set_pos(cam_pos)
+        #cam_pos = base.camera.get_pos(self.bobber)
+        #base.camera.reparent_to(self.bobber)
+        #base.camera.set_pos(cam_pos)
         def stop_cast(task):
             if self.state == 'Cast':
                 self.request('Reel')
@@ -208,25 +220,6 @@ class PlayerControl(FSM):
     def updateReel(self, _dt):
         self.request('Normal')
 
-    def update_cam(self, dt, mpos):
-        delta = self.cam_dummy.get_pos(base.cam)
-        if self.state == 'Cast':
-            base.camera.look_at(self.bobber)
-        elif delta.length() > 0:
-            offset = delta.normalized() * CAM_POS_SPEED * dt
-            if offset.length() >= delta.length():
-                base.camera.set_pos(self.cam_dummy, 0, 0, 0)
-            else:
-                base.camera.set_pos(base.cam, offset)
-            base.camera.look_at(self.focus)
-        elif mpos and self.state == 'Charge':
-            current = core.Vec2(mpos.x, mpos.y)
-            if self.mouse_last:
-                self.mouse_delta = current - self.mouse_last
-                base.camera.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
-                base.camera.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
-            self.mouse_last = current
-
     def update(self, dt):
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
@@ -235,9 +228,22 @@ class PlayerControl(FSM):
 
         if self.state and hasattr(self, f'update{self.state}'):
             getattr(self, f'update{self.state}')(dt)
-        self.update_cam(dt, mpos)
+
         self.player.update(dt)
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
+
+        cur_h = self.cam_dummy.get_h()
+        dist = self.cam_target_h - cur_h
+        dist = (dist + 180) % 360 - 180
+        if abs(dist) > 0:
+            sign = dist / abs(dist)
+            self.cam_dummy.set_h(cur_h + dist * CAM_ROTATE_SPEED * dt)
+
+        cur_p = self.cam_dummy.get_p()
+        dist = self.cam_target_p - cur_p
+        if abs(dist) > 0:
+            sign = dist / abs(dist)
+            self.cam_dummy.set_p(cur_p + dist * CAM_ROTATE_SPEED * dt)
 
 
 class Crosshair:
