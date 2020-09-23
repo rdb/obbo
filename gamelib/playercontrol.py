@@ -16,6 +16,9 @@ CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
 AIM_SPEED_MULT = 50
 CAM_ROTATE_SPEED = 5.0
+CAM_CAST_X_SENSITIVITY = 1.0
+
+assert CAM_CAST_X_SENSITIVITY > 0.5
 
 
 class PlayerControl(FSM):
@@ -166,8 +169,18 @@ class PlayerControl(FSM):
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
 
-            self.cam_target_h = mpos.x * -180
+            self.cam_target_h = mpos.x * -1 * (360 * CAM_CAST_X_SENSITIVITY)
             self.cam_target_p = mpos.y * -45 + 45
+
+            border = 0.5 / CAM_CAST_X_SENSITIVITY
+            if mpos.x > 1 - border or mpos.x < -1 + border:
+                ptr = base.win.get_pointer(0)
+                if ptr.in_window:
+                    if mpos.x > 0:
+                        new_x = mpos.x - 1.0 / CAM_CAST_X_SENSITIVITY
+                    else:
+                        new_x = mpos.x + 1.0 / CAM_CAST_X_SENSITIVITY
+                    base.win.move_pointer(0, int((new_x * 0.5 + 0.5) * base.win.get_x_size()), int(ptr.y))
 
         self.player.model.set_h(self.cam_dummy.get_h() + 45)
 
