@@ -117,7 +117,12 @@ void main() {
         float spotcutoff = p3d_LightSource[i].spotCosCutoff;
         float shadowSpot = smoothstep(spotcutoff-SPOTSMOOTH, spotcutoff+SPOTSMOOTH, spotcos);
 #ifdef ENABLE_SHADOWS
-        float shadowCaster = shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i]).r;
+        float shadowCaster =
+            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, 0.001, 0, 0)).r +
+            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0.001, 0, 0, 0)).r +
+            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(-0.001, 0, 0, 0)).r +
+            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, -0.001, 0, 0)).r;
+        shadowCaster *= 0.25;
 #else
         float shadowCaster = 1.0;
 #endif
