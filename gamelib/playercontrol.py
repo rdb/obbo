@@ -1,6 +1,8 @@
+# pylint: disable=invalid-name
 import math
 
 from panda3d import core
+from direct.fsm.FSM import FSM
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
 
@@ -15,8 +17,9 @@ CAM_POS_SPEED = 70
 AIM_SPEED_MULT = 25
 
 
-class PlayerControl:
+class PlayerControl(FSM):
     def __init__(self, universe):
+        super().__init__('Normal')
         self.traverser = core.CollisionTraverser()
         self.ray = core.CollisionRay()
         self.root = universe.root
@@ -44,15 +47,17 @@ class PlayerControl:
         self.aim_mode = False
         self.mouse_delta = None
         self.mouse_last = None
-        self.bobber = None
-        self.bobber_mode = False
+        self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
+        self.bobber.reparent_to(self.player.model)
+        self.bobber.hide()
+
+        self.request('Normal')
 
         # FIXME: Not sure if we may need universe later again
         self.universe = universe
 
     def enter(self):
         base.cam.reparent_to(self.player.model_pos)
-        self.toggle_cam_view()
 
     def exit(self):
         """Clean up?"""
@@ -85,77 +90,27 @@ class PlayerControl:
             self.down_time = 0
 
     def on_click(self):
+        if self.state == 'Charge':
+            self.request('Cast')
+
         if self.cursor_pos and not self.is_hold:
             self.target.set_pos(self.down_pos)
             self.player.move_to(self.down_pos)
             self.down_pos = None
             self.down_time = None
-        if self.is_hold:
-            self.set_aim(False)
         self.is_hold = False
 
     def cancel(self):
-        if self.is_hold:
-            self.is_hold = False
-            self.player.stop_charge()
-            self.toggle_cam_view()
+        self.request('Normal')
 
-    def set_aim(self, value):
-        if value:
-            self.player.start_charge()
-            self.toggle_cam_view('charging')
-            self.aim_mode = True
-        else:
-            self.player.stop_charge()
-            self.start_cast()
-
-    def start_cast(self):
-        # FIXME: Make proper mechanic, this is just a test
-        if self.bobber is None:
-            self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
-            self.bobber.reparent_to(self.player.model)
-        self.bobber.show()
-        self.bobber.set_pos((-1, 0, 1))
-        direction = self.crosshair.model.get_pos(self.player.model).normalized()
-        LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
-        self.bobber_mode = True
-        self.aim_mode = False
+    def enterNormal(self):
         self.crosshair.hide()
-        cam_pos = base.cam.get_pos(self.bobber)
-        base.cam.reparent_to(self.bobber)
-        base.cam.set_pos(cam_pos)
-        base.taskMgr.do_method_later(3, self.start_reeling, 'start_reeling')
-
-    def start_reeling(self, task):
-        # TODO: Add reeling mechanism here
-        self.bobber.hide()
+        self.toggle_cam_view()
         cam_pos = base.cam.get_pos(self.player.model_pos)
         base.cam.reparent_to(self.player.model_pos)
         base.cam.set_pos(cam_pos)
-        self.toggle_cam_view()
-        self.bobber_mode = False
-        return task.done
 
-    def update_cam(self, dt, mpos):
-        delta = self.cam_dummy.get_pos(base.cam)
-        if self.bobber_mode:
-            base.cam.look_at(self.bobber)
-        elif delta.length() > 0:
-            offset = delta.normalized() * CAM_POS_SPEED * dt
-            if offset.length() >= delta.length():
-                base.cam.set_pos(self.cam_dummy, 0, 0, 0)
-            else:
-                base.cam.set_pos(base.cam, offset)
-            base.cam.look_at(self.focus)
-        elif mpos and self.aim_mode:
-            current = core.Vec2(mpos.x, mpos.y)
-            if self.mouse_last:
-                self.mouse_delta = current - self.mouse_last
-                base.cam.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
-                base.cam.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
-            self.mouse_last = current
-
-    def update(self, dt):
+    def updateNormal(self, dt):
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
@@ -177,7 +132,7 @@ class PlayerControl:
                 self.down_time += dt
                 hold_threshold = core.ConfigVariableDouble('click-hold-threshold', 0.3).get_value()
                 if self.down_time > hold_threshold:
-                    self.set_aim(True)
+                    self.request('Charge')
                     self.is_hold = True
                     self.down_time = None
         else:
@@ -185,6 +140,67 @@ class PlayerControl:
             self.cursor.model.hide()
             mpos = None
 
+    def exitNormal(self):
+        self.cursor.model.hide()
+
+    def enterCharge(self):
+        self.player.start_charge()
+        self.toggle_cam_view('charging')
+        self.crosshair.show()
+
+    def exitCharge(self):
+        self.player.stop_charge()
+        self.toggle_cam_view()
+        self.crosshair.hide()
+
+    def enterCast(self):
+        # FIXME: Make proper mechanic, this is just a test
+        self.bobber.show()
+        self.bobber.set_pos((-1, 0, 1))
+        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
+        cam_pos = base.cam.get_pos(self.bobber)
+        base.cam.reparent_to(self.bobber)
+        base.cam.set_pos(cam_pos)
+        def stop_cast(task):
+            if self.state == 'Cast':
+                self.request('Reel')
+            return task.done
+        base.taskMgr.do_method_later(1, stop_cast, 'stop_cast')
+
+    def exitCast(self):
+        self.bobber.hide()
+
+    def updateReel(self, _dt):
+        self.request('Normal')
+
+    def update_cam(self, dt, mpos):
+        delta = self.cam_dummy.get_pos(base.cam)
+        if self.state == 'Cast':
+            base.cam.look_at(self.bobber)
+        elif delta.length() > 0:
+            offset = delta.normalized() * CAM_POS_SPEED * dt
+            if offset.length() >= delta.length():
+                base.cam.set_pos(self.cam_dummy, 0, 0, 0)
+            else:
+                base.cam.set_pos(base.cam, offset)
+            base.cam.look_at(self.focus)
+        elif mpos and self.state == 'Charge':
+            current = core.Vec2(mpos.x, mpos.y)
+            if self.mouse_last:
+                self.mouse_delta = current - self.mouse_last
+                base.cam.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
+                base.cam.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
+            self.mouse_last = current
+
+    def update(self, dt):
+        if base.mouseWatcherNode.has_mouse():
+            mpos = base.mouseWatcherNode.get_mouse()
+        else:
+            mpos = None
+
+        if self.state and hasattr(self, f'update{self.state}'):
+            getattr(self, f'update{self.state}')(dt)
         self.update_cam(dt, mpos)
         self.player.update(dt)
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
