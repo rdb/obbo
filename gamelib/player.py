@@ -20,10 +20,14 @@ class Player(PlanetObject):
         self.model_pos.set_z(0)
         model = Actor("models/obbo.bam")
         model.reparent_to(self.model_pos)
-
         self.model = model
+
+        self.rod_tip = model.expose_joint(None, 'modelRoot', 'rod_0')
+
         self.walk_ctr = self.model.get_anim_control('walk')
-        self.cast_ctr = self.model.get_anim_control('fish_charge')
+        self.charge_ctr = self.model.get_anim_control('fish_charge')
+        self.cast_ctr = self.model.get_anim_control('fish_cast')
+        self.reel_ctr = self.model.get_anim_control('fish_reel')
 
         self.collider = self.model.attach_new_node(core.CollisionNode("collision"))
         self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.5), 0.5))
@@ -38,12 +42,12 @@ class Player(PlanetObject):
         self.target_pos = None
 
     def start_charge(self):
-        self.cast_ctr.set_play_rate(2.0)
-        self.cast_ctr.play()
+        self.charge_ctr.set_play_rate(2.0)
+        self.charge_ctr.play()
 
     def stop_charge(self):
-        self.cast_ctr.set_play_rate(-2.0)
-        self.cast_ctr.play()
+        self.charge_ctr.set_play_rate(-2.0)
+        self.charge_ctr.play()
 
     def move_to(self, pos):
         self.target_pos = core.Vec3(*pos)

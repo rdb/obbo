@@ -26,7 +26,7 @@ BOBBER_SPIN_SPEED = 0.1
 CAST_TIME = 1.0
 CAST_MAX_DISTANCE = 15.0
 
-REEL_SPEED = 3.0
+REEL_SPEED = 4.0
 
 # How close the bobber can get to Obbo before ending the reel
 REEL_MIN_DISTANCE = 1.0
@@ -113,9 +113,15 @@ class PlayerControl(FSM):
             self.down_pos = self.cursor_pos
         self.down_time = globalClock.frame_time
 
+        if self.state == 'Cast':
+            self.player.reel_ctr.play()
+
     def on_mouse_up(self):
         if self.down_time is None:
             return
+
+        if self.state == 'Cast':
+            self.player.reel_ctr.stop()
 
         if self.state == 'Charge':
             time = globalClock.frame_time - self.down_time
@@ -136,6 +142,7 @@ class PlayerControl(FSM):
         self.crosshair.hide()
         self.toggle_cam_view()
         self.bobber.stash()
+        self.player.reel_ctr.stop()
 
         # Interrupt mouse hold if we just came in here holding the mouse,
         # so that we don't re-cast the line right away.
@@ -197,12 +204,13 @@ class PlayerControl(FSM):
     def enterCast(self, power):
         distance = min(power, 1) * CAST_MAX_DISTANCE
         self.bobber.unstash()
-        self.bobber.set_pos((-1, 0, 1))
+        rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
+        self.bobber.set_pos(rod_tip_pos + (-1, 0, 1))
         self.bobber.set_hpr(0, 0, 0)
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         Parallel(
-            LerpPosInterval(self.bobber, CAST_TIME, direction * distance, blendType='easeOut'),
+            LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
             LerpHprInterval(self.bobber, CAST_TIME, (0, 0, 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
         ).start()
         self.down_time = None
@@ -233,15 +241,21 @@ class PlayerControl(FSM):
             print('hit an asteroid!')
             asteroid.destroy()
 
+        self.player.reel_ctr.play()
+
     def updateReel(self, dt):
         # Reel in
-        bobber_pos = self.bobber.get_pos()
+        rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
+        bobber_pos = self.bobber.get_pos() - rod_tip_pos
         bobber_dst = bobber_pos.length()
         if bobber_dst > REEL_MIN_DISTANCE:
             bobber_dir = bobber_pos / bobber_dst
             self.bobber.set_pos(self.bobber.get_pos() - bobber_dir * min(bobber_dst, REEL_SPEED * dt))
         else:
             self.request('Normal')
+
+    def exitReel(self):
+        self.player.reel_ctr.stop()
 
     def update_cast_cam(self):
         ptr = base.win.get_pointer(0)
