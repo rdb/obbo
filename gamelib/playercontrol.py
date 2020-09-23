@@ -41,9 +41,11 @@ class PlayerControl:
 
         self.cam_dummy = self.player.model.attach_new_node('cam')
         self.focus = self.player.model.attach_new_node('focus')
-        self.target_mode = False
+        self.aim_mode = False
         self.mouse_delta = None
         self.mouse_last = None
+        self.bobber = None
+        self.bobber_mode = False
 
         # FIXME: Not sure if we may need universe later again
         self.universe = universe
@@ -60,8 +62,7 @@ class PlayerControl:
         if view == 'default':
             self.cam_dummy.reparent_to(self.player.model_pos)
             pos = DEFAULT_POS
-            self.crosshair.hide()
-            self.target_mode = False
+            self.aim_mode = False
         elif view == 'charging':
             self.cam_dummy.reparent_to(self.player.model)
             pos = CAST_POS
@@ -96,25 +97,50 @@ class PlayerControl:
         if value:
             self.player.start_charge()
             self.toggle_cam_view('charging')
-            self.target_mode = True
+            self.aim_mode = True
         else:
             self.player.stop_charge()
-            self.toggle_cam_view()
             self.start_cast()
 
     def start_cast(self):
-        pass
+        # FIXME: Make proper mechanic, this is just a test
+        if self.bobber is None:
+            self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
+            self.bobber.reparent_to(self.player.model)
+        self.bobber.show()
+        self.bobber.set_pos((-1, 0, 1))
+        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
+        self.bobber_mode = True
+        self.aim_mode = False
+        self.crosshair.hide()
+        cam_pos = base.cam.get_pos(self.bobber)
+        base.cam.reparent_to(self.bobber)
+        base.cam.set_pos(cam_pos)
+        base.taskMgr.do_method_later(3, self.start_reeling, 'start_reeling')
+
+    def start_reeling(self, task):
+        # TODO: Add reeling mechanism here
+        self.bobber.hide()
+        cam_pos = base.cam.get_pos(self.player.model_pos)
+        base.cam.reparent_to(self.player.model_pos)
+        base.cam.set_pos(cam_pos)
+        self.toggle_cam_view()
+        self.bobber_mode = False
+        return task.done
 
     def update_cam(self, dt, mpos):
         delta = self.cam_dummy.get_pos(base.cam)
-        if delta.length() > 0:
+        if self.bobber_mode:
+            base.cam.look_at(self.bobber)
+        elif delta.length() > 0:
             offset = delta.normalized() * CAM_POS_SPEED * dt
             if offset.length() >= delta.length():
                 base.cam.set_pos(self.cam_dummy, 0, 0, 0)
             else:
                 base.cam.set_pos(base.cam, offset)
             base.cam.look_at(self.focus)
-        elif mpos and self.target_mode:
+        elif mpos and self.aim_mode:
             current = core.Vec2(mpos.x, mpos.y)
             if self.mouse_last:
                 self.mouse_delta = current - self.mouse_last
