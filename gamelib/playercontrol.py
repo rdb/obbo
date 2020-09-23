@@ -41,7 +41,6 @@ class PlayerControl(FSM):
         bobbercol = core.CollisionNode('Bobber')
         bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
         bobbercol = self.bobber.attach_new_node(bobbercol)
-        bobbercol.show()
         self.asteroid_handler = core.CollisionHandlerQueue()
         self.traverser.add_collider(bobbercol, self.asteroid_handler)
 
