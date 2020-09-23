@@ -24,6 +24,7 @@ CAM_CAST_X_SENSITIVITY = 1.0
 CHARGE_MAX_TIME = 2.0
 
 BOBBER_SPIN_SPEED = 0.1
+MAGNET_RADIUS = 1.5
 
 CAST_TIME = 1.0
 CAST_MAX_DISTANCE = 15.0
@@ -63,12 +64,15 @@ class PlayerControl(FSM, DirectObject):
         self.bobber = base.loader.load_model('models/bobber.bam')
         self.bobber.reparent_to(self.player.model)
         self.bobber.set_scale(0.1)
+        self.bobber.flatten_light()
         self.bobber.stash()
         bobbercol = core.CollisionNode('Bobber')
-        bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
+        bobbercol.add_solid(core.CollisionSphere(center=(-0.6, 2, -0.1), radius=MAGNET_RADIUS))
+        bobbercol.add_solid(core.CollisionSphere(center=(0.6, 2, -0.1), radius=MAGNET_RADIUS))
         bobbercol.set_from_collide_mask(0b0100)
         bobbercol.set_into_collide_mask(0b0000)
         self.bobber_collider = self.bobber.attach_new_node(bobbercol)
+        #self.bobber_collider.show()
         self.asteroid_handler = core.CollisionHandlerQueue()
 
         self.cursor_pos = None
@@ -87,6 +91,7 @@ class PlayerControl(FSM, DirectObject):
         self.aim_mode = False
         self.mouse_delta = None
         self.mouse_last = None
+        self.catch = None
 
         self.request('Normal')
 
@@ -257,7 +262,11 @@ class PlayerControl(FSM, DirectObject):
     def enterReel(self, asteroid=None):
         if asteroid is not None:
             print('hit an asteroid!')
-            asteroid.destroy()
+            asteroid.stop()
+            asteroid.asteroid.wrt_reparent_to(self.bobber)
+
+            asteroid.asteroid.posInterval(0.1, (0.6, 2, 0.1)).start()
+            self.catch = asteroid
 
         if not self.player.reel_ctr.playing:
             self.player.reel_ctr.play()
@@ -275,6 +284,9 @@ class PlayerControl(FSM, DirectObject):
 
     def exitReel(self):
         self.player.reel_ctr.stop()
+        if self.catch:
+            self.catch.destroy()
+            self.catch = None
 
     def enterBuild(self):
         # TODO: Display building types from current tech tree

@@ -31,8 +31,12 @@ class Asteroid(PlanetObject):
         mat = core.Material()
         mat.set_roughness(1)
         self.asteroid.set_material(mat)
-        LerpHprInterval(self.rotation, 10.0, (360, 0, 0)).loop()
-        LerpHprInterval(self.asteroid, 3.0, (360, 360, 0)).loop()
+
+        self._orbit_ival = LerpHprInterval(self.rotation, 10.0, (360, 0, 0))
+        self._spin_ival = LerpHprInterval(self.asteroid, 3.0, (360, 360, 0))
+
+        self._orbit_ival.loop()
+        self._spin_ival.loop()
 
         collide = core.CollisionNode('asteroid')
         collide.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=0.3))
@@ -40,3 +44,11 @@ class Asteroid(PlanetObject):
         collide.set_from_collide_mask(0b0000)
         collide = self.asteroid.attach_new_node(collide)
         collide.set_python_tag('asteroid', self)
+
+    def destroy(self):
+        self.asteroid.remove_node()
+        super().destroy()
+
+    def stop(self):
+        self._orbit_ival.pause()
+        self._spin_ival.pause()
