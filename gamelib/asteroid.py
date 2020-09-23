@@ -33,3 +33,9 @@ class Asteroid(PlanetObject):
         self.asteroid.set_material(mat)
         LerpHprInterval(self.rotation, 10.0, (360, 0, 0)).loop()
         LerpHprInterval(self.asteroid, 3.0, (360, 360, 0)).loop()
+
+        collide = core.CollisionNode('asteroid')
+        collide.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=0.3))
+        collide = self.asteroid.attach_new_node(collide)
+        collide.show()
+        collide.set_python_tag('asteroid', self)

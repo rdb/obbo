@@ -113,6 +113,9 @@ class PlanetObject:
         self.root.set_pos(0, 1, 0)
         self.root.set_hpr(0, -90, 0)
 
+    def destroy(self):
+        self.root.remove_node()
+
     def get_pos(self):
         return self.pivot.get_quat().get_forward()
 

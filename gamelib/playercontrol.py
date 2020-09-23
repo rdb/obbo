@@ -35,6 +35,16 @@ class PlayerControl(FSM):
         self.player.set_pos((0, 0, 1))
         self.crosshair = Crosshair()
 
+        self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
+        self.bobber.reparent_to(self.player.model)
+        self.bobber.hide()
+        bobbercol = core.CollisionNode('Bobber')
+        bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
+        bobbercol = self.bobber.attach_new_node(bobbercol)
+        bobbercol.show()
+        self.asteroid_handler = core.CollisionHandlerQueue()
+        self.traverser.add_collider(bobbercol, self.asteroid_handler)
+
         self.cursor_pos = None
         self.down_pos = None
         self.down_time = None
@@ -47,9 +57,6 @@ class PlayerControl(FSM):
         self.aim_mode = False
         self.mouse_delta = None
         self.mouse_last = None
-        self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
-        self.bobber.reparent_to(self.player.model)
-        self.bobber.hide()
 
         self.request('Normal')
 
@@ -168,8 +175,26 @@ class PlayerControl(FSM):
             return task.done
         base.taskMgr.do_method_later(1, stop_cast, 'stop_cast')
 
+    def updateCast(self, _dt):
+        self.traverser.traverse(self.universe.root)
+        self.asteroid_handler.sort_entries()
+
+        hit_asteroids = [
+            nodepath.get_python_tag('asteroid') for i in
+            self.asteroid_handler.entries
+            if (nodepath := i.getIntoNodePath()).has_python_tag('asteroid')
+        ]
+
+        if hit_asteroids:
+            self.request('Reel', hit_asteroids[0])
+
     def exitCast(self):
         self.bobber.hide()
+
+    def enterReel(self, asteroid=None):
+        if asteroid is not None:
+            print('hit an asteroid!')
+            asteroid.destroy()
 
     def updateReel(self, _dt):
         self.request('Normal')
