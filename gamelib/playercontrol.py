@@ -18,6 +18,19 @@ AIM_SPEED_MULT = 50
 CAM_ROTATE_SPEED = 5.0
 CAM_CAST_X_SENSITIVITY = 1.0
 
+# How long it takes to reach maximum charge
+CHARGE_MAX_TIME = 2.0
+
+BOBBER_SPIN_SPEED = 0.1
+
+CAST_TIME = 1.0
+CAST_MAX_DISTANCE = 15.0
+
+REEL_SPEED = 3.0
+
+# How close the bobber can get to Obbo before ending the reel
+REEL_MIN_DISTANCE = 1.0
+
 assert CAM_CAST_X_SENSITIVITY > 0.5
 
 
@@ -57,7 +70,6 @@ class PlayerControl(FSM):
         self.cursor_pos = None
         self.down_pos = None
         self.down_time = None
-        self.is_hold = False
         self.cursor = Cursor(universe.planet)
         self.target = Cursor(universe.planet)
 
@@ -96,22 +108,26 @@ class PlayerControl(FSM):
         else:
             raise RuntimeError(f'Unknown view "{view}"')
 
-    def on_down(self):
+    def on_mouse_down(self):
         if self.cursor_pos:
             self.down_pos = self.cursor_pos
-        self.down_time = 0
+        self.down_time = globalClock.frame_time
 
-    def on_click(self):
+    def on_mouse_up(self):
+        if self.down_time is None:
+            return
+
         if self.state == 'Charge':
-            self.request('Cast')
+            time = globalClock.frame_time - self.down_time
+            self.request('Cast', time / CHARGE_MAX_TIME)
 
-        if self.cursor_pos and not self.is_hold:
+        self.down_time = None
+
+        if self.cursor_pos and self.state == 'Normal':
             if self.down_pos:
                 self.target.set_pos(self.down_pos)
                 self.player.move_to(self.down_pos)
             self.down_pos = None
-            self.down_time = None
-        self.is_hold = False
 
     def cancel(self):
         self.request('Normal')
@@ -119,6 +135,11 @@ class PlayerControl(FSM):
     def enterNormal(self):
         self.crosshair.hide()
         self.toggle_cam_view()
+        self.bobber.stash()
+
+        # Interrupt mouse hold if we just came in here holding the mouse,
+        # so that we don't re-cast the line right away.
+        self.down_time = None
 
     def updateNormal(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -145,12 +166,11 @@ class PlayerControl(FSM):
                 self.cursor.model.hide()
 
             if self.down_time is not None:
-                self.down_time += dt
+                cur_time = globalClock.frame_time
                 hold_threshold = core.ConfigVariableDouble('click-hold-threshold', 0.3).get_value()
-                if self.down_time > hold_threshold:
+                if cur_time - self.down_time > hold_threshold:
+                    self.down_time = cur_time
                     self.request('Charge')
-                    self.is_hold = True
-                    self.down_time = None
         else:
             self.cursor_pos = None
             self.cursor.model.hide()
@@ -166,6 +186,64 @@ class PlayerControl(FSM):
         self.crosshair.show()
 
     def updateCharge(self, dt):
+        self.update_cast_cam()
+        self.player.model.set_h(self.cam_dummy.get_h() + 45)
+
+    def exitCharge(self):
+        self.player.stop_charge()
+        self.toggle_cam_view()
+        self.crosshair.hide()
+
+    def enterCast(self, power):
+        distance = min(power, 1) * CAST_MAX_DISTANCE
+        self.bobber.unstash()
+        self.bobber.set_pos((-1, 0, 1))
+        self.bobber.set_hpr(0, 0, 0)
+        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
+        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        Parallel(
+            LerpPosInterval(self.bobber, CAST_TIME, direction * distance, blendType='easeOut'),
+            LerpHprInterval(self.bobber, CAST_TIME, (0, 0, 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+        ).start()
+        self.down_time = None
+
+    def updateCast(self, dt):
+        self.update_cast_cam()
+
+        if self.down_time is not None:
+            self.updateReel(dt)
+
+        self.traverser.traverse(self.universe.root)
+        self.asteroid_handler.sort_entries()
+
+        hit_asteroids = [
+            i.into_node_path.get_python_tag('asteroid') for i in
+            self.asteroid_handler.entries
+            if i.into_node_path.has_python_tag('asteroid')
+        ]
+
+        if hit_asteroids:
+            self.request('Reel', hit_asteroids[0])
+
+    def exitCast(self):
+        self.traverser.remove_collider(self.bobber_collider)
+
+    def enterReel(self, asteroid=None):
+        if asteroid is not None:
+            print('hit an asteroid!')
+            asteroid.destroy()
+
+    def updateReel(self, dt):
+        # Reel in
+        bobber_pos = self.bobber.get_pos()
+        bobber_dst = bobber_pos.length()
+        if bobber_dst > REEL_MIN_DISTANCE:
+            bobber_dir = bobber_pos / bobber_dst
+            self.bobber.set_pos(self.bobber.get_pos() - bobber_dir * min(bobber_dst, REEL_SPEED * dt))
+        else:
+            self.request('Normal')
+
+    def update_cast_cam(self):
         ptr = base.win.get_pointer(0)
         if ptr.in_window:
             mpos = core.Point2(ptr.x / base.win.get_x_size() * 2 - 1,
@@ -181,54 +259,6 @@ class PlayerControl(FSM):
                 else:
                     new_x = mpos.x + 1.0 / CAM_CAST_X_SENSITIVITY
                 base.win.move_pointer(0, int((new_x * 0.5 + 0.5) * base.win.get_x_size()), int(ptr.y))
-
-        self.player.model.set_h(self.cam_dummy.get_h() + 45)
-
-    def exitCharge(self):
-        self.player.stop_charge()
-        self.toggle_cam_view()
-        self.crosshair.hide()
-
-    def enterCast(self):
-        # FIXME: Make proper mechanic, this is just a test
-        self.bobber.unstash()
-        self.bobber.set_pos((-1, 0, 1))
-        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
-        direction = self.crosshair.model.get_pos(self.player.model).normalized()
-        LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
-        #cam_pos = base.camera.get_pos(self.bobber)
-        #base.camera.reparent_to(self.bobber)
-        #base.camera.set_pos(cam_pos)
-        def stop_cast(task):
-            if self.state == 'Cast':
-                self.request('Reel')
-            return task.done
-        base.taskMgr.do_method_later(1, stop_cast, 'stop_cast')
-
-    def updateCast(self, _dt):
-        self.traverser.traverse(self.universe.root)
-        self.asteroid_handler.sort_entries()
-
-        hit_asteroids = [
-            i.into_node_path.get_python_tag('asteroid') for i in
-            self.asteroid_handler.entries
-            if i.into_node_path.has_python_tag('asteroid')
-        ]
-
-        if hit_asteroids:
-            self.request('Reel', hit_asteroids[0])
-
-    def exitCast(self):
-        self.traverser.remove_collider(self.bobber_collider)
-        self.bobber.stash()
-
-    def enterReel(self, asteroid=None):
-        if asteroid is not None:
-            print('hit an asteroid!')
-            asteroid.destroy()
-
-    def updateReel(self, _dt):
-        self.request('Normal')
 
     def update(self, dt):
         if base.mouseWatcherNode.has_mouse():
