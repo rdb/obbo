@@ -5,6 +5,9 @@ from .planet import PlanetObject
 from .util import clamp_angle
 
 
+PLAYER_WALK_SPEED = 0.4
+
+
 class Player(PlanetObject):
     def __init__(self, planet):
         super().__init__(planet)
@@ -67,7 +70,7 @@ class Player(PlanetObject):
                 self.target_pos = None
                 self.model.set_h(delta_h)
             else:
-                delta *= 1.0 / dist
+                delta *= PLAYER_WALK_SPEED / dist
                 if (delta * dt).length() > dist:
                     self.set_pos(self.target_pos)
                     self.target_pos = None
