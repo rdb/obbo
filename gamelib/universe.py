@@ -32,12 +32,16 @@ class Universe(FSM):
 
         self.asteroids = [Asteroid(self.planet) for _ in range(10)]
 
+        self.request('Universe')
+
     def enterUniverse(self):
+        base.transitions.fadeIn()
         base.accept('mouse1', self.player_control.on_down)
         base.accept('mouse1-up', self.player_control.on_click)
         self.player_control.enter()
 
     def exitUniverse(self):
+        base.transitions.fadeOut()
         base.forget('mouse1')
         base.forget('mouse1-up')
         self.player_control.exit()

@@ -8,6 +8,7 @@ import pman.shim
 
 from gamelib import renderer
 from gamelib.universe import Universe
+from gamelib.mainmenu import MainMenu
 
 
 panda3d.core.load_prc_file(
@@ -31,8 +32,13 @@ class GameApp(ShowBase):
         )
         self.accept('escape', sys.exit)
 
-        self.universe = Universe()
-        self.universe.request('Universe')
+        self.transitions.fadeScreen(1.0)
+
+        skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        if skip_main_menu:
+            self.gamestate = Universe()
+        else:
+            self.gamestate = MainMenu()
 
         self.accept('f1', self.screenshot)
         def save_lut_screen():
@@ -58,7 +64,7 @@ class GameApp(ShowBase):
         self.task_mgr.add(self.__update)
 
     def __update(self, task):
-        self.universe.update(globalClock.dt)
+        self.gamestate.update(globalClock.dt)
         return task.cont
 
     def load_lut(self, filename):
