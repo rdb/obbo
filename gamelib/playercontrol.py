@@ -99,7 +99,7 @@ class PlayerControl(FSM):
     def on_down(self):
         if self.cursor_pos:
             self.down_pos = self.cursor_pos
-            self.down_time = 0
+        self.down_time = 0
 
     def on_click(self):
         if self.state == 'Charge':
