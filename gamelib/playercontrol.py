@@ -261,10 +261,8 @@ class Cursor(PlanetObject):
     def __init__(self, planet):
         super().__init__(planet)
 
-        self.model = loader.load_model("models/sphere.bam")
+        self.model = loader.load_model("models/cursor.bam")
         self.model.reparent_to(self.root)
-        self.model.set_scale(0.1, 0.1, 0.0001)
-        self.model.flatten_light()
 
         self.model.set_shader_off(1)
         self.model.set_light_off(1)
