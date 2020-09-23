@@ -93,7 +93,7 @@ def generate(bounds:Vec3, color1:Vec3, color2:Vec3, noise_radius=2.0, seed=None)
     segments = LVecBase3i(*map(int, bounds / seg_len)) + 1
     h_segments = (sum(segments.xy) - 2) * 3
     p_segments = h_segments // 2 + 1
-    h_noise, p_noise, radius_noise, color_noise = noise \
+    color_noise, h_noise, p_noise, radius_noise = noise \
         .asteroid_noise(h_segments, p_segments, noise_radius, seed)
     h_noise = [i * 0.75 for i in h_noise]
     p_noise = [i * 0.75 for i in p_noise]
