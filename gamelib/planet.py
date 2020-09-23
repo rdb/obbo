@@ -114,34 +114,53 @@ class PlanetSide:
         new_slots += new_row
 
         if new_size == 1:
-            for slot in new_slots:
-                slot.attach_model(random.choice([
-                    "models/Environment/Craters/Crater2.bam",
-                    "models/Environment/Rocks/smallRock2.bam",
-                ]))
+            # Only dead objects
+            pool = [
+                "models/Environment/Craters/Crater2.bam",
+                "models/Environment/Rocks/smallRock2.bam",
+            ]
+        elif new_size == 2:
+            # Only small objects
+            pool = [
+                "models/Environment/Bushes/Bush1.bam",
+                "models/Environment/Bushes/Bush2.bam",
+                "models/Environment/Flowers/Flower1.bam",
+                "models/Environment/Flowers/Flower2.bam",
+                "models/Environment/Grass/grass1.bam",
+                "models/Environment/Grass/grass2.bam",
+                "models/Environment/Rocks/mediumRock1.bam",
+                "models/Environment/Rocks/mediumRock2.bam",
+                "models/Environment/Rocks/smallRock1.bam",
+                "models/Environment/Rocks/smallRock2.bam",
+                "models/Environment/Rocks/smallRock3.bam",
+                "models/Environment/Trees/Tree1.bam",
+            ]
         else:
-            for slot in new_slots:
-                slot.attach_model(random.choice([
-                    "models/Environment/Bushes/Bush1.bam",
-                    "models/Environment/Bushes/Bush2.bam",
-                    #"models/Environment/Craters/Crater1.bam",
-                    #"models/Environment/Craters/Crater2.bam",
-                    "models/Environment/Flowers/Flower1.bam",
-                    "models/Environment/Flowers/Flower2.bam",
-                    "models/Environment/Grass/grass1.bam",
-                    "models/Environment/Grass/grass2.bam",
-                    "models/Environment/Rocks/mediumRock1.bam",
-                    "models/Environment/Rocks/mediumRock2.bam",
-                    "models/Environment/Rocks/mountain1.bam",
-                    "models/Environment/Rocks/mountain2.bam",
-                    "models/Environment/Rocks/smallRock1.bam",
-                    "models/Environment/Rocks/smallRock2.bam",
-                    "models/Environment/Rocks/smallRock3.bam",
-                    "models/Environment/Trees/Tree1.bam",
-                    "models/Environment/Trees/Tree2.bam",
-                    #"models/Environment/Trees/Tree3.bam",
-                    #"models/Environment/Trees/Tree4.bam",
-                ]))
+            # Anything
+            pool = [
+                "models/Environment/Bushes/Bush1.bam",
+                "models/Environment/Bushes/Bush2.bam",
+                #"models/Environment/Craters/Crater1.bam",
+                #"models/Environment/Craters/Crater2.bam",
+                "models/Environment/Flowers/Flower1.bam",
+                "models/Environment/Flowers/Flower2.bam",
+                "models/Environment/Grass/grass1.bam",
+                "models/Environment/Grass/grass2.bam",
+                "models/Environment/Rocks/mediumRock1.bam",
+                "models/Environment/Rocks/mediumRock2.bam",
+                "models/Environment/Rocks/mountain1.bam",
+                "models/Environment/Rocks/mountain2.bam",
+                "models/Environment/Rocks/smallRock1.bam",
+                "models/Environment/Rocks/smallRock2.bam",
+                "models/Environment/Rocks/smallRock3.bam",
+                "models/Environment/Trees/Tree1.bam",
+                "models/Environment/Trees/Tree2.bam",
+                #"models/Environment/Trees/Tree3.bam",
+                #"models/Environment/Trees/Tree4.bam",
+            ]
+
+        for slot in new_slots:
+            slot.attach_model(random.choice(pool))
 
         # Also place a bunch of props
         #for n in range(new_size - 1):
@@ -279,6 +298,9 @@ class PlanetProp(PlanetObject):
 
 
 class AssetSlot(PlanetObject):
+
+    _asset_cache = {}
+
     def __init__(self, planet):
         super().__init__(planet)
 
@@ -299,19 +321,25 @@ class AssetSlot(PlanetObject):
     def attach_model(self, fn):
         self.placeholder.remove_node()
 
-        model = loader.load_model(fn)
-        model.reparent_to(self.slot_node)
-        model.set_scale(0.25)
+        if fn in self._asset_cache:
+            cached_asset = self._asset_cache[fn]
+        else:
+            cached_asset = loader.load_model(fn)
+            cached_asset.set_scale(0.25)
+            cached_asset.flatten_strong()
+            self._asset_cache[fn] = cached_asset
+
+        model = cached_asset.instance_to(self.slot_node)
         model.set_h(random.random() * 360)
         self.model = model
 
         lower = fn.lower()
         if 'flower' not in lower and 'grass' not in lower and 'smallrock' not in lower and 'crater' not in lower:
-            radius = 2
+            radius = 0.5
             if 'mountain' in lower:
-                radius *= 1.7
+                radius *= 4
             self.collider = model.attach_new_node(core.CollisionNode("collider"))
-            self.collider.node().add_solid(core.CollisionSphere((0, 0, 1), radius))
+            self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), radius))
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0010)
             #self.collider.show()
