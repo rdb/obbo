@@ -179,9 +179,9 @@ class PlayerControl(FSM):
         self.asteroid_handler.sort_entries()
 
         hit_asteroids = [
-            nodepath.get_python_tag('asteroid') for i in
+            i.into_node_path.get_python_tag('asteroid') for i in
             self.asteroid_handler.entries
-            if (nodepath := i.getIntoNodePath()).has_python_tag('asteroid')
+            if i.into_node_path.has_python_tag('asteroid')
         ]
 
         if hit_asteroids:
