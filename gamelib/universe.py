@@ -31,7 +31,7 @@ class Universe(FSM, DirectObject):
         dlight_path = self.planet.root.attach_new_node(self.dlight)
         dlight_path.look_at((1, 1, 0))
         self.root.set_light(dlight_path)
-        self.dlight.show_frustum()
+        #self.dlight.show_frustum()
 
         self.alight = core.AmbientLight("light")
         self.alight.color = (0.5, 0.5, 0.5, 1)
