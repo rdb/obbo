@@ -95,7 +95,7 @@ class Pipeline:
             window=None,
             camera_node=None,
             taskmgr=None,
-            max_lights=4,
+            max_lights=1,
             use_normal_maps=False,
             use_emission_maps=True,
             exposure=0.0,
