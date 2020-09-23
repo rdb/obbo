@@ -5,6 +5,8 @@ from .util import srgb_color
 
 
 BASE_RADIUS = 3
+GROWTH_TIME = 1.0
+SPROUT_TIME = 1.0
 
 
 class Planet:
@@ -27,12 +29,12 @@ class Planet:
         self.collide.node().set_into_collide_mask(1)
 
         self.sides = [
-            PlanetSide(self, (1, 0, 0)),
-            PlanetSide(self, (0, 1, 0)),
-            PlanetSide(self, (0, 0, 1)),
-            PlanetSide(self, (-1, 0, 0)),
-            PlanetSide(self, (0, -1, 0)),
-            PlanetSide(self, (0, 0, -1)),
+            PlanetSide(self, '+x'),
+            PlanetSide(self, '+y'),
+            PlanetSide(self, '+z'),
+            PlanetSide(self, '-x'),
+            PlanetSide(self, '-y'),
+            PlanetSide(self, '-z'),
         ]
 
         self.set_size(1)
@@ -47,63 +49,85 @@ class Planet:
         self.mouth = PlanetMouth(self)
         self.mouth.set_pos((0, -1.2, 1))
 
-    async def grow(self):
-        new_size = self.size + 2
-        self.root.scaleInterval(0.5, BASE_RADIUS + new_size ** 1.5, blendType='easeInOut').start()
-        await Task.pause(0.5)
+    def grow(self):
+        new_size = self.size + 1
         self.set_size(new_size)
 
     def set_size(self, size):
         self.size = size
-        self.root.set_scale(BASE_RADIUS + self.size ** 1.5)
+        #self.root.set_scale(BASE_RADIUS + size ** 1.5)
 
         for side in self.sides:
             side._size_changed(size) # pylint: disable=protected-access
 
+        self.root.scaleInterval(GROWTH_TIME, BASE_RADIUS + size ** 1.5, blendType='easeInOut').start()
+        taskMgr.add(self.__resize)
+
+    def __resize(self, task):
+        # Take x seconds to grow fully
+        growth = task.time / GROWTH_TIME
+        growth = min(1.0, growth)
+
+        for side in self.sides:
+            for row in side.grid:
+                for cell in row:
+                    cell.set_pos(cell.new_pos * growth + cell.old_pos * (1 - growth))
+
+        # Sprout new cells when done
+        if growth >= 1.0:
+            for side in self.sides:
+                for row in side.grid:
+                    for cell in row:
+                        cell.sprout()
+
+            return task.done
+        else:
+            return task.cont
+
 
 class PlanetSide:
-    def __init__(self, planet, normal):
+    def __init__(self, planet, side):
+        self.planet = planet
         self.root = planet.root.attach_new_node("side")
-        self.root.look_at(normal)
-        self.dots = None
+        self.side = side
+        self.grid = []
+
+    def __grow_grid(self):
+        # No idea if this calculation works, it's a random guess at a formula
+        # to roughly evenly distribute the new rows without spacing starting
+        # buildings too far apart
+        new_size = len(self.grid) + 1
+        insert_at = ((len(self.grid) - 1) * 2) % new_size
+        for row in self.grid:
+            row.insert(insert_at, BuildingSlot(self.planet))
+
+        self.grid.insert(insert_at, [BuildingSlot(self.planet) for i in range(new_size)])
 
     def _size_changed(self, size):
-        # This is just for visualization, may remove later
-        if self.dots:
-            self.dots.remove_node()
-
-        vdata = core.GeomVertexData('dots', core.GeomVertexFormat.get_v3(), core.Geom.UH_static)
-        vdata.unclean_set_num_rows(size ** 2)
-
-        writer = core.GeomVertexWriter(vdata, 'vertex')
+        while size > len(self.grid):
+            self.__grow_grid()
 
         for x in range(size):
             for y in range(size):
                 u = ((x * 2 + 1) / size - 1) * (1 - 0.3 / size)
                 v = ((y * 2 + 1) / size - 1) * (1 - 0.3 / size)
-                pos = core.Vec3(u, 1, v)
+
+                if self.side == '+x':
+                    pos = core.Vec3(1, u, v)
+                elif self.side == '+y':
+                    pos = core.Vec3(u, 1, v)
+                elif self.side == '+z':
+                    pos = core.Vec3(u, v, 1)
+                elif self.side == '-x':
+                    pos = core.Vec3(-1, u, v)
+                elif self.side == '-y':
+                    pos = core.Vec3(u, -1, v)
+                elif self.side == '-z':
+                    pos = core.Vec3(u, v, -1)
+
                 pos.normalize()
-                pos *= 1.001
-                writer.set_data3(pos)
-
-        del writer
-
-        points = core.GeomPoints(core.Geom.UH_static)
-        points.add_next_vertices(size ** 2)
-        geom = core.Geom(vdata)
-        geom.add_primitive(points)
-        gnode = core.GeomNode("dots")
-        gnode.add_geom(geom)
-
-        self.dots = self.root.attach_new_node(gnode)
-        self.dots.set_render_mode_thickness(0.01)
-        self.dots.set_render_mode_perspective(True)
-        self.dots.set_antialias(core.AntialiasAttrib.M_point)
-        self.dots.set_color_scale((1, 0, 0, 0.5))
-        self.dots.set_light_off(1)
-        self.dots.set_bin('transparent', 10)
-        self.dots.set_depth_write(False)
-        self.dots.set_shader_off(1)
+                self.grid[x][y].old_pos = self.grid[x][y].get_pos()
+                self.grid[x][y].new_pos = pos
 
 
 class PlanetObject:
@@ -167,3 +191,27 @@ class PlanetMouth(PlanetObject):
         self.model.set_color((1, 1, 1, 1), 1)
         self.model.set_hpr(180, -90, 0)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
+
+
+class BuildingSlot(PlanetObject):
+    def __init__(self, planet):
+        super().__init__(planet)
+
+        model = loader.load_model("jack")
+        model.reparent_to(self.root)
+        model.set_scale(0.1)
+        model.flatten_light()
+        model.set_effect(core.CompassEffect.make(core.NodePath(),
+                         core.CompassEffect.P_scale))
+        self.model = model
+        self.model.hide()
+        self.model.set_scale(0.00000000001)
+        self.sprouted = False
+
+    def sprout(self):
+        if self.sprouted:
+            return
+
+        self.model.show()
+        self.model.scaleInterval(SPROUT_TIME, 1.0).start()
+        self.sprouted = True
