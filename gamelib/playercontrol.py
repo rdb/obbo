@@ -63,7 +63,7 @@ class PlayerControl(FSM):
         self.universe = universe
 
     def enter(self):
-        base.cam.reparent_to(self.player.model_pos)
+        base.camera.reparent_to(self.player.model_pos)
 
     def exit(self):
         """Clean up?"""
@@ -112,9 +112,9 @@ class PlayerControl(FSM):
     def enterNormal(self):
         self.crosshair.hide()
         self.toggle_cam_view()
-        cam_pos = base.cam.get_pos(self.player.model_pos)
-        base.cam.reparent_to(self.player.model_pos)
-        base.cam.set_pos(cam_pos)
+        cam_pos = base.camera.get_pos(self.player.model_pos)
+        base.camera.reparent_to(self.player.model_pos)
+        base.camera.set_pos(cam_pos)
 
     def updateNormal(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -165,9 +165,9 @@ class PlayerControl(FSM):
         self.bobber.set_pos((-1, 0, 1))
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         LerpPosInterval(self.bobber, 2.5, direction * 50, blendType='easeOut').start()
-        cam_pos = base.cam.get_pos(self.bobber)
-        base.cam.reparent_to(self.bobber)
-        base.cam.set_pos(cam_pos)
+        cam_pos = base.camera.get_pos(self.bobber)
+        base.camera.reparent_to(self.bobber)
+        base.camera.set_pos(cam_pos)
         def stop_cast(task):
             if self.state == 'Cast':
                 self.request('Reel')
@@ -201,20 +201,20 @@ class PlayerControl(FSM):
     def update_cam(self, dt, mpos):
         delta = self.cam_dummy.get_pos(base.cam)
         if self.state == 'Cast':
-            base.cam.look_at(self.bobber)
+            base.camera.look_at(self.bobber)
         elif delta.length() > 0:
             offset = delta.normalized() * CAM_POS_SPEED * dt
             if offset.length() >= delta.length():
-                base.cam.set_pos(self.cam_dummy, 0, 0, 0)
+                base.camera.set_pos(self.cam_dummy, 0, 0, 0)
             else:
-                base.cam.set_pos(base.cam, offset)
-            base.cam.look_at(self.focus)
+                base.camera.set_pos(base.cam, offset)
+            base.camera.look_at(self.focus)
         elif mpos and self.state == 'Charge':
             current = core.Vec2(mpos.x, mpos.y)
             if self.mouse_last:
                 self.mouse_delta = current - self.mouse_last
-                base.cam.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
-                base.cam.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
+                base.camera.set_h(base.cam, -self.mouse_delta.x * AIM_SPEED_MULT)
+                base.camera.set_p(base.cam, self.mouse_delta.y * AIM_SPEED_MULT)
             self.mouse_last = current
 
     def update(self, dt):
@@ -242,7 +242,7 @@ class Crosshair:
         mat = core.Material()
         mat.base_color = (1, 1, 1, 1)
 
-        self.model = base.cam.attach_new_node(cardmaker.generate())
+        self.model = base.camera.attach_new_node(cardmaker.generate())
         self.model.set_material(mat)
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
