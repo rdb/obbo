@@ -57,8 +57,9 @@ class PlayerControl(FSM):
         self.traverser.add_collider(self.player.collider, self.pusher)
         #self.traverser.show_collisions(render)
 
-        self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
+        self.bobber = base.loader.load_model('models/bobber.bam')
         self.bobber.reparent_to(self.player.model)
+        self.bobber.set_scale(0.1)
         self.bobber.stash()
         bobbercol = core.CollisionNode('Bobber')
         bobbercol.add_solid(core.CollisionSphere(center=(0, 0, 0), radius=1.0))
@@ -206,12 +207,12 @@ class PlayerControl(FSM):
         self.bobber.unstash()
         rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
         self.bobber.set_pos(rod_tip_pos + (-1, 0, 1))
-        self.bobber.set_hpr(0, 0, 0)
+        self.bobber.set_hpr(-45, 15, 0)
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         Parallel(
             LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
-            LerpHprInterval(self.bobber, CAST_TIME, (0, 0, 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+            LerpHprInterval(self.bobber, CAST_TIME, (-45, 15, 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
         ).start()
         self.down_time = None
 
