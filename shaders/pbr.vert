@@ -18,7 +18,7 @@ uniform struct p3d_LightSourceParameters {
 } p3d_LightSource[MAX_LIGHTS];
 #endif
 
-uniform mat4 p3d_ModelViewProjectionMatrix;
+uniform mat4 p3d_ProjectionMatrix;
 uniform mat4 p3d_ModelViewMatrix;
 uniform mat3 p3d_NormalMatrix;
 
@@ -59,5 +59,5 @@ void main() {
         normal
     );
 
-    gl_Position = p3d_ModelViewProjectionMatrix * p3d_Vertex;
+    gl_Position = p3d_ProjectionMatrix * vert_pos4;
 }
