@@ -106,6 +106,8 @@ class PieMenu:
         return btn
 
     def show(self, x=None, y=None):
+        if not base.mouseWatcherNode.hasMouse():
+            return
 
         if base.win.getXSize() > base.win.getYSize():
             screenResMultiplier_x = base.win.getXSize() / base.win.getYSize()
