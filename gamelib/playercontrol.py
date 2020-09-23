@@ -122,7 +122,7 @@ class PlayerControl(FSM):
             mpos = base.mouseWatcherNode.get_mouse()
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
 
-            self.cam_target_h = mpos.x * 10
+            self.cam_target_h = mpos.x * -10
             self.cam_target_p = mpos.y * -45
 
             self.traverser.traverse(self.root)
@@ -166,7 +166,7 @@ class PlayerControl(FSM):
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
 
-            self.cam_target_h = mpos.x * 180
+            self.cam_target_h = mpos.x * -180
             self.cam_target_p = mpos.y * -45 + 45
 
         self.player.model.set_h(self.cam_dummy.get_h() + 45)
