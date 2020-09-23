@@ -5,7 +5,7 @@ from .util import srgb_color
 import random
 
 
-BASE_RADIUS = 3
+BASE_RADIUS = 1
 GROWTH_TIME = 1.0
 SPROUT_TIME = 1.0
 
@@ -21,7 +21,11 @@ class Planet:
         self.sphere = loader.load_model("models/sphere.bam")
         self.sphere.reparent_to(self.root)
 
-        self.sphere.set_color(srgb_color(0xffb2d4))
+        mat = core.Material("planet")
+        mat.refractive_index = 1
+        mat.base_color = (1, 0.238397, 0.238398, 1)
+        mat.roughness = 1
+        self.sphere.set_material(mat, 1)
 
         csphere = core.CollisionSphere((0, 0, 0), 1)
         self.collide = self.root.attach_new_node(core.CollisionNode("collision"))
@@ -38,6 +42,7 @@ class Planet:
             PlanetSide(self, '-z'),
         ]
 
+        self.root.set_scale(BASE_RADIUS + 1)
         self.set_size(1)
 
         #FIXME remove, just for debugging
@@ -90,6 +95,7 @@ class PlanetSide:
         self.root = planet.root.attach_new_node("side")
         self.side = side
         self.grid = []
+        self.props = []
 
     def __grow_grid(self):
         # No idea if this calculation works, it's a random guess at a formula
@@ -107,28 +113,42 @@ class PlanetSide:
         self.grid.insert(insert_at, new_row)
         new_slots += new_row
 
-        for slot in new_slots:
-            slot.attach_model(random.choice([
-                "models/Environment/Bushes/Bush1.bam",
-                "models/Environment/Bushes/Bush2.bam",
-                "models/Environment/Craters/Crater1.bam",
-                "models/Environment/Craters/Crater2.bam",
-                "models/Environment/Flowers/Flower1.bam",
-                "models/Environment/Flowers/Flower2.bam",
-                "models/Environment/Grass/grass1.bam",
-                "models/Environment/Grass/grass2.bam",
-                "models/Environment/Rocks/mediumRock1.bam",
-                "models/Environment/Rocks/mediumRock2.bam",
-                "models/Environment/Rocks/mountain1.bam",
-                "models/Environment/Rocks/mountain2.bam",
-                "models/Environment/Rocks/smallRock1.bam",
-                "models/Environment/Rocks/smallRock2.bam",
-                "models/Environment/Rocks/smallRock3.bam",
-                "models/Environment/Trees/Tree1.bam",
-                "models/Environment/Trees/Tree2.bam",
-                "models/Environment/Trees/Tree3.bam",
-                "models/Environment/Trees/Tree4.bam",
-            ]))
+        if new_size == 1:
+            for slot in new_slots:
+                slot.attach_model(random.choice([
+                    "models/Environment/Craters/Crater2.bam",
+                    "models/Environment/Rocks/smallRock2.bam",
+                ]))
+        else:
+            for slot in new_slots:
+                slot.attach_model(random.choice([
+                    "models/Environment/Bushes/Bush1.bam",
+                    "models/Environment/Bushes/Bush2.bam",
+                    #"models/Environment/Craters/Crater1.bam",
+                    #"models/Environment/Craters/Crater2.bam",
+                    "models/Environment/Flowers/Flower1.bam",
+                    "models/Environment/Flowers/Flower2.bam",
+                    "models/Environment/Grass/grass1.bam",
+                    "models/Environment/Grass/grass2.bam",
+                    "models/Environment/Rocks/mediumRock1.bam",
+                    "models/Environment/Rocks/mediumRock2.bam",
+                    "models/Environment/Rocks/mountain1.bam",
+                    "models/Environment/Rocks/mountain2.bam",
+                    "models/Environment/Rocks/smallRock1.bam",
+                    "models/Environment/Rocks/smallRock2.bam",
+                    "models/Environment/Rocks/smallRock3.bam",
+                    "models/Environment/Trees/Tree1.bam",
+                    "models/Environment/Trees/Tree2.bam",
+                    #"models/Environment/Trees/Tree3.bam",
+                    #"models/Environment/Trees/Tree4.bam",
+                ]))
+
+        # Also place a bunch of props
+        #for n in range(new_size - 1):
+        #    prop = PlanetProp(self.planet)
+        #    prop.set_pos((random.random() - 0.5, random.random() - 0.5, random.random() - 0.5))
+        #    self.props.append(prop)
+        #    prop.sprout()
 
     def _size_changed(self, size):
         while size > len(self.grid):
@@ -222,6 +242,32 @@ class PlanetMouth(PlanetObject):
         self.model.set_color((1, 1, 1, 1), 1)
         self.model.set_hpr(180, -90, 0)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
+
+
+class PlanetProp(PlanetObject):
+    def __init__(self, planet):
+        super().__init__(planet)
+
+        self.model = loader.load_model(random.choice([
+            "models/Environment/Flowers/Flower1.bam",
+            "models/Environment/Flowers/Flower2.bam",
+            "models/Environment/Grass/grass1.bam",
+            "models/Environment/Grass/grass2.bam",
+        ]))
+        self.model.set_effect(core.CompassEffect.make(core.NodePath(),
+                              core.CompassEffect.P_scale))
+        self.model.reparent_to(self.root)
+        self.model.set_scale(0.0000000001)
+        self.model.hide()
+        self.sprouted = False
+
+    def sprout(self):
+        if self.sprouted:
+            return
+
+        self.model.show()
+        self.model.scaleInterval(SPROUT_TIME, 0.25).start()
+        self.sprouted = True
 
 
 class AssetSlot(PlanetObject):
