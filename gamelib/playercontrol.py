@@ -63,6 +63,7 @@ class PlayerControl:
             self.cam_dummy.reparent_to(self.player.model_pos)
             pos = DEFAULT_POS
             self.aim_mode = False
+            self.crosshair.hide()
         elif view == 'charging':
             self.cam_dummy.reparent_to(self.player.model)
             pos = CAST_POS
@@ -92,6 +93,12 @@ class PlayerControl:
         if self.is_hold:
             self.set_aim(False)
         self.is_hold = False
+
+    def cancel(self):
+        if self.is_hold:
+            self.is_hold = False
+            self.player.stop_charge()
+            self.toggle_cam_view()
 
     def set_aim(self, value):
         if value:

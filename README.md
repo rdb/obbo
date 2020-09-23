@@ -13,6 +13,7 @@ This is an entry in the [PyWeek 30](https://pyweek.org/30/) challenge, with the 
 * `f4` - Toggle color grading
 * `f5` - Hot reload game files (only available when running from source)
 * `left mouse button` - Click to move, hold to start casting
+* `right mouse button` - cancel current cast
 
 ## Configuration
 

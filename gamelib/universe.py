@@ -39,6 +39,7 @@ class Universe(FSM, DirectObject):
         base.transitions.fadeIn()
         self.accept('mouse1', self.player_control.on_down)
         self.accept('mouse1-up', self.player_control.on_click)
+        self.accept('mouse3-up', self.player_control.cancel)
         self.player_control.enter()
 
     def exitUniverse(self): # pylint: disable=invalid-name
