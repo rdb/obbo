@@ -24,8 +24,14 @@ class Universe(FSM, DirectObject):
 
         self.dlight = core.DirectionalLight("light")
         self.dlight.color = (0.5, 0.5, 0.5, 1)
-        self.dlight.direction = (1, 1, 0)
-        self.root.set_light(self.root.attach_new_node(self.dlight))
+        self.dlight.set_shadow_caster(True, 1024, 1024)
+        dlight_lens = self.dlight.get_lens()
+        dlight_lens.set_film_size(-3, 3)
+        dlight_lens.set_near_far(-4, 1)
+        dlight_path = self.planet.root.attach_new_node(self.dlight)
+        dlight_path.look_at((1, 1, 0))
+        self.root.set_light(dlight_path)
+        self.dlight.show_frustum()
 
         self.alight = core.AmbientLight("light")
         self.alight.color = (0.5, 0.5, 0.5, 1)

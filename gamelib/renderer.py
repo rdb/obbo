@@ -228,6 +228,7 @@ class Pipeline:
                     fragment=_load_shader_str('shadow.frag')
                 )
                 state = state.add_attrib(p3d.ShaderAttrib.make(shader), 1)
+                state = state.set_attrib(p3d.CullFaceAttrib.make_default(), 100000)
                 caster.set_initial_state(state)
 
         # Use the auto-shader for node types that simplepbr does not support
