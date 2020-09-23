@@ -114,10 +114,9 @@ class PlanetSide:
         new_slots += new_row
 
         if new_size == 1:
-            # Only dead objects
+            # Only crater 2 appears on the baby planet.
             pool = [
                 "models/Environment/Craters/Crater2.bam",
-                "models/Environment/Rocks/smallRock2.bam",
             ]
         elif new_size == 2:
             # Only small objects
@@ -135,13 +134,23 @@ class PlanetSide:
                 "models/Environment/Rocks/smallRock3.bam",
                 "models/Environment/Trees/Tree1.bam",
             ]
+        elif new_size == 3:
+            # Anything except mountains and some smallest objects
+            pool = [
+                "models/Environment/Bushes/Bush1.bam",
+                "models/Environment/Rocks/mediumRock1.bam",
+                "models/Environment/Rocks/mediumRock2.bam",
+                "models/Environment/Rocks/smallRock1.bam",
+                "models/Environment/Trees/Tree1.bam",
+                "models/Environment/Trees/Tree2.bam",
+                #"models/Environment/Trees/Tree3.bam",
+                #"models/Environment/Trees/Tree4.bam",
+            ]
         else:
             # Anything
             pool = [
                 "models/Environment/Bushes/Bush1.bam",
                 "models/Environment/Bushes/Bush2.bam",
-                #"models/Environment/Craters/Crater1.bam",
-                #"models/Environment/Craters/Crater2.bam",
                 "models/Environment/Flowers/Flower1.bam",
                 "models/Environment/Flowers/Flower2.bam",
                 "models/Environment/Grass/grass1.bam",
@@ -150,9 +159,6 @@ class PlanetSide:
                 "models/Environment/Rocks/mediumRock2.bam",
                 "models/Environment/Rocks/mountain1.bam",
                 "models/Environment/Rocks/mountain2.bam",
-                "models/Environment/Rocks/smallRock1.bam",
-                "models/Environment/Rocks/smallRock2.bam",
-                "models/Environment/Rocks/smallRock3.bam",
                 "models/Environment/Trees/Tree1.bam",
                 "models/Environment/Trees/Tree2.bam",
                 #"models/Environment/Trees/Tree3.bam",
