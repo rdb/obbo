@@ -6,6 +6,7 @@ from .util import clamp_angle
 
 
 PLAYER_WALK_SPEED = 0.4
+PLAYER_ROTATE_SPEED = 10
 
 
 class Player(PlanetObject):
@@ -19,8 +20,7 @@ class Player(PlanetObject):
         self.model_pos.set_z(0)
         model = Actor("models/obbo.bam")
         model.reparent_to(self.model_pos)
-        self.from_np = core.NodePath('from')
-        self.to_np = core.NodePath('to')
+
         self.model = model
         self.walk_ctr = self.model.get_anim_control('walk')
         self.cast_ctr = self.model.get_anim_control('fish_charge')
@@ -59,16 +59,14 @@ class Player(PlanetObject):
             target = self.target_pos * scale
             delta = (target - pos)
 
-            # FIXME: This is a hack!! Needs at least angle clamping or a smarter
-            # way to correctly orient Obbo...
-            self.from_np.set_pos(pos)
-            self.to_np.set_pos(target)
-            self.from_np.look_at(self.to_np)
-            delta_h = clamp_angle(self.from_np.get_h(self.root)) - clamp_angle(self.model.get_h())
+            dummy_np = core.NodePath("dummy")
+            dummy_np.look_at(target - pos)
+            target_h = dummy_np.get_h(self.root)
+            delta_h = ((target_h - self.model.get_h()) + 180) % 360 - 180
             dist = delta.length()
             if dist == 0:
                 self.target_pos = None
-                self.model.set_h(delta_h)
+                self.model.set_h(target_h)
             else:
                 delta *= PLAYER_WALK_SPEED / dist
                 if (delta * dt).length() > dist:
@@ -77,7 +75,6 @@ class Player(PlanetObject):
                 else:
                     self.set_pos(pos + delta * dt)
 
-                # FIXME: Figure out rotation speed          vv
-                self.model.set_h(self.model, delta_h * dt * 40)
+                self.model.set_h(self.model.get_h() + delta_h * min(dt * PLAYER_ROTATE_SPEED, 1))
         elif self.walk_ctr.is_playing():
             self.walk_ctr.pose(self.walk_ctr.get_frame())
