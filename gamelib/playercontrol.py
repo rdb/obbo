@@ -116,9 +116,6 @@ class PlayerControl(FSM):
     def enterNormal(self):
         self.crosshair.hide()
         self.toggle_cam_view()
-        #cam_pos = base.camera.get_pos(self.player.model_pos)
-        #base.camera.reparent_to(self.player.model_pos)
-        #base.camera.set_pos(cam_pos)
 
     def updateNormal(self, dt):
         if base.mouseWatcherNode.has_mouse():
@@ -170,7 +167,7 @@ class PlayerControl(FSM):
             mpos = base.mouseWatcherNode.get_mouse()
 
             self.cam_target_h = mpos.x * 180
-            self.cam_target_p = mpos.y * -45
+            self.cam_target_p = mpos.y * -45 + 45
 
         self.player.model.set_h(self.cam_dummy.get_h() + 45)
 
