@@ -1,14 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# This file was created using the DirectGUI Designer
-
 import math
 
 from direct.gui import DirectGuiGlobals as DGG
 
-from direct.gui.DirectButton import DirectButton
-from direct.gui.DirectGui import DirectFrame
+from direct.gui.DirectGui import DirectFrame, DirectButton
 from panda3d.core import (
     LPoint3f,
     LVecBase3f,
@@ -19,10 +16,6 @@ from panda3d.core import (
     OmniBoundingVolume
 )
 from direct.interval.IntervalGlobal import Parallel, Sequence, Func
-
-from direct.showbase import DirectObject
-# We need showbase to make this script directly runnable
-from direct.showbase.ShowBase import ShowBase
 
 class PieMenuItem:
     def __init__(self, name, event, buildingName):
@@ -35,7 +28,7 @@ class PieMenu:
         self.menu_x = 0
         self.menu_y = 0
         self.menuSize = 0.5
-        self.buildings = loader.loadModel("../.built_assets/models/buildings.bam")
+        self.buildings = loader.loadModel("models/buildings.bam")
         #self.buildings.reparentTo(render)
         # A big screen encompassing frame to catch the cancel clicks
         self.cancelFrame = DirectFrame(
@@ -48,14 +41,16 @@ class PieMenu:
         self.cancelFrame.bind(DGG.B1PRESS, self.hide)
 
         self.updateCircle(items)
-        self.hide()
+
+        self.menuCircle.hide()
+        self.cancelFrame.hide()
 
     def updateCircle(self, newItems):
         self.numItems = len(items)
         self.items = newItems
 
         self.menuCircle = DirectFrame(
-            image="../.built_assets/textures/PieMenuCircle.png",
+            image="textures/PieMenuCircle.png",
             frameSize=(-1,1,-1,1),
             frameColor=(0,0,0,0),
             pos=(self.menu_x, 0, self.menu_y)
@@ -80,34 +75,21 @@ class PieMenu:
         geom = self.buildings.find("**/{}".format(item.buildingName))
         geom.setDepthWrite(True)
         geom.setDepthTest(True)
-        geom.reparentTo(render)
-
-        #smiley = loader.loadModel("smiley")
-        #smiley.setR(45)
-        # Now, due to the fact that button geometry  will be rendered
-        # with render2d, which has z-buffering deactivated by default,
-        # we need to explicitely enable it the models we want to apply
-        # to the button or any other DirectGUI element.
-        #smiley.setDepthWrite(True)
-        #smiley.setDepthTest(True)
-        #geom = smiley
-
-
-        #self.buildings.setDepthWrite(True)
-        #self.buildings.setDepthTest(True)
-        self.buildings.setScale(1)
-        #geom.setX(0)
-        #geom = self.buildings
-
+        geom.setTransparency(0,10)
+        geom.setPos(0,0,-0.5)
+        geom.setHpr(-45, 15, 15)
+        geom.set_texture_off(10)
 
         btn = DirectButton(
-            #frameColor=(0.0, 0.0, 0.0, 0.0),
+            text=item.name,
+            text_scale=0.5,
+            text_pos=(0,-1),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
-            #hpr=LVecBase3f(0, 0, 0),
             pos=LPoint3f(x, 0, y),
-            relief=None,#DGG.FLAT,
-            scale=LVecBase3f(0.25, 0.25, 0.25),
+            relief=None,
+            scale=0.25,
             geom=geom,
+            geom_scale=0.25,
             parent=self.menuCircle,
             pressEffect=False,
             command=base.messenger.send,
@@ -115,9 +97,14 @@ class PieMenu:
         )
         btn.setBin('gui-popup', 2)
         btn.setTransparency(1)
+
+        #TODO: This doesn't work yet.
+        #ival = btn["geom"].hprInterval(2, Vec3(0, 0, 0), Vec3(360, 0, 0))
+        #btn.bind(DGG.ENTER, lambda x: ival.start())
+        #btn.bind(DGG.EXIT, lambda x: ival.finish())
         return btn
 
-    def show(self, x=0, y=0):
+    def show(self, x=None, y=None):
 
         if base.win.getXSize() > base.win.getYSize():
             screenResMultiplier_x = base.win.getXSize() / base.win.getYSize()
@@ -125,8 +112,8 @@ class PieMenu:
         else:
             screenResMultiplier_x = 1
             screenResMultiplier_y = base.win.getYSize() / base.win.getXSize()
-        x = base.mouseWatcherNode.getMouseX() * screenResMultiplier_x
-        y = base.mouseWatcherNode.getMouseY() * screenResMultiplier_y
+        x = base.mouseWatcherNode.getMouseX() * screenResMultiplier_x if x is None else x
+        y = base.mouseWatcherNode.getMouseY() * screenResMultiplier_y if y is None else y
         self.menu_x = x
         self.menu_y = y
         self.cancelFrame.show()
@@ -149,20 +136,26 @@ class PieMenu:
         self.cancelFrame.hide()
 
     def destroy(self):
+        self.cancelFrame.destroy()
         self.menuCircle.destroy()
+
+'''
+# We need showbase to make this script directly runnable
+from direct.showbase.ShowBase import ShowBase
 
 # Create a ShowBase instance to make this gui directly runnable
 app = ShowBase()
 
+# item contains the Name (text on the button), event to be fired on button click and the node name from within the buildings.bam file
 items = [
-        PieMenuItem("Blubb 1", "bla", "tent"),
-        PieMenuItem("Blubb A", "bla", "windmill"),
-        PieMenuItem("Blubb B", "bla", "chest"),
-        PieMenuItem("Blubb C", "bla", "replicator"),
-        PieMenuItem("Blubb D", "bla", "garage")
+        PieMenuItem("Tent", "build_tent", "tent"),
+        PieMenuItem("Windmill", "build_windmill", "windmill"),
+        PieMenuItem("Chest", "build_chest", "chest"),
+        PieMenuItem("Replicator", "build_replicator", "replicator"),
+        PieMenuItem("Garage", "build_garage", "garage")
 ]
 
 menu = PieMenu(items)
-do = DirectObject.DirectObject()
-do.accept("mouse1", menu.show)
+app.accept("mouse1", menu.show)
 app.run()
+'''
