@@ -25,8 +25,8 @@ class PlayerControl(FSM):
         self.root = universe.root
         self.picker = base.cam.attach_new_node(core.CollisionNode("picker"))
         self.picker.node().add_solid(self.ray)
-        self.picker.node().set_from_collide_mask(1)
-        self.picker.node().set_into_collide_mask(0)
+        self.picker.node().set_from_collide_mask(0b0001)
+        self.picker.node().set_into_collide_mask(0b0000)
 
         self.picker_handler = core.CollisionHandlerQueue()
         self.traverser.add_collider(self.picker, self.picker_handler)
@@ -34,6 +34,11 @@ class PlayerControl(FSM):
         self.player = Player(universe.planet)
         self.player.set_pos((0, 0, 1))
         self.crosshair = Crosshair()
+
+        self.pusher = core.CollisionHandlerPusher()
+        self.pusher.add_collider(self.player.collider, self.player.root)
+        self.traverser.add_collider(self.player.collider, self.pusher)
+        #self.traverser.show_collisions(render)
 
         self.bobber = base.loader.load_model('models/Environment/Rocks/smallRock1.bam')
         self.bobber.reparent_to(self.player.model)
@@ -122,6 +127,9 @@ class PlayerControl(FSM):
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
 
             self.traverser.traverse(self.root)
+
+            # Make sure position is normalized, in case pusher acted on it
+            self.player.apply_pos()
 
             if self.picker_handler.get_num_entries() > 0:
                 self.picker_handler.sort_entries()

@@ -22,6 +22,13 @@ class Player(PlanetObject):
         self.walk_ctr = self.model.get_anim_control('walk')
         self.cast_ctr = self.model.get_anim_control('fish_charge')
 
+        self.collider = self.model.attach_new_node(core.CollisionNode("collision"))
+        self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.5), 0.5))
+        self.collider.node().add_solid(core.CollisionSphere((0, 0, 1.2), 0.5))
+        self.collider.node().set_from_collide_mask(0b0010)
+        self.collider.node().set_into_collide_mask(0b0000)
+        #self.collider.show()
+
         # Disable back-face culling on the face
         model.find('**/Plane.001').set_two_sided(True)
 

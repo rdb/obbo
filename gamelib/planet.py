@@ -191,6 +191,14 @@ class PlanetObject:
     def destroy(self):
         self.root.remove_node()
 
+    def apply_pos(self):
+        """Call after you changed the root position via some other means in
+        order to make it work correctly."""
+
+        if self.root.get_pos() != (0, 1, 0):
+            self.set_pos(self.root.get_pos(self.pivot.parent))
+            self.root.set_pos(0, 1, 0)
+
     def get_pos(self):
         return self.pivot.get_quat().get_forward()
 
@@ -296,6 +304,17 @@ class AssetSlot(PlanetObject):
         model.set_scale(0.25)
         model.set_h(random.random() * 360)
         self.model = model
+
+        lower = fn.lower()
+        if 'flower' not in lower and 'grass' not in lower and 'smallrock' not in lower and 'crater' not in lower:
+            radius = 2
+            if 'mountain' in lower:
+                radius *= 1.7
+            self.collider = model.attach_new_node(core.CollisionNode("collider"))
+            self.collider.node().add_solid(core.CollisionSphere((0, 0, 1), radius))
+            self.collider.node().set_from_collide_mask(0b0000)
+            self.collider.node().set_into_collide_mask(0b0010)
+            #self.collider.show()
 
         face = model.find("**/Face/+GeomNode")
         if face:
