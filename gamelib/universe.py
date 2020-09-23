@@ -1,4 +1,5 @@
 from panda3d import core
+from direct.showbase.DirectObject import DirectObject
 from direct.fsm.FSM import FSM
 
 from .planet import Planet
@@ -8,7 +9,7 @@ from .skybox import Skybox
 from .playercontrol import PlayerControl
 
 
-class Universe(FSM):
+class Universe(FSM, DirectObject):
     def __init__(self):
         super().__init__('Universe')
         base.set_background_color(srgb_color(0x595961))
@@ -34,18 +35,16 @@ class Universe(FSM):
 
         self.request('Universe')
 
-    def enterUniverse(self):
+    def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
-        base.accept('mouse1', self.player_control.on_down)
-        base.accept('mouse1-up', self.player_control.on_click)
+        self.accept('mouse1', self.player_control.on_down)
+        self.accept('mouse1-up', self.player_control.on_click)
         self.player_control.enter()
 
-    def exitUniverse(self):
+    def exitUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeOut()
-        base.forget('mouse1')
-        base.forget('mouse1-up')
+        self.ignore_all()
         self.player_control.exit()
-
 
     def update(self, dt):
         self.player_control.update(dt)
