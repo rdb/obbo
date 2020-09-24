@@ -48,9 +48,6 @@ class Planet:
         self.new_build_slots = 1
         self.set_size(1)
 
-        #FIXME remove, just for debugging
-        base.accept('space', self.grow)
-
         self.left_eye = PlanetEye(self)
         self.left_eye.set_pos((-0.3, -1, 1))
         self.right_eye = PlanetEye(self)
@@ -58,16 +55,22 @@ class Planet:
         self.mouth = PlanetMouth(self)
         self.mouth.set_pos((0, -1.2, 1))
 
-    def grow(self):
+    def grow(self, player_face):
         new_size = self.size + 1
         self.new_build_slots = 2
-        self.set_size(new_size)
+        self.set_size(new_size, player_face)
 
-    def set_size(self, size):
+    def set_size(self, size, player_face=None):
         self.size = size
         #self.root.set_scale(BASE_RADIUS + size ** 1.5)
-        slots = [random.randrange(6) for _ in range(self.new_build_slots)]
-
+        if size == 1:
+            slots = [1]  # Also 5 would be a good choice, albeit more visible
+        else:
+            slots = []
+            while len(slots) < self.new_build_slots:
+                idx = random.randrange(6)
+                if idx != player_face and idx not in slots:  # allows for a maximum of 5 building slots!!
+                    slots.append(idx)
 
         for i, side in enumerate(self.sides):
             side._size_changed(size, slots.count(i)) # pylint: disable=protected-access
@@ -111,12 +114,16 @@ class PlanetSide:
         insert_at = ((len(self.grid) - 1) * 2) % new_size
         new_slots = []
         for row in self.grid:
-            slot = AssetSlot(self.planet)
+            if build_slots > 0 and random.random() < 0.3:
+                build_slots -= 1
+                slot = AssetSlot(self.planet, True)
+            else:
+                slot = AssetSlot(self.planet)
             row.insert(insert_at, slot)
             new_slots.append(slot)
 
-        slots = random.sample(list(range(new_size)), build_slots)
-        new_row = [AssetSlot(self.planet, i in slots) for i in range(new_size)]
+        build_slots = random.sample(list(range(new_size)), build_slots)
+        new_row = [AssetSlot(self.planet, i in build_slots) for i in range(new_size)]
         self.grid.insert(insert_at, new_row)
         new_slots += new_row
 
@@ -313,6 +320,7 @@ class PlanetProp(PlanetObject):
 class AssetSlot(PlanetObject):
 
     _asset_cache = {}
+    _slot_num = 0
 
     def __init__(self, planet, build_slot=False):
         super().__init__(planet)
@@ -332,6 +340,8 @@ class AssetSlot(PlanetObject):
         self.build_slot = build_slot
         self.building_placed = False
         self.sprouted = False
+        self.slot_num = AssetSlot._slot_num
+        AssetSlot._slot_num += 1
 
     def attach_model(self, fn):
         self.placeholder.remove_node()
@@ -383,6 +393,8 @@ class AssetSlot(PlanetObject):
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0001)
             self.collider.node().set_tag('pick_type', 'build_spot')
+            self.collider.node().set_python_tag('asset', self)
+            print(f'added build slot {self.slot_num}')
 
         face = model.find("**/Face/+GeomNode")
         if face:
@@ -406,3 +418,21 @@ class AssetSlot(PlanetObject):
         self.slot_node.show()
         self.slot_node.scaleInterval(SPROUT_TIME, 1.0).start()
         self.sprouted = True
+
+    def build(self, building_name):
+        if self.building_placed:
+            raise RuntimeError('Cannot build here, slot already has a building')
+        building = loader.loadModel("models/buildings.bam").find(f'**/{building_name}')
+        self.collider.remove_node()
+        self.model.remove_node()
+        # self.model = core.NodePath(building_name)
+        self.collider = building.attach_new_node(core.CollisionNode("collider"))
+        self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), 1))
+        self.collider.node().set_from_collide_mask(0b0000)
+        self.collider.node().set_into_collide_mask(0b0010)
+        building.set_pos(0, 0, 0)
+        building.reparent_to(self.slot_node)
+        self.slot_node.set_scale(0.1)
+        self.slot_node.scaleInterval(SPROUT_TIME, 1).start()
+        self.building_placed = True
+        print(f'built at {self.get_pos()} on slot {self.slot_num}')

@@ -28,6 +28,7 @@ class Player(PlanetObject):
         self.charge_ctr = self.model.get_anim_control('fish_charge')
         self.cast_ctr = self.model.get_anim_control('fish_cast')
         self.reel_ctr = self.model.get_anim_control('fish_reel')
+        self.build_ctr = self.model.get_anim_control('build')
 
         self.collider = self.model.attach_new_node(core.CollisionNode("collision"))
         self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.5), 0.5))
@@ -40,6 +41,7 @@ class Player(PlanetObject):
         model.find('**/Plane.001').set_two_sided(True)
 
         self.target_pos = None
+        self.arrived_callback = None
 
     def start_charge(self):
         self.charge_ctr.set_play_rate(2.0)
@@ -49,7 +51,8 @@ class Player(PlanetObject):
         self.charge_ctr.set_play_rate(-2.0)
         self.charge_ctr.play()
 
-    def move_to(self, pos):
+    def move_to(self, pos, arrived_callback=None):
+        self.arrived_callback = arrived_callback
         self.target_pos = core.Vec3(*pos)
         self.target_pos.normalize()
         if not self.walk_ctr.is_playing():
@@ -80,5 +83,9 @@ class Player(PlanetObject):
                     self.set_pos(pos + delta * dt)
 
                 self.model.set_h(self.model.get_h() + delta_h * min(dt * PLAYER_ROTATE_SPEED, 1))
+
+            if self.target_pos is None and self.arrived_callback:
+                self.arrived_callback()
+                self.arrived_callback = None
         elif self.walk_ctr.is_playing():
             self.walk_ctr.pose(self.walk_ctr.get_frame())

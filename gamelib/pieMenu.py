@@ -25,13 +25,14 @@ class PieMenuItem:
         self.buildingName = buildingName
 
 class PieMenu:
-    def __init__(self, items=[]):
+    def __init__(self, items, hide_callback):
         self.menu_x = 0
         self.menu_y = 0
         self.menuSize = 0.5
         self.buildings = loader.loadModel("models/buildings.bam")
         #self.buildings.reparentTo(render)
         # A big screen encompassing frame to catch the cancel clicks
+        self.hide_callback = hide_callback
         self.cancelFrame = DirectFrame(
             frameSize = (base.a2dLeft, base.a2dRight, base.a2dBottom, base.a2dTop),
             frameColor=(0,0,0,0),
@@ -128,7 +129,7 @@ class PieMenu:
             self.menuCircle.hprInterval(interval_duration, Vec3(0, 0, -360), Vec3(0, 0, -180))).start()
 
 
-    def hide(self, args=None):
+    def hide(self, args=None, ignore_callback=False):
         interval_duration = 0.15
         Sequence(
             Parallel(
@@ -137,6 +138,8 @@ class PieMenu:
             Func(self.menuCircle.hide)
             ).start()
         self.cancelFrame.hide()
+        if self.hide_callback and not ignore_callback:
+            self.hide_callback()
 
     def destroy(self):
         self.cancelFrame.destroy()

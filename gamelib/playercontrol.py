@@ -9,6 +9,7 @@ from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
+from .planet import SPROUT_TIME
 from .util import cfg_tuple
 from .pieMenu import PieMenu, PieMenuItem
 
@@ -81,10 +82,13 @@ class PlayerControl(FSM, DirectObject):
 
         self.cursor_pos = None
         self.cursor_on_build_spot = False
+        self.pie_menu = None
         self.down_pos = None
         self.down_time = None
         self.cursor = Cursor(universe.planet)
         self.target = Cursor(universe.planet)
+
+        self.build_asset_slot = None
 
         self.cam_dummy = self.player.root.attach_new_node('cam')
         self.cam_dummy.set_effect(core.CompassEffect.make(core.NodePath(),
@@ -99,8 +103,26 @@ class PlayerControl(FSM, DirectObject):
 
         self.request('Normal')
 
-        # FIXME: Not sure if we may need universe later again
+        # FIXME: Integrate into game logic
+        base.accept('space', self.grow)
+
         self.universe = universe
+
+    def grow(self):
+        ppos = list(self.player.get_pos())
+        offset = 0
+        idx = None
+        current_max = -1
+        for i, val in enumerate(ppos):
+            if abs(val) > current_max:
+                idx = i
+                current_max = abs(val)
+                if val > 0:
+                    offset = 0
+                else:
+                    offset = 3
+        player_face = idx + offset
+        self.universe.planet.grow(player_face)
 
     def enter(self):
         base.camera.reparent_to(self.cam_dummy)
@@ -111,7 +133,6 @@ class PlayerControl(FSM, DirectObject):
         """Clean up?"""
 
     def toggle_cam_view(self, view='default'):
-        pos = None
         if view == 'default':
             self.cam_dummy.reparent_to(self.player.root)
             self.aim_mode = False
@@ -137,8 +158,9 @@ class PlayerControl(FSM, DirectObject):
             return
 
         if self.cursor_on_build_spot:
-            self.request('Build')
+            self.request('Build', self.build_asset_slot)
             self.cursor_on_build_spot = False
+            self.build_asset_slot = None
 
         elif self.state == 'Cast':
             self.player.reel_ctr.stop()
@@ -185,11 +207,27 @@ class PlayerControl(FSM, DirectObject):
                 self.picker_handler.sort_entries()
                 point = self.picker_handler.get_entry(0).get_surface_point(self.root)
                 point.normalize()
-                pick_type = self.picker_handler.get_entry(0).get_into_node_path() \
-                    .node().get_tag('pick_type')
+                nd = self.picker_handler.get_entry(0).get_into_node_path().node()
+                pick_type = nd.get_tag('pick_type')
 
                 if pick_type == 'build_spot':
+                    # TODO: I'm not sure why sort_entries doesn't sort by closest,
+                    # maybe with more insight into the picker_handler can improve this?
+                    assets = []
+                    for i in range(self.picker_handler.get_num_entries()):
+                        nd = self.picker_handler.get_entry(i).get_into_node_path().node()
+                        if nd.get_tag('pick_type') == 'build_spot':
+                            assets.append(nd.get_python_tag('asset'))
+                    asset = None
+                    min_dist = float('inf')
+                    for i in assets:
+                        dist = (point - i.get_pos()).length()
+                        if dist < min_dist:
+                            min_dist = dist
+                            asset = i
+
                     self.cursor_on_build_spot = True
+                    self.build_asset_slot = asset
                 else:
                     self.cursor_on_build_spot = False
                 self.cursor_pos = point
@@ -301,7 +339,11 @@ class PlayerControl(FSM, DirectObject):
             Func(lambda: self.request('Normal')),
         ).start()
 
-    def enterBuild(self):
+    def enterBuild(self, asset):
+        self.universe.ignore('mouse1')
+        self.universe.ignore('mouse1-up')
+        self.universe.ignore('mouse3-up')
+        
         # TODO: Display building types from current tech tree
         items = [
             PieMenuItem("Tent", "build_tent", "tent"),
@@ -310,25 +352,34 @@ class PlayerControl(FSM, DirectObject):
             PieMenuItem("Replicator", "build_replicator", "replicator"),
             PieMenuItem("Garage", "build_garage", "garage")
         ]
-        self.pie_menu = PieMenu(items)
+        self.pie_menu = PieMenu(items, self.exitBuild)
         for item in items:
-            self.accept_once(item.event, self.build, [item.event, self.down_pos])
+            self.accept_once(item.event, self.build, [item.event, self.down_pos, asset])
         self.down_pos = None
         self.pie_menu.show()
 
-    def updateBuild(self, dt):
-        self.updateNormal(dt)
-
     def exitBuild(self):
-        self.pie_menu.hide()
+        self.universe.accept('mouse1', self.on_mouse_down)
+        self.universe.accept('mouse1-up', self.on_mouse_up)
+        self.universe.accept('mouse3-up', self.cancel)
 
-    def build(self, building, location):
-        # TODO: Make obbo build here
-        self.player.move_to(tuple(location))
-        print(f'wants to build: {building} @ {location}')
-        self.request('Normal')
+    def build(self, building, location, asset):
+        def finish_building(task):
+            self.player.build_ctr.stop()
+            self.request('Normal')
+            return task.done
+
+        def start_building():
+            self.player.build_ctr.loop('build')
+            asset.build(building[6:])
+            taskMgr.do_method_later(SPROUT_TIME, finish_building, 'finish')
+
+        self.player.move_to(tuple(location), start_building)
+        self.pie_menu.hide(ignore_callback=True)
 
     def update_cast_cam(self):
+        if self.state == 'Build':
+            return
         ptr = base.win.get_pointer(0)
         if ptr.in_window:
             mpos = core.Point2(ptr.x / base.win.get_x_size() * 2 - 1,
