@@ -16,6 +16,11 @@ setup(
         'pylint~=2.6.0',
         'pytest-pylint',
     ],
+    entry_points={
+        'pman.converters': [
+            'blend2bamex = buildtools:extended_blend2bam',
+        ],
+    },
     cmdclass={
         'build_apps': pman.build_apps.BuildApps,
     },

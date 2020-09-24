@@ -129,6 +129,13 @@ class Pipeline:
         self.use_occlusion_maps = use_occlusion_maps
         self.lut_texture = lut_texture
 
+        # Default Material
+        if not render_node.has_material():
+            mat = p3d.Material()
+            mat.base_color = (1, 1, 1, 1)
+            mat.roughness = 1
+            render_node.set_material(mat)
+
         # Create a CommonFilters instance
         self.filters = CommonFiltersEx(window, camera_node)
 

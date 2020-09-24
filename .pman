@@ -2,7 +2,7 @@
 main_file = "run_game.py"
 
 [build]
-converters = ["native2bam", "blend2bam"]
+converters = ["native2bam", "blend2bamex"]
 
 [blend2bam]
 material_mode = "pbr"
