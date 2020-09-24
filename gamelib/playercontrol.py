@@ -103,8 +103,10 @@ class PlayerControl(FSM, DirectObject):
 
         self.request('Normal')
 
-        # FIXME: Integrate into game logic
+        # FIXME: remove grow with space before release
         base.accept('space', self.grow)
+        self.grown = 0
+        base.accept('planet_grow', self.grow)
 
         self.universe = universe
 
@@ -123,6 +125,10 @@ class PlayerControl(FSM, DirectObject):
                     offset = 3
         player_face = idx + offset
         self.universe.planet.grow(player_face)
+        self.grown += 1
+        if self.grown >= 4:
+            base.ignore('space')  # FIXME: remove before release
+            base.ignore('planet_grow')
 
     def enter(self):
         base.camera.reparent_to(self.cam_dummy)
@@ -346,6 +352,7 @@ class PlayerControl(FSM, DirectObject):
             Func(catch.destroy),
             Func(lambda: self.request('Normal')),
         ).start()
+        messenger.send('caught_asteroid')
 
     def enterBuild(self, asset):
         self.universe.ignore('mouse1')
