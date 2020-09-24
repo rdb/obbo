@@ -63,11 +63,7 @@ class Universe(FSM, DirectObject):
             # If we skipped the main menu, do not show the instructions
             self.gamestate = None
         else:
-            self.instructions = OnscreenText(
-                parent=base.aspect2d,
-                text=INSTRUCTIONS,
-                fg=(0.8, 0.8, 0.8, 1.0),
-            )
+            self.add_instructions(INSTRUCTIONS)
 
         taskMgr.do_method_later(
             INSTRUCTIONS_AUTO_REMOVE_TIME,
@@ -76,6 +72,13 @@ class Universe(FSM, DirectObject):
         )
 
         self.request('Universe')
+
+    def add_instructions(self, text):
+        self.instructions = OnscreenText(
+            parent=base.aspect2d,
+            text=text,
+            fg=(0.8, 0.8, 0.8, 1.0),
+        )
 
     def remove_instructions(self, task=None):
         if self.instructions is not None:
