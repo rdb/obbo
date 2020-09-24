@@ -61,6 +61,15 @@ class MainMenu(DirectObject):
                 ival.append(intervals.Func(change_state))
                 ival.start()
                 break
+            elif npname == 'OptionSignSign':
+                self.cleanup()
+                ival = base.transitions.getFadeOutIval()
+                def change_state():
+                    from .optionmenu import OptionMenu
+                    base.gamestate = OptionMenu()
+                ival.append(intervals.Func(change_state))
+                ival.start()
+                break
             elif npname == 'QuitSignSign':
                 sys.exit()
 

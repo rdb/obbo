@@ -1,0 +1,76 @@
+{
+  "ProjectVersion": "0.2a",
+  "EditorConfig": {
+    "usePixel2D": false,
+    "canvasSize": "(-2, 2, -2, 2)"
+  },
+  "ComponentList": {
+    "cbAudio": {
+      "element": {
+        "checkedImage": "'textures/AudioOption_On.png'",
+        "frameColor": "(0.8, 0.8, 0.8, 0.0)",
+        "frameSize": "(-1.0, 1.0, -1.0, 1.0)",
+        "hpr": "LVecBase3f(0, 0, 0)",
+        "image": "'textures/AudioOption_On.png'",
+        "isChecked": "True",
+        "pos": "LPoint3f(0, 0, 0.59)",
+        "relief": "1",
+        "scale": "LVecBase3f(0.1, 0.1, 0.1)",
+        "uncheckedImage": "'textures/AudioOption_Off.png'",
+        "image_scale": "LVecBase3f(1, 1, 1)",
+        "image_pos": "LPoint3f(0, 0, 0)",
+        "transparency": "2"
+      },
+      "type": "DirectCheckBox",
+      "parent": "root",
+      "command": null,
+      "extraArgs": null,
+      "extraOptions": {}
+    },
+    "sliderVolume": {
+      "element": {
+        "frameColor": "(0.678, 0.427, 0.918, 1.0)",
+        "hpr": "LVecBase3f(0, 0, 0)",
+        "pos": "LPoint3f(0, 0, 0.27)",
+        "text": "'Volume: 0%'",
+        "text_align": "TextNode.A_center",
+        "text_scale": "(0.1, 0.1)",
+        "text_pos": "(0.0, 0.1)",
+        "text_fg": "LVecBase4f(0.992, 1, 1, 1)",
+        "text_bg": "LVecBase4f(0, 0, 0, 0)",
+        "text_wordwrap": "None",
+        "thumb_frameColor": "(0.8, 0.8, 0.8, 0.0)",
+        "thumb_frameSize": "(-0.05, 0.05, -0.08, 0.08)",
+        "thumb_hpr": "LVecBase3f(0, 0, 0)",
+        "thumb_image": "'textures/sliderThumb.png'",
+        "thumb_pos": "LPoint3f(-0.95, 0, 0)",
+        "thumb_image_scale": "LVecBase3f(0.05, 1, 0.08)",
+        "thumb_image_pos": "LPoint3f(0, 0, 0)",
+        "transparency": "1"
+      },
+      "type": "DirectSlider",
+      "parent": "root",
+      "command": null,
+      "extraArgs": null,
+      "extraOptions": {}
+    },
+    "cbFullscreen": {
+      "element": {
+        "checkedImage": "'textures/Fullscreen_On.png'",
+        "frameColor": "(0.8, 0.8, 0.8, 0.0)",
+        "frameSize": "(-1.0, 1.0, -1.0, 1.0)",
+        "hpr": "LVecBase3f(0, 0, 0)",
+        "pos": "LPoint3f(0, 0, 0)",
+        "relief": "1",
+        "scale": "LVecBase3f(0.1, 0.1, 0.1)",
+        "uncheckedImage": "'textures/Fullscreen_Off.png'",
+        "transparency": "2"
+      },
+      "type": "DirectCheckBox",
+      "parent": "root",
+      "command": null,
+      "extraArgs": null,
+      "extraOptions": {}
+    }
+  }
+}
