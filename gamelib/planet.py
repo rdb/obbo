@@ -450,6 +450,11 @@ class AssetSlot(PlanetObject):
         building.set_pos(0, 0, 0)
         building.reparent_to(self.slot_node)
         self.slot_node.set_scale(0.1)
-        self.slot_node.scaleInterval(SPROUT_TIME, 1).start()
+        h = random.randrange(360) + 720
+        h = random.choice((h, -h))
+        Parallel(
+            self.slot_node.scaleInterval(SPROUT_TIME, 1),
+            self.slot_node.hprInterval(SPROUT_TIME, (h, 0, 0), blendType='easeInOut'),
+        ).start()
         self.building_placed = True
         self.planet.free_build_slots -= 1
