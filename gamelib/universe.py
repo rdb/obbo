@@ -115,4 +115,3 @@ class Universe(FSM, DirectObject):
         if ft > self.last_asteroid + SPAWN_TIME and len(self.asteroids) < MAX_ASTEROIDS:
             self.last_asteroid = ft
             self.asteroids.append(Asteroid(self.planet, self))
-            print('added new asteroid')

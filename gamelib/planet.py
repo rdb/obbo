@@ -1,10 +1,12 @@
+import math
+import random
+
 from panda3d import core
 from direct.task.Task import Task
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
 
 from .util import srgb_color
-import random
 
 
 BASE_RADIUS = 1
@@ -57,7 +59,7 @@ class Planet:
 
     def grow(self, player_face):
         new_size = self.size + 1
-        self.new_build_slots = 2
+        self.new_build_slots = math.ceil(new_size * 2.8)
         self.set_size(new_size, player_face)
 
     def set_size(self, size, player_face=None):
@@ -66,11 +68,14 @@ class Planet:
         if size == 1:
             slots = [1]  # Also 5 would be a good choice, albeit more visible
         else:
-            slots = []
-            while len(slots) < self.new_build_slots:
-                idx = random.randrange(6)
-                if idx != player_face and idx not in slots:  # allows for a maximum of 5 building slots!!
-                    slots.append(idx)
+            allowed_faces = [i for i in range(6)]
+            allowed_faces.pop(player_face)
+            random.shuffle(allowed_faces)
+            slots = [allowed_faces[i % 5] for i in range(self.new_build_slots)]
+            # while len(slots) < self.new_build_slots:
+            #     idx = random.randrange(6)
+            #     if idx != player_face:
+            #         slots.append(idx)
 
         for i, side in enumerate(self.sides):
             side._size_changed(size, slots.count(i)) # pylint: disable=protected-access
@@ -393,7 +398,6 @@ class AssetSlot(PlanetObject):
             self.collider.node().set_into_collide_mask(0b0001)
             self.collider.node().set_tag('pick_type', 'build_spot')
             self.collider.node().set_python_tag('asset', self)
-            print(f'added build slot {self.slot_num}')
 
         face = model.find("**/Face/+GeomNode")
         if face:
@@ -434,4 +438,3 @@ class AssetSlot(PlanetObject):
         self.slot_node.set_scale(0.1)
         self.slot_node.scaleInterval(SPROUT_TIME, 1).start()
         self.building_placed = True
-        print(f'built at {self.get_pos()} on slot {self.slot_num}')
