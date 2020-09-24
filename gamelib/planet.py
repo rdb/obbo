@@ -59,7 +59,7 @@ class Planet:
 
     def grow(self, player_face):
         new_size = self.size + 1
-        self.new_build_slots = math.ceil(new_size * 2.8)
+        self.new_build_slots = math.ceil(new_size * 2.4)  # Change factor to increase/decrease build_slots
         self.set_size(new_size, player_face)
 
     def set_size(self, size, player_face=None):
