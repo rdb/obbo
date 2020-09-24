@@ -256,6 +256,10 @@ class PlayerControl(FSM, DirectObject):
         self.toggle_cam_view('charging')
         self.cam_target_p = 45
         self.crosshair.show()
+        props = core.WindowProperties()
+        props.set_cursor_hidden(True)
+        props.set_mouse_mode(core.WindowProperties.M_relative)
+        base.win.request_properties(props)
 
     def updateCharge(self, dt):
         self.update_cast_cam()
@@ -265,6 +269,10 @@ class PlayerControl(FSM, DirectObject):
         self.player.stop_charge()
         self.toggle_cam_view()
         self.crosshair.hide()
+        props = core.WindowProperties()
+        props.set_cursor_hidden(False)
+        props.set_mouse_mode(core.WindowProperties.M_absolute)
+        base.win.request_properties(props)
 
     def enterCast(self, power):
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
