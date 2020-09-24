@@ -61,7 +61,7 @@ class Universe(FSM, DirectObject):
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
         if skip_main_menu:
             # If we skipped the main menu, do not show the instructions
-            self.gamestate = None
+            self.instructions = None
         else:
             self.add_instructions(INSTRUCTIONS)
 
