@@ -30,12 +30,12 @@ void main() {
 
 class Skybox:
     def __init__(self, parent):
-        self.root = loader.load_model('models/skybox.bam')
-        self.root.set_shader(p3d.Shader.make(
-            p3d.Shader.SL_GLSL,
-            vertex=_SB_VERT,
-            fragment=_SB_FRAG
-        ))
+        self.root = loader.load_model('models/space.bam')
+        #self.root.set_shader(p3d.Shader.make(
+        #    p3d.Shader.SL_GLSL,
+        #    vertex=_SB_VERT,
+        #    fragment=_SB_FRAG
+        #))
         self.root.set_scale(50)
         self.root.set_bin('background', 0)
         self.root.set_depth_write(False)
