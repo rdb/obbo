@@ -41,6 +41,7 @@ fullscreen true
 
 * Python 3.7+
 * Python packages in `requirements.txt`
+* `blend2bamex` entry point for `pman` (run `pip install -e .` to get this)
 * Blender 2.90 (preferably on the system PATH)
 * [limeade](https://pypi.org/project/limeade/) (optional, allows hot reloading of source code)
 
