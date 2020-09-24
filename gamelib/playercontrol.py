@@ -33,7 +33,7 @@ CAST_MAX_DISTANCE = 15.0
 
 MAGNET_SNAP_TIME = 0.15
 
-REEL_SPEED = 4.0
+REEL_SPEED = 10.0
 
 # How close the bobber can get to Obbo before ending the reel
 REEL_MIN_DISTANCE = 0.8
