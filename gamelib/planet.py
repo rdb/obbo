@@ -49,7 +49,7 @@ class Planet:
         self.root.set_scale(BASE_RADIUS + 1)
         self.new_build_slots = 1
         self.build_slot_queue = []
-        self.free_build_slots = 1
+        self.free_build_slots = 0
         self.set_size(1)
 
         self.left_eye = PlanetEye(self)
@@ -107,6 +107,8 @@ class Planet:
         return task.done if growth >= 1.0 else task.cont
 
     def sprout_build_slots(self, task):
+        if self.size == 1 and self.free_build_slots == 1:
+            return task.again
         if self.free_build_slots < 5 and self.build_slot_queue:
             self.build_slot_queue.pop(0).sprout()
             self.free_build_slots += 1
@@ -439,7 +441,6 @@ class AssetSlot(PlanetObject):
     def build(self, building_name):
         if self.building_placed:
             raise RuntimeError('Cannot build here, slot already has a building')
-        print(loader.loadModel("models/buildings.bam").ls())
         building = loader.loadModel("models/buildings.bam").find(f'**/{building_name}')
         self.collider.remove_node()
         self.model.remove_node()
