@@ -1,3 +1,5 @@
+import random
+
 from panda3d import core
 from direct.showbase.DirectObject import DirectObject
 from direct.fsm.FSM import FSM
@@ -7,6 +9,10 @@ from .asteroid import Asteroid
 from .util import srgb_color
 from .skybox import Skybox
 from .playercontrol import PlayerControl
+
+
+MAX_ASTEROIDS = 20
+SPAWN_TIME = 1.5
 
 
 class Universe(FSM, DirectObject):
@@ -37,7 +43,8 @@ class Universe(FSM, DirectObject):
         self.alight.color = (0.5, 0.5, 0.5, 1)
         self.root.set_light(self.root.attach_new_node(self.alight))
 
-        self.asteroids = [Asteroid(self.planet) for _ in range(10)]
+        self.asteroids = [Asteroid(self.planet, self) for _ in range(12)]
+        self.last_asteroid = 0
 
         self.request('Universe')
 
@@ -55,3 +62,8 @@ class Universe(FSM, DirectObject):
 
     def update(self, dt):
         self.player_control.update(dt)
+        ft = globalClock.get_frame_time()
+        if ft > self.last_asteroid + SPAWN_TIME and len(self.asteroids) < MAX_ASTEROIDS:
+            self.last_asteroid = ft
+            self.asteroids.append(Asteroid(self.planet, self))
+            print('added new asteroid')

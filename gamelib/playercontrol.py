@@ -343,7 +343,7 @@ class PlayerControl(FSM, DirectObject):
         self.universe.ignore('mouse1')
         self.universe.ignore('mouse1-up')
         self.universe.ignore('mouse3-up')
-        
+
         # TODO: Display building types from current tech tree
         items = [
             PieMenuItem("Tent", "build_tent", "tent"),
