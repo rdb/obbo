@@ -375,7 +375,8 @@ class AssetSlot(PlanetObject):
             'grass',
             'smallrock',
             'crater',
-            'buildspacesign'
+            'buildspacesign',
+            'mediumrock',
         )
         if sum([i in lower for i in mfilter]) == 0:
             radius = 0.5
