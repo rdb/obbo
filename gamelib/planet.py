@@ -48,6 +48,8 @@ class Planet:
 
         self.root.set_scale(BASE_RADIUS + 1)
         self.new_build_slots = 1
+        self.build_slot_queue = []
+        self.free_build_slots = 1
         self.set_size(1)
 
         self.left_eye = PlanetEye(self)
@@ -56,6 +58,8 @@ class Planet:
         self.right_eye.set_pos((0.3, -1, 1))
         self.mouth = PlanetMouth(self)
         self.mouth.set_pos((0, -1.2, 1))
+
+        taskMgr.do_method_later(1, self.sprout_build_slots, 'bs_spawner')
 
     def grow(self, player_face):
         new_size = self.size + 1
@@ -72,10 +76,6 @@ class Planet:
             allowed_faces.pop(player_face)
             random.shuffle(allowed_faces)
             slots = [allowed_faces[i % 5] for i in range(self.new_build_slots)]
-            # while len(slots) < self.new_build_slots:
-            #     idx = random.randrange(6)
-            #     if idx != player_face:
-            #         slots.append(idx)
 
         for i, side in enumerate(self.sides):
             side._size_changed(size, slots.count(i)) # pylint: disable=protected-access
@@ -98,9 +98,21 @@ class Planet:
             for side in self.sides:
                 for row in side.grid:
                     for cell in row:
+                        if cell.build_slot:
+                            if cell not in self.build_slot_queue:
+                                self.build_slot_queue.append(cell)
+                            continue
                         cell.sprout()
 
         return task.done if growth >= 1.0 else task.cont
+
+    def sprout_build_slots(self, task):
+        if self.free_build_slots < 5 and self.build_slot_queue:
+            self.build_slot_queue.pop(0).sprout()
+            self.free_build_slots += 1
+        if self.size == 5 and not self.build_slot_queue:
+            return task.done
+        return task.again
 
 
 class PlanetSide:
@@ -344,6 +356,8 @@ class AssetSlot(PlanetObject):
         self.building_placed = False
         self.sprouted = False
         self.slot_num = AssetSlot._slot_num
+
+        self.planet = planet
         AssetSlot._slot_num += 1
 
     def attach_model(self, fn):
@@ -438,3 +452,4 @@ class AssetSlot(PlanetObject):
         self.slot_node.set_scale(0.1)
         self.slot_node.scaleInterval(SPROUT_TIME, 1).start()
         self.building_placed = True
+        self.planet.free_build_slots -= 1
