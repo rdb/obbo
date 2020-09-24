@@ -2,6 +2,8 @@ import random
 
 from panda3d import core
 from direct.showbase.DirectObject import DirectObject
+from direct.gui.OnscreenText import OnscreenText
+from direct.interval.IntervalGlobal import *
 from direct.fsm.FSM import FSM
 
 from .planet import Planet
@@ -14,6 +16,16 @@ from .playercontrol import PlayerControl
 MAX_ASTEROIDS = 20
 SPAWN_TIME = 1.5
 
+INSTRUCTIONS = """
+Reach for the stars Obbo!
+Click with the left mouse button to move
+Hold the left mouse button to ready a cast
+Release the left mouse button to cast and reach for an asteroid
+Holding the left mouse button will reel in the bobber
+Once hooked you will automatically reel in the asteroid
+"""
+
+INSTRUCTIONS_AUTO_REMOVE_TIME = 20
 
 class Universe(FSM, DirectObject):
     def __init__(self):
@@ -46,11 +58,45 @@ class Universe(FSM, DirectObject):
         self.asteroids = [Asteroid(self.planet, self) for _ in range(12)]
         self.last_asteroid = 0
 
+        skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        if skip_main_menu:
+            # If we skipped the main menu, do not show the instructions
+            self.gamestate = None
+        else:
+            self.instructions = OnscreenText(
+                parent=base.aspect2d,
+                text=INSTRUCTIONS,
+                fg=(0.8, 0.8, 0.8, 1.0),
+            )
+
+        taskMgr.do_method_later(
+            INSTRUCTIONS_AUTO_REMOVE_TIME,
+            self.remove_instructions,
+            'remove insntructions'
+        )
+
         self.request('Universe')
+
+    def remove_instructions(self, task=None):
+        if self.instructions is not None:
+            Sequence(
+                LerpColorScaleInterval(
+                    self.instructions,
+                    0.5,
+                    (0, 0, 0, 0)
+                ),
+                Func(self.instructions.remove_node)
+            ).start()
+            self.instructions = None
+        if task is not None:
+            return task.done
 
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
-        self.accept('mouse1', self.player_control.on_mouse_down)
+        def handle_left_mouse():
+            self.player_control.on_mouse_down()
+            self.remove_instructions()
+        self.accept('mouse1', handle_left_mouse)
         self.accept('mouse1-up', self.player_control.on_mouse_up)
         self.accept('mouse3-up', self.player_control.cancel)
         self.player_control.enter()
