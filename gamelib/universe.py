@@ -11,6 +11,7 @@ from .asteroid import Asteroid
 from .util import srgb_color
 from .skybox import Skybox
 from .playercontrol import PlayerControl
+from .gamelogic import GameLogic
 
 
 MAX_ASTEROIDS = 20
@@ -35,6 +36,8 @@ class Universe(FSM, DirectObject):
         self.root = base.render.attach_new_node("universe")
 
         self.skybox = Skybox(self.root)
+
+        self.game_logic = GameLogic()
 
         self.planet = Planet()
         self.planet.root.reparent_to(self.root)

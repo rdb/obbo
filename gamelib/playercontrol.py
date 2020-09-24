@@ -352,14 +352,11 @@ class PlayerControl(FSM, DirectObject):
         self.universe.ignore('mouse1-up')
         self.universe.ignore('mouse3-up')
 
-        # TODO: Display building types from current tech tree
-        items = [
-            PieMenuItem("Tent", "build_tent", "tent"),
-            PieMenuItem("Windmill", "build_windmill", "windmill"),
-            PieMenuItem("Chest", "build_chest", "chest"),
-            PieMenuItem("Replicator", "build_replicator", "replicator"),
-            PieMenuItem("Garage", "build_garage", "garage")
-        ]
+        # TODO: Maybe modify PieMenu to accept a dict with categories? Definitely is too much for more than 5/6 items
+        buildable = [j for i in self.universe.game_logic.get_unlocked().values() for j in i]
+        items = []
+        for model in buildable:
+            items.append(PieMenuItem(model.capitalize(), f'build_{model}', model))
         self.pie_menu = PieMenu(items, self.exitBuild)
         for item in items:
             self.accept_once(item.event, self.build, [item.event, self.down_pos, asset])

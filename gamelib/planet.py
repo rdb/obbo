@@ -439,6 +439,7 @@ class AssetSlot(PlanetObject):
     def build(self, building_name):
         if self.building_placed:
             raise RuntimeError('Cannot build here, slot already has a building')
+        print(loader.loadModel("models/buildings.bam").ls())
         building = loader.loadModel("models/buildings.bam").find(f'**/{building_name}')
         self.collider.remove_node()
         self.model.remove_node()
@@ -458,3 +459,4 @@ class AssetSlot(PlanetObject):
         ).start()
         self.building_placed = True
         self.planet.free_build_slots -= 1
+        messenger.send('built', [building_name])
