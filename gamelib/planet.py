@@ -331,10 +331,8 @@ class AssetSlot(PlanetObject):
         self.slot_node.hide()
         self.slot_node.set_scale(0.00000000001)
 
-        model = loader.load_model("jack")
+        model = core.NodePath('placeholder')
         model.reparent_to(self.slot_node)
-        model.set_scale(0.1)
-        #model.flatten_light()
         self.placeholder = model
 
         self.build_slot = build_slot
