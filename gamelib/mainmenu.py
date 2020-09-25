@@ -34,9 +34,14 @@ class MainMenu(DirectObject):
 
         self.accept('mouse1-up', self.handle_click)
 
+        self.bgm = base.loader.load_music('music/menu.ogg')
+        self.bgm.set_loop(True)
+        self.bgm.play()
+
         base.transitions.fadeIn()
 
     def cleanup(self):
+        self.bgm.stop()
         self.root.remove_node()
         self.picker.remove_node()
         self.ignore_all()
