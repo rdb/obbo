@@ -226,7 +226,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.root.show()
         base.transitions.fadeIn(2.0)
         base.camera.set_pos((0, -30, 30))
-        
+
         taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):
@@ -275,7 +275,7 @@ class PlayerControl(FSM, DirectObject):
 
         if self.state == 'Cast' and not self.cursor_asset_slot:
             self.player.reel_ctr.play()
-            self.sfx["obbo_reel_in"].play()	
+            self.sfx["obbo_reel_in"].play()
         elif self.state == 'Build' and not self.cursor_asset_slot:
             self.request('Normal')
 
@@ -477,7 +477,7 @@ class PlayerControl(FSM, DirectObject):
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         self.bobber.set_pos(rod_tip_pos + direction * 3)
         self.bobber.look_at(rod_tip_pos + direction * distance)
-        
+
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         Sequence(
             Parallel(
@@ -504,7 +504,7 @@ class PlayerControl(FSM, DirectObject):
         ]
 
         if hit_asteroids:
-            self.sfx["obbo_reel_in"].play()	
+            self.sfx["obbo_reel_in"].play()
             self.request('Reel', hit_asteroids[0])
 
     def exitCast(self):
@@ -517,7 +517,7 @@ class PlayerControl(FSM, DirectObject):
 
     def enterReel(self, asteroid=None):
         if asteroid is not None:
-            self.sfx["astroid_attaches"].play()        
+            self.sfx["astroid_attaches"].play()
             print('hit an asteroid!')
             asteroid.stop()
             asteroid.asteroid.wrt_reparent_to(self.bobber)
@@ -582,7 +582,9 @@ class PlayerControl(FSM, DirectObject):
         buildable = [j for i in self.universe.game_logic.get_unlocked().values() for j in i]
         items = []
         for model in buildable:
-            items.append(PieMenuItem(model.capitalize(), f'build_{model}', model))
+            cost = self.universe.game_logic.get_cost(model)
+            power = self.universe.game_logic.get_power(model)
+            items.append(PieMenuItem(model.capitalize(), f'build_{model}', model, cost, power))
         self.pie_menu = PieMenu(items, lambda: self.request('Normal'))
         for item in items:
             self.accept_once(item.event, self.build, [item.event, asset_slot])

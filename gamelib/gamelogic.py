@@ -97,6 +97,12 @@ class GameLogic(DirectObject):
     def get_unlocked(self, fltr=None):
         return self.tech_tree.current(fltr)
 
+    def get_cost(self, model):
+        return self.tech_tree.build_cost(model)
+
+    def get_power(self, model):
+        return self.tech_tree.power(model)
+
     def can_build(self, model):
         ok = self.tech_tree.build_cost(model) <= self.storage_used
         pwr = self.tech_tree.power(model)

@@ -19,10 +19,12 @@ from panda3d.core import (
 from direct.interval.IntervalGlobal import Parallel, Sequence, Func
 
 class PieMenuItem:
-    def __init__(self, name, event, buildingName):
+    def __init__(self, name, event, buildingName, cost, power):
         self.name = name
         self.event = event
         self.buildingName = buildingName
+        self.cost = cost
+        self.power = f'+{power}' if power > 0 else f'{power}'
 
 class PieMenu:
     def __init__(self, items, hide_callback):
@@ -83,7 +85,7 @@ class PieMenu:
         building.copy_to(geom).clear_transform()
 
         btn = DirectButton(
-            text=item.name,
+            text=f'{item.name}({item.cost}B/{item.power}P)',
             text_scale=0.5,
             text_pos=(0,-1),
             text_fg=(1, 1, 1, 1),
