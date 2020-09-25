@@ -106,6 +106,11 @@ class IntroCutscene(CutsceneState):
     def __init__(self, next_state, state_args=None):
         super().__init__('intro', 'intro_sequence', next_state, state_args)
 
+        ship_node = self.actor.find('**/ship/+GeomNode').node()
+        cupola_state = ship_node.get_geom_state(1)
+        cupola_state = cupola_state.set_attrib(p3d.CullBinAttrib.make('fixed', 0))
+        ship_node.set_geom_state(1, cupola_state)
+
         self.obbo_face = self.actor.find('**/obbo_face')
         taskMgr.doMethodLater(1050 / self.actor.get_frame_rate('0'), self.on_scare_obbo, 'scare-obbo')
 
