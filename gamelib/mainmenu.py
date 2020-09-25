@@ -6,7 +6,7 @@ from direct.interval import IntervalGlobal as intervals
 
 from .universe import Universe
 from .skybox import Skybox
-from .cutscene import CutsceneState
+from .cutscene import IntroCutscene
 
 class MainMenu(DirectObject):
     def __init__(self):
@@ -58,7 +58,7 @@ class MainMenu(DirectObject):
                 self.cleanup()
                 ival = base.transitions.getFadeOutIval()
                 def change_state():
-                    base.gamestate = CutsceneState('intro', Universe)
+                    base.gamestate = IntroCutscene(Universe)
                 ival.append(intervals.Func(change_state))
                 ival.start()
                 break

@@ -6,7 +6,7 @@ from direct.interval import IntervalGlobal as intervals
 from direct.gui.OnscreenText import OnscreenText
 
 class CutsceneState(DirectObject):
-    def __init__(self, cutscene_name, next_state, state_args=None):
+    def __init__(self, cutscene_name, bgm_name, next_state, state_args=None):
         super().__init__()
         state_args = [] if state_args is None else state_args
 
@@ -32,6 +32,12 @@ class CutsceneState(DirectObject):
         prev_near = base.camLens.get_near()
         base.camLens.set_near(0.1)
 
+        # Play some background music if available
+        if bgm_name:
+            bgm = base.loader.load_music(f'music/{bgm_name}.ogg')
+            bgm.set_loop(True)
+            bgm.play()
+
         self.actor = actor
 
         self.instructions = OnscreenText(
@@ -49,6 +55,7 @@ class CutsceneState(DirectObject):
             base.camLens.set_near(prev_near)
 
             # Cleanup the scene
+            bgm.stop()
             self.instructions.remove_node()
             base.transitions.letterboxOff()
             self.actor.cleanup()
@@ -61,7 +68,7 @@ class CutsceneState(DirectObject):
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
-            actor.actor_interval('0', playRate=1.0),
+            actor.actor_interval('0', playRate=3.0),
             base.transitions.getFadeOutIval(),
             intervals.Func(cleanup)
         )
@@ -71,3 +78,7 @@ class CutsceneState(DirectObject):
 
     def update(self, _dt):
         pass
+
+class IntroCutscene(CutsceneState):
+    def __init__(self, next_state, state_args=None):
+        super().__init__('intro', 'intro_sequence', next_state, state_args)
