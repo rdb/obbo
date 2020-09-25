@@ -62,6 +62,8 @@ class Player(PlanetObject):
 
             if (delta * dt).length() <= dist:
                 self.set_pos(pos + delta * dt)
+                if self.idle_ctr.playing:
+                    self.idle_ctr.stop()
                 if not self.walk_ctr.playing:
                     self.walk_ctr.play()
                 return False

@@ -237,6 +237,9 @@ class PlayerControl(FSM, DirectObject):
                 # Arrived.
                 self.target_pos = None
                 self.target.root.hide()
+        else:
+            if not self.player.walk_ctr.playing and not self.player.idle_ctr.playing:
+                self.player.idle_ctr.loop(True)
 
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
@@ -301,6 +304,7 @@ class PlayerControl(FSM, DirectObject):
 
     def exitNormal(self):
         self.cursor.model.hide()
+        self.player.walk_ctr.stop()
         self.player.idle_ctr.stop()
 
     def enterCharge(self):
