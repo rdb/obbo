@@ -29,8 +29,9 @@ class GameLogic(DirectObject):
         self.tech_tree = TechTree(TECH_TREE_CFG)
 
         # Game state
-        self.storage_cap = 5
-        self.storage_used = 5  # FIXME: Only for debugging purposes
+        # FIXME: Set storage cap back to 5 and used to 0 before release!!!
+        self.storage_cap = 500
+        self.storage_used = 500
         self.collected_total = 0
         self.grow_next = 5
         self.growth_cycle = 0
@@ -57,8 +58,13 @@ class GameLogic(DirectObject):
             self.power_used += abs(pwr)
 
         # TODO: Alert the player to build more power delivery
-        if self.power_used / self.power_cap > 0.9:
+        if self.power_used / self.power_cap > 0.66:
+            print('power level critical')
             messenger.send('power_level_critical')
+            messenger.send('update_hud', ['msg', 'Power level Critical!', 0])
+        else:
+            messenger.send('update_hud', ['msg', '...', 0])
+
         self.update_hud()
 
         if model == 'beacon' and not self.beacon_built:
