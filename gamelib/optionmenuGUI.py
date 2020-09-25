@@ -61,26 +61,50 @@ class GUI:
             frameColor=(0.8, 0.8, 0.8, 0.0),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
             hpr=LVecBase3f(0, 0, 0),
-            pos=LPoint3f(0, 0, 0),
+            image='textures/Fullscreen_On.png',
+            isChecked=True,
+            pos=LPoint3f(-0.25, 0, 0),
             relief=1,
             scale=LVecBase3f(0.1, 0.1, 0.1),
             uncheckedImage='textures/Fullscreen_Off.png',
+            image_scale=LVecBase3f(1, 1, 1),
+            image_pos=LPoint3f(0, 0, 0),
             parent=rootParent,
         )
         self.cbFullscreen.setTransparency(2)
+
+        self.cbGraphicMode = DirectCheckBox(
+            checkedImage='textures/GraphicModeLow.png',
+            frameColor=(0.8, 0.8, 0.8, 0.0),
+            frameSize=(-1.0, 1.0, -1.0, 1.0),
+            hpr=LVecBase3f(0, 0, 0),
+            image='textures/GraphicModeLow.png',
+            isChecked=True,
+            pos=LPoint3f(0.25, 0, 0),
+            relief=1,
+            scale=LVecBase3f(0.1, 0.1, 0.1),
+            uncheckedImage='textures/GraphicModeHigh.png',
+            image_scale=LVecBase3f(1, 1, 1),
+            image_pos=LPoint3f(0, 0, 0),
+            parent=rootParent,
+        )
+        self.cbGraphicMode.setTransparency(2)
 
 
     def show(self):
         self.cbAudio.show()
         self.sliderVolume.show()
         self.cbFullscreen.show()
+        self.cbGraphicMode.show()
 
     def hide(self):
         self.cbAudio.hide()
         self.sliderVolume.hide()
         self.cbFullscreen.hide()
+        self.cbGraphicMode.hide()
 
     def destroy(self):
         self.cbAudio.destroy()
         self.sliderVolume.destroy()
         self.cbFullscreen.destroy()
+        self.cbGraphicMode.destroy()

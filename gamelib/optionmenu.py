@@ -15,7 +15,8 @@ from panda3d.core import (
     loadPrcFile,
     Filename,
     ExecutionEnvironment,
-    WindowProperties)
+    WindowProperties,
+    ConfigVariableBool)
 
 class OptionMenu(DirectObject, OptionGUI):
     def __init__(self):
@@ -64,6 +65,14 @@ class OptionMenu(DirectObject, OptionGUI):
             self.cbFullscreen['image'] = self.cbFullscreen['uncheckedImage']
         self.cbFullscreen.setImage()
         self.cbFullscreen["command"] = self.cbFullscreenChanged
+
+        self.cbGraphicMode["isChecked"] = ConfigVariableBool('potato-mode', False).get_value()
+        if self.cbGraphicMode['isChecked']:
+            self.cbGraphicMode['image'] = self.cbGraphicMode['checkedImage']
+        else:
+            self.cbGraphicMode['image'] = self.cbGraphicMode['uncheckedImage']
+        self.cbGraphicMode.setImage()
+        self.cbGraphicMode["command"] = self.cbGraphicModeChanged
 
     def cleanup(self):
         self.root.remove_node()
@@ -119,6 +128,9 @@ class OptionMenu(DirectObject, OptionGUI):
 
         base.win.requestProperties(props)
 
+    def cbGraphicModeChanged(self, args=None):
+        ConfigVariableBool('potato-mode').setValue(self.cbGraphicMode['isChecked'])
+
     def writeConfig(self):
         """Save current config in the prc file or if no prc file exists
         create one. The prc file is set in the prcFile variable"""
@@ -136,6 +148,7 @@ class OptionMenu(DirectObject, OptionGUI):
             "audio-music-active": "#t" if self.cbAudio["isChecked"] else "#f",
             "audio-sfx-active": "#t" if self.cbAudio["isChecked"] else "#f",
             "fullscreen": "#t" if self.cbFullscreen["isChecked"] else "#f",
+            "potato-mode": "#t" if ConfigVariableBool('potato-mode', False).get_value() else "#f",
             }
 
         page = None
