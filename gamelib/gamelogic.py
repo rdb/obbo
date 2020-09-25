@@ -21,10 +21,7 @@ TECH_TREE_CFG = [
 ]
 PLANET_GROWTH_STEPS = (5, 15, 35, 75)
 INSTRUCTIONS = {
-    'first_catch':
-"""Yipee!! Caught one.
-And judging by that rumble, the planet likes
-me catching asteroids..."""
+    'first_catch': 'The planet ate some of my asteroid  >_<'
 }
 
 
@@ -91,7 +88,7 @@ class GameLogic(DirectObject):
         self.update_hud()
         if self.first_asteroid:
             self.first_asteroid = False
-            messenger.send('display_msg', [INSTRUCTIONS['first_catch'], 8])
+            messenger.send('update_hud', ['msg', INSTRUCTIONS['first_catch']])
 
     def update_hud(self):
         messenger.send('update_hud', ['blocks', self.storage_used, self.storage_cap])
