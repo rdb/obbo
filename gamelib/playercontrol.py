@@ -293,6 +293,10 @@ class PlayerControl(FSM, DirectObject):
             LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
         ).start()
         self.down_time = None
+        props = core.WindowProperties()
+        props.set_cursor_hidden(True)
+        props.set_mouse_mode(core.WindowProperties.M_relative)
+        base.win.request_properties(props)
 
     def updateCast(self, dt):
         self.update_cast_cam()
@@ -314,6 +318,10 @@ class PlayerControl(FSM, DirectObject):
 
     def exitCast(self):
         self.traverser.remove_collider(self.bobber_collider)
+        props = core.WindowProperties()
+        props.set_cursor_hidden(False)
+        props.set_mouse_mode(core.WindowProperties.M_absolute)
+        base.win.request_properties(props)
 
     def enterReel(self, asteroid=None):
         if asteroid is not None:
