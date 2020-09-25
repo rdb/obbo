@@ -161,6 +161,11 @@ class PlayerControl(FSM, DirectObject):
 
     def enterIntro(self):
         self.ship.reparent_to(self.ship_root)
+
+        skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        if skip_main_menu:
+            return
+
         sfx = loader.load_sfx("sfx/crash.wav")
         if sfx:
             sfx.play()
@@ -175,6 +180,11 @@ class PlayerControl(FSM, DirectObject):
             Wait(1.0),
             Func(self.request, 'Normal'),
         ).start()
+
+    def updateIntro(self, _dt):
+        skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        if skip_main_menu:
+            self.request('Normal')
 
     def exitIntro(self):
         self.ship.detach_node()
