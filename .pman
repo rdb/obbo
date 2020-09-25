@@ -5,7 +5,7 @@ name = "obbo"
 main_file = "run_game.py"
 
 [build]
-converters = ["native2bam", "blend2bamex"]
+converters = ["native2bam", "blend2bamex", "gen_asteroids"]
 
 [blend2bam]
 material_mode = "pbr"

@@ -67,6 +67,7 @@ setup(
     entry_points={
         'pman.converters': [
             'blend2bamex = buildtools:extended_blend2bam',
+            'gen_asteroids = buildtools:gen_asteroids',
         ],
     },
     cmdclass={

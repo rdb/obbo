@@ -1,8 +1,11 @@
 import pathlib
+import random
 import time
 
 import panda3d.core as p3d
 from pman.hooks import Converter, converter_blend_bam
+
+from gamelib.procgen import asteroid
 
 LOADOPTS = p3d.LoaderOptions()
 LOADOPTS.flags |= p3d.LoaderOptions.LF_no_cache
@@ -88,6 +91,31 @@ def extended_blend2bam(config, srcdir, dstdir, assets):
         opt_bam(i)
 
     print(f'Optimizing took {time.perf_counter() - start:.4f}s')
+
+MIN_B = 0.4
+MAX_B = 0.8
+
+@Converter(['.ast'])
+def gen_asteroids(_config, srcdir, dstdir, assets):
+    for asset in assets:
+        start = time.perf_counter()
+        with open(asset) as afile:
+            num_asteroids = int(afile.read())
+        print(f'Generating {num_asteroids} asteroids')
+        asset = asset.replace(srcdir, dstdir).replace('.ast', '.bam')
+        root = p3d.NodePath('root')
+        for i in range(num_asteroids):
+            bounds = p3d.Vec3(*(random.uniform(MIN_B, MAX_B) for _ in range(3)))
+            color1 = p3d.Vec3(random.uniform(0.05, 0.25))
+            color2 = color1 * random.uniform(0.1, 0.5)
+            mesh = asteroid.generate(bounds, color2, color2, random.uniform(5.2, 9.5))
+            mesh.name = f'asteroid{i}'
+            node = root.attach_new_node(mesh)
+            node.set_tag('radius', str(max(bounds)))
+        # root.ls()
+        root.write_bam_file(asset)
+        print(f'Generating asteroids finished in {time.perf_counter() - start:.4f}s')
+
 
 if __name__ == '__main__':
     import sys

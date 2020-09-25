@@ -3,29 +3,26 @@ import random
 from panda3d import core
 from direct.interval.LerpInterval import *
 
-from .procgen import asteroid
 from .planet import GROWTH_TIME
 
-
-MIN_B = 0.4
-MAX_B = 0.9
 SCALE_DURATION = 0.3
 
 
 class Asteroid:
+    MESHES = []
     def __init__(self, planet, universe):
         self.universe = universe
         self.planet = planet
 
+        if not self.MESHES:
+            Asteroid.MESHES = base.loader.load_model('models/asteroids.bam').children
+
         self.root = planet.root.attach_new_node("root")
-        bounds = core.Vec3(*(random.uniform(MIN_B, MAX_B) for _ in range(3)))
-        radius = max(bounds)
-        color1 = core.Vec3(random.uniform(0.05, 0.25))
-        color2 = color1 * random.uniform(0.1, 0.5)
-        node = asteroid.generate(bounds, color1, color2, random.uniform(5.2, 9.5))
+        mesh = random.choice(self.MESHES)
+        radius = float(mesh.get_tag('radius'))
         self.root.set_hpr(random.randrange(360), random.randrange(-90, 90), 0)
         self.rotation = self.root.attach_new_node('Rotation')
-        self.asteroid = self.rotation.attach_new_node(node)
+        self.asteroid = mesh.instance_to(self.rotation)
         self.xoff = random.uniform(1.7, 5)
         self.yoff = random.uniform(1.7, 5)
         self.update_pos(False)
