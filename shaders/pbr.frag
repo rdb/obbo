@@ -19,7 +19,6 @@ const float RIM_LIGHT_DIFFUSE_BLEND = 0.2;
 
 uniform struct p3d_MaterialParameters {
     vec4 baseColor;
-    float roughness;
 } p3d_Material;
 
 uniform struct p3d_LightSourceParameters {
@@ -63,10 +62,10 @@ float saturate(float val) {
 }
 
 void main() {
-    float perceptual_roughness = saturate(p3d_Material.roughness);
-    float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
     vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
     vec3 diffuse_color = base_color.rgb * (vec3(1.0) - F0);
+    float perceptual_roughness = saturate(base_color.a);
+    float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
     vec3 n = normalize(v_normal);
     vec3 v = normalize(-v_position);
 
