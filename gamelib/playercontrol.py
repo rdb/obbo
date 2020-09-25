@@ -641,7 +641,7 @@ class Crosshair:
         self.model.set_material(mat)
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
-        self.model.set_pos(0, 50, 8)
+        self.model.set_pos(0, 50, 4)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
         self.model.hide()
 
