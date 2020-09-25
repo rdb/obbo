@@ -26,8 +26,8 @@ class Asteroid:
         self.rotation.set_pos(0, 0, -1)
         self.asteroid = self.rotation.attach_new_node(node)
         self.asteroid.set_pos(
-            planet.size * random.uniform(1.8, 4.5),
-            planet.size * random.uniform(1.8, 4.5),
+            planet.root.get_scale()[0] + random.uniform(3, 9),
+            planet.root.get_scale()[0] + random.uniform(3, 9),
             0
         )
         mat = core.Material()
