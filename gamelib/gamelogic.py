@@ -91,7 +91,7 @@ class GameLogic(DirectObject):
         self.update_hud()
         if self.first_asteroid:
             self.first_asteroid = False
-            messenger.send('display_msg', [INSTRUCTIONS['first_catch']])
+            messenger.send('display_msg', [INSTRUCTIONS['first_catch'], 8])
 
     def update_hud(self):
         messenger.send('update_hud', ['blocks', self.storage_used, self.storage_cap])

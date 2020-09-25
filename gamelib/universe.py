@@ -79,10 +79,10 @@ class Universe(FSM, DirectObject):
         base.accept('display_msg', self.display_message)
         self.request('Universe')
 
-    def display_message(self, text):
+    def display_message(self, text, duration=INSTRUCTIONS_AUTO_REMOVE_TIME):
         self.add_instructions(text)
         taskMgr.do_method_later(
-            INSTRUCTIONS_AUTO_REMOVE_TIME,
+            duration,
             self.remove_instructions,
             'remove insntructions'
         )
