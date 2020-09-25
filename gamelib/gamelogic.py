@@ -19,8 +19,13 @@ TECH_TREE_CFG = [
     TechNode('superpower', 'power', 11, 40, ('supercomputer', 'soppower')),
     TechNode('beacon', 'science', 11, -35, ('supercomputer', 'superpower')),
 ]
-
 PLANET_GROWTH_STEPS = (5, 15, 35, 75)
+INSTRUCTIONS = {
+    'first_catch':
+"""Yipee!! Caught one.
+And judging by that rumble, the planet likes
+me catching asteroids..."""
+}
 
 
 class GameLogic(DirectObject):
@@ -37,6 +42,7 @@ class GameLogic(DirectObject):
         self.growth_cycle = 0
         self.power_cap = 0
         self.power_used = 0
+        self.first_asteroid = True
         self.beacon_built = False
 
         self.accept('built', self.built)
@@ -83,6 +89,9 @@ class GameLogic(DirectObject):
             else:
                 self.grow_next = PLANET_GROWTH_STEPS[self.growth_cycle]
         self.update_hud()
+        if self.first_asteroid:
+            self.first_asteroid = False
+            messenger.send('display_msg', [INSTRUCTIONS['first_catch']])
 
     def update_hud(self):
         messenger.send('update_hud', ['blocks', self.storage_used, self.storage_cap])
