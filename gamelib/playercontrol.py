@@ -84,7 +84,7 @@ class PlayerControl(FSM, DirectObject):
         bobbercol.set_from_collide_mask(0b0100)
         bobbercol.set_into_collide_mask(0b0000)
         self.bobber_collider = self.bobber.attach_new_node(bobbercol)
-        self.bobber_collider.show()
+        # self.bobber_collider.show()
         self.asteroid_handler = core.CollisionHandlerQueue()
 
         # Create fishing line.
