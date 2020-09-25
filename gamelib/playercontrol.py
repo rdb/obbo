@@ -27,8 +27,8 @@ MAGNET_RADIUS = 1.5
 # How much distance Obbo keeps from buildings while building
 BUILD_DIST = 1.0
 
-# How long Obbo takes to build something - twice the length of the build anim
-BUILD_TIME = 2.25 * 2
+# How long Obbo takes to build something, currently length of building animation
+BUILD_TIME = 2.25
 
 CAST_TIME = 1.0
 CAST_MIN_DISTANCE = 3.0
@@ -36,7 +36,7 @@ CAST_MAX_DISTANCE = 15.0
 
 MAGNET_SNAP_TIME = 0.15
 
-REEL_SPEED = 4.0
+REEL_SPEED = 8.0
 
 # How close the bobber can get to Obbo before ending the reel
 REEL_MIN_DISTANCE = 0.8
@@ -162,6 +162,27 @@ class PlayerControl(FSM, DirectObject):
             for i in range(4):
                 self.grow()
 
+        sfx = [
+            "menu_accept",
+            "menu_hover",
+            "menu_spam",
+            "astroid_attaches",
+            "astroid_collected",
+            "building_placed",
+            "catched_nothing",
+            "obbo_build",
+            "obbo_cast",
+            "obbo_charge",
+            "obbo_reel_in",
+            "obbo_walk",
+            "planet_grows",
+        ]
+        self.sfx = {}
+        for sfx_name in sfx:
+            self.sfx[sfx_name] = loader.load_sfx("sfx/"+sfx_name+".wav")
+        self.sfx["obbo_walk"].set_loop(True)
+        self.sfx["menu_spam"].set_volume(0.4)
+
     def enterIntro(self):
         self.ship.reparent_to(self.ship_root)
 
@@ -205,7 +226,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.root.show()
         base.transitions.fadeIn(2.0)
         base.camera.set_pos((0, -30, 30))
-
+        
         taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):
@@ -227,6 +248,10 @@ class PlayerControl(FSM, DirectObject):
         if self.grown >= 4:
             base.ignore('space')  # FIXME: remove before release
             base.ignore('planet_grow')
+        else:
+            self.sfx["planet_grows"].play()
+
+
         self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.4))
 
     def exit(self):
@@ -250,6 +275,7 @@ class PlayerControl(FSM, DirectObject):
 
         if self.state == 'Cast' and not self.cursor_asset_slot:
             self.player.reel_ctr.play()
+            self.sfx["obbo_reel_in"].play()	
         elif self.state == 'Build' and not self.cursor_asset_slot:
             self.request('Normal')
 
@@ -264,6 +290,7 @@ class PlayerControl(FSM, DirectObject):
 
         elif self.state == 'Cast':
             self.player.reel_ctr.stop()
+            self.sfx["obbo_reel_in"].stop()
 
         elif self.state == 'Charge':
             time = globalClock.frame_time - self.down_time
@@ -282,6 +309,7 @@ class PlayerControl(FSM, DirectObject):
             self.down_pos = None
 
     def cancel(self):
+        self.sfx["catched_nothing"].play()
         self.request('Normal')
 
     def enterNormal(self):
@@ -301,8 +329,12 @@ class PlayerControl(FSM, DirectObject):
 
     def updateNormal(self, dt):
         if self.target_pos is not None:
+            if not self.sfx["obbo_walk"].status() == self.sfx["obbo_walk"].PLAYING:
+                self.sfx["obbo_walk"].play()
             if self.player.move_toward(self.target_pos, dt):
                 # Arrived.
+                self.sfx["menu_spam"].play()
+                self.sfx["obbo_walk"].stop()
                 self.target_pos = None
                 self.target.root.hide()
         else:
@@ -384,6 +416,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.idle_ctr.stop()
 
     def enterCharge(self):
+        self.sfx["obbo_charge"].play()
         self.player.charge_ctr.play()
         self.toggle_cam_view('charging')
         self.cam_target_p = 45
@@ -408,6 +441,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.model.set_h(self.cam_dummy.get_h())
 
     def exitCharge(self):
+        self.sfx["obbo_charge"].stop()
         self.player.charge_ctr.play()
         self.toggle_cam_view()
         self.crosshair.hide()
@@ -419,6 +453,7 @@ class PlayerControl(FSM, DirectObject):
         self.ignore('mouse3-up')
 
     def enterCast(self, power):
+        self.sfx["obbo_cast"].play()
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
         self.bobber.set_pos(0, 0, 0)
         self.bobber.set_hpr(0, 0, 0)
@@ -442,11 +477,14 @@ class PlayerControl(FSM, DirectObject):
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         self.bobber.set_pos(rod_tip_pos + direction * 3)
         self.bobber.look_at(rod_tip_pos + direction * distance)
-
+        
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
-        Parallel(
-            LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
-            LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+        Sequence(
+            Parallel(
+                LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
+                LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+            ),
+            Func(self.sfx["obbo_cast"].stop),
         ).start()
 
     def updateCast(self, dt):
@@ -466,9 +504,11 @@ class PlayerControl(FSM, DirectObject):
         ]
 
         if hit_asteroids:
+            self.sfx["obbo_reel_in"].play()	
             self.request('Reel', hit_asteroids[0])
 
     def exitCast(self):
+        self.sfx["obbo_cast"].stop()
         self.traverser.remove_collider(self.bobber_collider)
         props = core.WindowProperties()
         props.set_cursor_hidden(False)
@@ -477,6 +517,7 @@ class PlayerControl(FSM, DirectObject):
 
     def enterReel(self, asteroid=None):
         if asteroid is not None:
+            self.sfx["astroid_attaches"].play()        
             print('hit an asteroid!')
             asteroid.stop()
             asteroid.asteroid.wrt_reparent_to(self.bobber)
@@ -502,12 +543,15 @@ class PlayerControl(FSM, DirectObject):
             self.request('Consume', self.catch)
             self.catch = None
         else:
+            self.sfx["obbo_reel_in"].stop()
+            self.sfx["catched_nothing"].play()
             self.request('Normal')
 
     def exitReel(self):
         self.player.reel_ctr.stop()
 
     def enterConsume(self, catch):
+        self.sfx["astroid_collected"].play()
         Sequence(
             catch.asteroid.scaleInterval(1.0, 0.0001),
             Func(catch.destroy),
@@ -529,11 +573,11 @@ class PlayerControl(FSM, DirectObject):
         ).start()
 
     def enterBuild(self, asset_slot):
+        self.sfx["menu_accept"].play()
         self.ignore('mouse1')
         self.ignore('mouse1-up')
         self.target_pos = None
         self.target.root.hide()
-
         # TODO: Maybe modify PieMenu to accept a dict with categories? Definitely is too much for more than 5/6 items
         buildable = [j for i in self.universe.game_logic.get_unlocked().values() for j in i]
         items = []
@@ -547,6 +591,7 @@ class PlayerControl(FSM, DirectObject):
 
     def updateBuild(self, dt):
         def finish_building(task):
+            self.sfx["building_placed"].play()
             self.player.build_ctr.stop()
             self.request('Normal')
             return task.done
@@ -561,14 +606,15 @@ class PlayerControl(FSM, DirectObject):
                 taskMgr.do_method_later(BUILD_TIME, finish_building, 'finish')
                 self.build_asset_slot = None
                 self.build_building = None
+                self.sfx["obbo_build"].play()
 
     def exitBuild(self):
         self.accept('mouse1', self.on_mouse_down)
         self.accept('mouse1-up', self.on_mouse_up)
 
     def build(self, building, asset_slot):
-        # TODO: Inform the player that they don't have enough blocks/power to build
         if self.universe.game_logic.can_build(building[6:]):
+            self.sfx["menu_accept"].play()
             self.target_pos = core.Vec3(asset_slot.get_pos())
             dir = core.Vec3(self.target_pos - self.player.get_pos())
             dir.normalize()
@@ -577,6 +623,8 @@ class PlayerControl(FSM, DirectObject):
             self.build_asset_slot = asset_slot
             self.build_building = building[6:]
             self.pie_menu.hide(ignore_callback=True)
+        else:
+            self.sfx["catched_nothing"].play()
 
     def update_line(self):
         writer = core.GeomVertexWriter(self.line.node().modify_geom(0).modify_vertex_data(), 'vertex')
