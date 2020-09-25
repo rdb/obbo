@@ -34,6 +34,10 @@ class GameApp(ShowBase):
 
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
+        bgm = base.loader.load_music('music/menu.ogg')
+        bgm.set_loop(True)
+        bgm.play()
+
         self.transitions.fadeScreen(1.0)
 
         profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
