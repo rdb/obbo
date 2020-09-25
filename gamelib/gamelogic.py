@@ -30,7 +30,7 @@ class GameLogic(DirectObject):
 
         # Game state
         self.storage_cap = 5
-        self.storage_used = 0
+        self.storage_used = 5  # FIXME: Only for debugging purposes
         self.collected_total = 0
         self.grow_next = 5
         self.growth_cycle = 0
