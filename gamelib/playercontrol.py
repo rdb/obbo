@@ -118,6 +118,17 @@ class PlayerControl(FSM, DirectObject):
         self.mouse_last = None
         self.catch = None
 
+        confine_mouse = core.ConfigVariableBool('confine-mouse', False).get_value()
+        if confine_mouse:
+            self.default_mouse_mode = core.WindowProperties.M_confined
+        else:
+            self.default_mouse_mode = core.WindowProperties.M_absolute
+
+        props = core.WindowProperties()
+        props.set_cursor_hidden(False)
+        props.set_mouse_mode(self.default_mouse_mode)
+        base.win.request_properties(props)
+
         self.player.charge_ctr.play_rate = (self.player.charge_ctr.num_frames / self.player.charge_ctr.frame_rate) / CHARGE_MAX_TIME
 
         self.request('Normal')
@@ -343,7 +354,7 @@ class PlayerControl(FSM, DirectObject):
         self.crosshair.hide()
         props = core.WindowProperties()
         props.set_cursor_hidden(False)
-        props.set_mouse_mode(core.WindowProperties.M_absolute)
+        props.set_mouse_mode(self.default_mouse_mode)
         base.win.request_properties(props)
 
         self.ignore('mouse3-up')
@@ -402,7 +413,7 @@ class PlayerControl(FSM, DirectObject):
         self.traverser.remove_collider(self.bobber_collider)
         props = core.WindowProperties()
         props.set_cursor_hidden(False)
-        props.set_mouse_mode(core.WindowProperties.M_absolute)
+        props.set_mouse_mode(self.default_mouse_mode)
         base.win.request_properties(props)
 
     def enterReel(self, asteroid=None):
