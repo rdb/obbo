@@ -28,6 +28,7 @@ Some useful variables:
 * `confine-mouse` - `true`/`false` to control if the mouse cursor can leave the window boundaries (e.g., `confine-mouse false`)
 * `skip-main-menu` - `true`/`false` to skip the main menu, intro cutscene, etc. and jump straight to the game (e.g., `skip-main-menu true`)
 * `show-frame-rate-meter` - `true`/`false` to display an FPS counter in the top right of the screen (e.g., `show-frame-rate-meter true`)
+* `potato-mode` - `true`/`false` try to turn down visuals to run on low-end hardware (e.g., `potato-mode true`)
 
 Here is an example of what a `user.prc` might look like:
 

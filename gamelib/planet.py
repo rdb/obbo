@@ -325,6 +325,10 @@ class AssetSlot(PlanetObject):
     def attach_model(self, fn):
         self.placeholder.remove_node()
 
+        potato_mode = panda3d.core.ConfigVariableBool('potato-mode', False).get_value()
+        if not self.build_slot and potato_mode and random.randint(0, 1):
+            return
+
         if self.build_slot:
             fn = "models/BuildSpaceSign.bam"
 

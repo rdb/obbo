@@ -26,9 +26,11 @@ class GameApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         pman.shim.init(self)
+        potato_mode = panda3d.core.ConfigVariableBool('potato-mode', False).get_value()
         self.luttext = self.load_lut('lut.png')
         self.render_pipeline = renderer.Pipeline(
-            lut_texture=self.luttext
+            lut_texture=self.luttext,
+            enable_shadows=not potato_mode,
         )
         self.accept('escape', sys.exit)
 
