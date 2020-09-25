@@ -4,6 +4,8 @@ __pycache__/
 *.blend1
 *.blend2
 
+.python-version
+
 /build/
 /.eggs/
 /*.egg-info/
