@@ -9,7 +9,7 @@ LOADOPTS.flags |= p3d.LoaderOptions.LF_no_cache
 
 def opt_bam(bampath):
     print(f'Optimizing {bampath}')
-    bampath = p3d.Filename.from_os_specific(str(bampath))
+    bampath = p3d.Filename.from_os_specific(bampath)
     loader = p3d.Loader.get_global_ptr()
     modelroot = p3d.NodePath(loader.load_sync(bampath, LOADOPTS))
 
@@ -58,7 +58,11 @@ def opt_bam(bampath):
             state = state.remove_attrib(p3d.MaterialAttrib)
             geomnode.set_geom_state(idx, state)
 
-    # modelroot.flatten_strong()
+    if bampath.get_basename() == 'buildings.bam':
+        for child in modelroot.children:
+            child.flatten_strong()
+    else:
+        modelroot.flatten_strong()
     modelroot.write_bam_file(bampath)
 
 @Converter(['.blend'])
@@ -67,8 +71,13 @@ def extended_blend2bam(config, srcdir, dstdir, assets):
 
     start = time.perf_counter()
     bampaths = [
-        pathlib.Path(i.replace(srcdir, dstdir)).with_suffix('.bam')
+        str(pathlib.Path(i.replace(srcdir, dstdir)).with_suffix('.bam'))
         for i in assets
+    ]
+    bampaths = [
+        i
+        for i in bampaths
+        if 'Environment' in i or i.endswith('buildings.bam')
     ]
 
     for i in bampaths:
