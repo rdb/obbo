@@ -86,7 +86,7 @@ class PieMenu:
 
         btn = DirectButton(
             text=f'{item.name}({item.cost}B/{item.power}P)',
-            text_scale=0.5,
+            text_scale=0.32,
             text_pos=(0,-1),
             text_fg=(1, 1, 1, 1),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
@@ -94,7 +94,7 @@ class PieMenu:
             relief=None,
             scale=0.25,
             geom=geom,
-            geom_scale=0.25,
+            geom_scale=0.45,
             parent=self.menuCircle,
             pressEffect=False,
             command=base.messenger.send,

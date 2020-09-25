@@ -9,9 +9,9 @@ AUTO_CLEAR_MSG = 15
 class HUD(DirectObject):
     def __init__(self):
         super().__init__()
-        self.blocks = OnscreenText('Blocks: 0/5', pos=(0.3, -0.05), fg=(1,) * 4, parent=base.a2dTopLeft, mayChange=True)
-        self.power = OnscreenText('Power: 0/0', pos=(-0.3, -0.05), fg=(1,) * 4, parent=base.a2dTopRight, mayChange=True)
-        self.message = OnscreenText('...', pos=(0, -0.05), fg=(1,) * 4, parent=base.a2dTopCenter, mayChange=True, align=core.TextNode.ACenter)
+        self.blocks = OnscreenText('Blocks: 0/5', pos=(0.3, -0.05), fg=(1,) * 4, parent=base.a2dTopLeft, scale=0.055, mayChange=True)
+        self.power = OnscreenText('Power: 0/0', pos=(-0.3, -0.05), fg=(1,) * 4, parent=base.a2dTopRight, scale=0.055, mayChange=True)
+        self.message = OnscreenText('...', pos=(0, -0.05), fg=(1,) * 4, parent=base.a2dTopCenter, scale=0.055, mayChange=True, align=core.TextNode.ACenter)
 
         self.clear_message = 0
         self.message_active = False
