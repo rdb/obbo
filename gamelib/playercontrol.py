@@ -22,7 +22,7 @@ SHIP_POSITION = (0.364267, -0.857099, 0.364267)
 CHARGE_MAX_TIME = 2.0
 
 BOBBER_SPIN_SPEED = 0.1
-MAGNET_RADIUS = 1.5
+MAGNET_RADIUS = 1.8
 
 # How much distance Obbo keeps from buildings while building
 BUILD_DIST = 1.0
@@ -252,7 +252,7 @@ class PlayerControl(FSM, DirectObject):
             self.sfx["planet_grows"].play()
 
 
-        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.4))
+        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.6))
 
     def exit(self):
         """Clean up?"""

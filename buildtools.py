@@ -93,7 +93,7 @@ def extended_blend2bam(config, srcdir, dstdir, assets):
     print(f'Optimizing took {time.perf_counter() - start:.4f}s')
 
 MIN_B = 0.4
-MAX_B = 0.8
+MAX_B = 1.5
 
 @Converter(['.ast'])
 def gen_asteroids(_config, srcdir, dstdir, assets):
