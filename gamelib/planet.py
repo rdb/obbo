@@ -59,8 +59,6 @@ class Planet:
         self.mouth = PlanetMouth(self)
         self.mouth.set_pos((0, -1.2, 1))
 
-        taskMgr.do_method_later(1, self.sprout_build_slots, 'bs_spawner')
-
     def grow(self, player_face):
         new_size = self.size + 1
         self.new_build_slots = math.ceil(new_size * 2.4)  # Change factor to increase/decrease build_slots

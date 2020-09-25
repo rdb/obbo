@@ -46,6 +46,8 @@ class PlayerControl(FSM, DirectObject):
     def __init__(self, universe):
         FSM.__init__(self, 'Normal')
         DirectObject.__init__(self)
+        self.universe = universe
+
         self.traverser = core.CollisionTraverser()
         self.ray = core.CollisionRay()
         self.root = universe.root
@@ -59,6 +61,8 @@ class PlayerControl(FSM, DirectObject):
 
         self.player = Player(universe.planet)
         self.player.set_pos((0, 0, 1))
+        self.player.model.set_h(180)
+        self.player.root.hide()
         self.crosshair = Crosshair()
 
         self.pusher = core.CollisionHandlerPusher()
@@ -131,19 +135,53 @@ class PlayerControl(FSM, DirectObject):
 
         self.player.charge_ctr.play_rate = (self.player.charge_ctr.num_frames / self.player.charge_ctr.frame_rate) / CHARGE_MAX_TIME
 
-        self.request('Normal')
+        self.ship_root = self.universe.planet.root.attach_new_node("ship_root")
+        ship_model = loader.load_model("models/ship.bam")
+        self.ship = ship_model.find("**/ship")
+        self.ship.clear_transform()
+        self.ship.set_scale(0.2)
+
+        self.crashed_ship = CrashedShip(self.universe.planet)
+        self.crashed_ship.root.hide()
+        self.crashed_ship.set_pos((-2, 0, 0))
+        self.universe.planet.sides[4].grid[0][0].destroy()
+        self.universe.planet.sides[4].grid[0][0] = self.crashed_ship
+
+        self.request('Intro')
 
         # FIXME: remove grow with space before release
         base.accept('space', self.grow)
         self.grown = 0
         base.accept('planet_grow', self.grow)
 
-        self.universe = universe
-
         self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
         if self.profile_mode:
             for i in range(4):
                 self.grow()
+
+    def enterIntro(self):
+        self.ship.reparent_to(self.ship_root)
+        sfx = loader.load_sfx("sfx/crash.wav")
+        if sfx:
+            sfx.play()
+
+        self.ship.set_pos(-50, 75, -35)
+        self.ship.look_at((-2, 0, 0))
+        self.ship.posInterval(3.0, (-2, 0, 0)).start()
+        base.transitions.setFadeColor(1, 1, 1)
+        Sequence(
+            Wait(2.8),
+            base.transitions.getFadeOutIval(0.1),
+            Wait(1.0),
+            Func(self.request, 'Normal'),
+        ).start()
+
+    def exitIntro(self):
+        self.ship.detach_node()
+        self.crashed_ship.root.show()
+        self.player.root.show()
+        base.transitions.fadeIn(2.0)
+        taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):
         ppos = list(self.player.get_pos())
@@ -167,7 +205,7 @@ class PlayerControl(FSM, DirectObject):
 
     def enter(self):
         base.camera.reparent_to(self.cam_dummy)
-        base.camera.set_pos((0, -20, 20))
+        base.camera.set_pos((0, -30, 30))
         base.camera.look_at(self.cam_dummy)
 
     def exit(self):
@@ -606,3 +644,31 @@ class Cursor(PlanetObject):
         self.model.set_alpha_scale(0.5)
         self.model.set_transparency(core.TransparencyAttrib.M_alpha)
         self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_scale))
+
+
+class CrashedShip(PlanetObject):
+    def __init__(self, planet):
+        super().__init__(planet)
+
+        self.model = loader.load_model("models/ship.bam").find("**/crashed_ship")
+        self.model.reparent_to(self.root)
+        self.model.clear_transform()
+        self.model.set_scale(0.4)
+        self.model.set_hpr(0, 270, 180)
+        self.model.set_effect(core.CompassEffect.make(core.NodePath(),
+                              core.CompassEffect.P_scale))
+        self.model.find("**/crashed_ship_roof").set_two_sided(True)
+        collider = self.model.attach_new_node(core.CollisionNode("ship"))
+        collider.node().add_solid(core.CollisionCapsule((-3, 0, 0.5), (3, 0, 0.5), 1))
+        collider.node().add_solid(core.CollisionCapsule((0, -2, 0.5), (0, 2, 0.5), 1))
+        #collider.node().add_solid(core.CollisionSphere((1, 2, 2), 1.2))
+        collider.node().set_from_collide_mask(0)
+        collider.node().set_into_collide_mask(0b0010)
+        #collider.show()
+
+        self.old_pos = core.Point3(-1, 0, 0)
+        self.new_pos = core.Point3(-1, 0, 0)
+        self.build_slot = False
+
+    def sprout(self):
+        pass
