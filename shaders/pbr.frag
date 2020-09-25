@@ -19,20 +19,15 @@ const float RIM_LIGHT_DIFFUSE_BLEND = 0.2;
 
 uniform struct p3d_MaterialParameters {
     vec4 baseColor;
-    vec4 emission;
     float roughness;
-    float metallic;
-    float refractiveIndex;
 } p3d_Material;
 
 uniform struct p3d_LightSourceParameters {
     vec4 position;
     vec4 diffuse;
     vec4 specular;
-    vec3 attenuation;
     vec3 spotDirection;
     float spotCosCutoff;
-    float spotExponent;
 #ifdef ENABLE_SHADOWS
     sampler2DShadow shadowMap;
     mat4 shadowViewMatrix;
@@ -43,25 +38,12 @@ uniform struct p3d_LightModelParameters {
     vec4 ambient;
 } p3d_LightModel;
 
-#ifdef ENABLE_FOG
-uniform struct p3d_FogParameters {
-    vec4 color;
-    float density;
-} p3d_Fog;
-#endif
-
 uniform vec4 p3d_ColorScale;
 
 // Give texture slots names
 #define p3d_TextureBaseColor p3d_Texture0
-#define p3d_TextureMetalRoughness p3d_Texture1
-#define p3d_TextureNormal p3d_Texture2
-#define p3d_TextureEmission p3d_Texture3
 
 uniform sampler2D p3d_TextureBaseColor;
-uniform sampler2D p3d_TextureMetalRoughness;
-uniform sampler2D p3d_TextureNormal;
-uniform sampler2D p3d_TextureEmission;
 
 const vec3 F0 = vec3(0.04);
 const float PI = 3.141592653589793;
@@ -70,8 +52,8 @@ const float LIGHT_CUTOFF = 0.001;
 
 varying vec3 v_position;
 varying vec4 v_color;
+varying vec3 v_normal;
 varying vec2 v_texcoord;
-varying mat3 v_tbn;
 #ifdef ENABLE_SHADOWS
 varying vec4 v_shadow_pos[MAX_LIGHTS];
 #endif
@@ -81,25 +63,12 @@ float saturate(float val) {
 }
 
 void main() {
-#ifdef ENABLE_SPECULAR
-    vec4 metal_rough = texture2D(p3d_TextureMetalRoughness, v_texcoord);
-    float perceptual_roughness = saturate(p3d_Material.roughness * metal_rough.g);
+    float perceptual_roughness = saturate(p3d_Material.roughness);
     float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
-#endif
     vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
     vec3 diffuse_color = base_color.rgb * (vec3(1.0) - F0);
-#ifdef USE_NORMAL_MAP
-    vec3 n = normalize(v_tbn * (2.0 * texture2D(p3d_TextureNormal, v_texcoord).rgb - 1.0));
-#else
-    vec3 n = normalize(v_tbn[2]);
-#endif
+    vec3 n = normalize(v_normal);
     vec3 v = normalize(-v_position);
-
-#ifdef USE_OCCLUSION_MAP
-    float ambient_occlusion = metal_rough.r;
-#else
-    float ambient_occlusion = 1.0;
-#endif
 
     vec4 color = vec4(vec3(0.0), base_color.a);
 
@@ -140,7 +109,6 @@ void main() {
         float stepped_diffuse = min(step(DIFFUSE_STEP_EDGE, diffuse) + w, 1);
         vec3 diffuse_contrib = diffuse_color * stepped_diffuse;
 
-#ifdef ENABLE_SPECULAR
         // Blinn Phong specular
         float alpha2 = alpha_roughness * alpha_roughness;
         float shininess = 2.0 / alpha2 - 2.0;
@@ -148,9 +116,6 @@ void main() {
         float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
         float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
         vec3 spec_contrib = vec3(stepped_specular);
-#else
-        vec3 spec_contrib = vec3(0.0);
-#endif
 
         color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
 
@@ -159,19 +124,7 @@ void main() {
     }
 
     // Ambient
-    color.rgb += diffuse_color * p3d_LightModel.ambient.rgb * ambient_occlusion;
-
-    // Emission
-#ifdef USE_EMISSION_MAP
-    color.rgb += p3d_Material.emission.rgb * texture2D(p3d_TextureEmission, v_texcoord).rgb;
-#endif
-
-#ifdef ENABLE_FOG
-    // Exponential fog
-    float fog_distance = length(v_position);
-    float fog_factor = clamp(1.0 / exp(fog_distance * p3d_Fog.density), 0.0, 1.0);
-    color = mix(p3d_Fog.color, color, fog_factor);
-#endif
+    color.rgb += diffuse_color * p3d_LightModel.ambient.rgb;
 
     gl_FragColor = color;
 }

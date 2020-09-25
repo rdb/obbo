@@ -96,13 +96,10 @@ class Pipeline:
             camera_node=None,
             taskmgr=None,
             max_lights=1,
-            use_normal_maps=False,
-            use_emission_maps=False,
             exposure=0.0,
             enable_shadows=True,
             soft_shadows=True,
             enable_specular=True,
-            enable_fog=False,
             use_occlusion_maps=False,
             lut_texture=None,
     ):
@@ -123,14 +120,10 @@ class Pipeline:
         self.window = window
         self.camera_node = camera_node
         self.max_lights = max_lights
-        self.use_normal_maps = use_normal_maps
-        self.use_emission_maps = use_emission_maps
         self.enable_shadows = enable_shadows
         self.enable_specular = enable_specular
         self.soft_shadows = soft_shadows
-        self.enable_fog = enable_fog
         self.exposure = exposure
-        self.use_occlusion_maps = use_occlusion_maps
         self.lut_texture = lut_texture
 
         # Default Material
@@ -168,13 +161,8 @@ class Pipeline:
 
         pbr_vars = [
             'max_lights',
-            'use_normal_maps',
-            'use_emission_maps',
             'enable_shadows',
-            'enable_specular',
             'soft_shadows',
-            'enable_fog',
-            'use_occlusion_maps',
         ]
         if name in pbr_vars and prev_value != value:
             self._recompile_pbr()
@@ -187,20 +175,10 @@ class Pipeline:
         pbr_defines = {
             'MAX_LIGHTS': self.max_lights,
         }
-        if self.use_normal_maps:
-            pbr_defines['USE_NORMAL_MAP'] = ''
-        if self.use_emission_maps:
-            pbr_defines['USE_EMISSION_MAP'] = ''
         if self.enable_shadows:
             pbr_defines['ENABLE_SHADOWS'] = ''
         if self.soft_shadows:
             pbr_defines['SOFT_SHADOWS'] = ''
-        if self.enable_specular:
-            pbr_defines['ENABLE_SPECULAR'] = ''
-        if self.enable_fog:
-            pbr_defines['ENABLE_FOG'] = ''
-        if self.use_occlusion_maps:
-            pbr_defines['USE_OCCLUSION_MAP'] = ''
 
         pbr_vert_str = _load_shader_str('pbr.vert', pbr_defines)
         pbr_frag_str = _load_shader_str('pbr.frag', pbr_defines)
