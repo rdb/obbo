@@ -82,3 +82,7 @@ class CutsceneState(DirectObject):
 class IntroCutscene(CutsceneState):
     def __init__(self, next_state, state_args=None):
         super().__init__('intro', 'intro_sequence', next_state, state_args)
+
+class EndingCutscene(CutsceneState):
+    def __init__(self, next_state, state_args=None):
+        super().__init__('ending', 'end_sequence', next_state, state_args)
