@@ -442,7 +442,7 @@ class AssetSlot(PlanetObject):
         self.slot_node.scaleInterval(SPROUT_TIME, 1.0).start()
         self.sprouted = True
 
-    def build(self, building_name):
+    def build(self, building_name, time):
         if self.building_placed:
             raise RuntimeError('Cannot build here, slot already has a building')
         building = loader.loadModel("models/buildings.bam").find(f'**/{building_name}')
@@ -458,10 +458,11 @@ class AssetSlot(PlanetObject):
         self.slot_node.set_scale(0.1)
         h = random.randrange(360) + 720
         h = random.choice((h, -h))
-        Parallel(
-            self.slot_node.scaleInterval(SPROUT_TIME, 1),
-            self.slot_node.hprInterval(SPROUT_TIME, (h, 0, 0), blendType='easeInOut'),
-        ).start()
+        self.slot_node.set_scale(0.000001)
+        #Parallel(
+        self.slot_node.scaleInterval(time, 1).start()
+        #    self.slot_node.hprInterval(time, (h, 0, 0), blendType='easeInOut'),
+        #).start()
         self.building_placed = True
         self.planet.free_build_slots -= 1
         messenger.send('built', [building_name])

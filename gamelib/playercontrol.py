@@ -9,7 +9,6 @@ from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
-from .planet import SPROUT_TIME
 from .util import cfg_tuple
 from .pieMenu import PieMenu, PieMenuItem
 
@@ -25,6 +24,9 @@ CHARGE_MAX_TIME = 2.0
 
 BOBBER_SPIN_SPEED = 0.1
 MAGNET_RADIUS = 1.0
+
+BUILD_DIST = 1.0
+BUILD_TIME = 5.0
 
 CAST_TIME = 1.0
 CAST_MIN_DISTANCE = 3.0
@@ -102,6 +104,8 @@ class PlayerControl(FSM, DirectObject):
         self.down_time = None
         self.cursor = Cursor(universe.planet)
         self.target = Cursor(universe.planet)
+        self.target.root.hide()
+        self.target_pos = None
 
         self.build_asset_slot = None
 
@@ -131,7 +135,6 @@ class PlayerControl(FSM, DirectObject):
         if self.profile_mode:
             for i in range(4):
                 self.grow()
-
 
     def grow(self):
         ppos = list(self.player.get_pos())
@@ -203,7 +206,11 @@ class PlayerControl(FSM, DirectObject):
         if self.cursor_pos and self.state == 'Normal':
             if self.down_pos:
                 self.target.set_pos(self.down_pos)
-                self.player.move_to(self.down_pos)
+                self.target.root.show()
+                self.target_pos = core.Vec3(*self.down_pos)
+                self.target_pos.normalize()
+                if not self.player.walk_ctr.is_playing():
+                    self.player.walk_ctr.loop('walk')
             self.down_pos = None
 
     def cancel(self):
@@ -217,11 +224,20 @@ class PlayerControl(FSM, DirectObject):
         self.player.reel_ctr.stop()
         self.player.idle_ctr.loop(True)
 
+        self.accept('mouse1', self.on_mouse_down)
+        self.accept('mouse1-up', self.on_mouse_up)
+
         # Interrupt mouse hold if we just came in here holding the mouse,
         # so that we don't re-cast the line right away.
         self.down_time = None
 
     def updateNormal(self, dt):
+        if self.target_pos is not None:
+            if self.player.move_toward(self.target_pos, dt):
+                # Arrived.
+                self.target_pos = None
+                self.target.root.hide()
+
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
@@ -304,6 +320,8 @@ class PlayerControl(FSM, DirectObject):
         props.set_mouse_mode(core.WindowProperties.M_relative)
         base.win.request_properties(props)
 
+        self.accept('mouse3-up', self.cancel)
+
     def updateCharge(self, dt):
         self.update_cast_cam()
         self.update_line()
@@ -317,6 +335,8 @@ class PlayerControl(FSM, DirectObject):
         props.set_cursor_hidden(False)
         props.set_mouse_mode(core.WindowProperties.M_absolute)
         base.win.request_properties(props)
+
+        self.ignore('mouse3-up')
 
     def enterCast(self, power):
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
@@ -416,40 +436,52 @@ class PlayerControl(FSM, DirectObject):
         messenger.send('caught_asteroid')
 
     def enterBuild(self, asset):
-        self.universe.ignore('mouse1')
-        self.universe.ignore('mouse1-up')
-        self.universe.ignore('mouse3-up')
+        self.ignore('mouse1')
+        self.ignore('mouse1-up')
+        self.target_pos = None
+        self.target.root.hide()
 
         # TODO: Maybe modify PieMenu to accept a dict with categories? Definitely is too much for more than 5/6 items
         buildable = [j for i in self.universe.game_logic.get_unlocked().values() for j in i]
         items = []
         for model in buildable:
             items.append(PieMenuItem(model.capitalize(), f'build_{model}', model))
-        self.pie_menu = PieMenu(items, self.exitBuild)
+        self.pie_menu = PieMenu(items, lambda: self.request('Normal'))
         for item in items:
             self.accept_once(item.event, self.build, [item.event, self.down_pos, asset])
         self.down_pos = None
         self.pie_menu.show()
 
-    def exitBuild(self):
-        self.universe.accept('mouse1', self.on_mouse_down)
-        self.universe.accept('mouse1-up', self.on_mouse_up)
-        self.universe.accept('mouse3-up', self.cancel)
-
-    def build(self, building, location, asset):
+    def updateBuild(self, dt):
         def finish_building(task):
             self.player.build_ctr.stop()
             self.request('Normal')
             return task.done
 
-        def start_building():
-            self.player.build_ctr.loop('build')
-            asset.build(building[6:])
-            taskMgr.do_method_later(SPROUT_TIME, finish_building, 'finish')
+        if self.target_pos is not None and self.build_asset:
+            if self.player.move_toward(self.target_pos, dt):
+                # Arrived.
+                self.target_pos = None
+                self.player.build_ctr.loop('build')
+                self.build_asset.build(self.build_building, BUILD_TIME)
+                taskMgr.do_method_later(BUILD_TIME, finish_building, 'finish')
+                self.build_asset = None
+                self.build_building = None
 
+    def exitBuild(self):
+        self.accept('mouse1', self.on_mouse_down)
+        self.accept('mouse1-up', self.on_mouse_up)
+
+    def build(self, building, location, asset):
         # TODO: Inform the player that they don't have enough blocks/power to build
         if self.universe.game_logic.can_build(building[6:]):
-            self.player.move_to(tuple(location), start_building)
+            self.target_pos = core.Vec3(location)
+            dir = core.Vec3(self.target_pos - self.player.get_pos())
+            dir.normalize()
+            self.target_pos -= dir * BUILD_DIST / self.universe.planet.root.get_scale()[0]
+            self.target_pos.normalize()
+            self.build_asset = asset
+            self.build_building = building[6:]
             self.pie_menu.hide(ignore_callback=True)
 
     def update_line(self):
@@ -485,7 +517,6 @@ class PlayerControl(FSM, DirectObject):
         if self.state and hasattr(self, f'update{self.state}'):
             getattr(self, f'update{self.state}')(dt)
 
-        self.player.update(dt)
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
 
         cur_h = self.cam_dummy.get_h()

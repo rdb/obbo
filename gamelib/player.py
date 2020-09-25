@@ -41,44 +41,44 @@ class Player(PlanetObject):
         # Disable back-face culling on the face
         model.find('**/Plane.001').set_two_sided(True)
 
-        self.target_pos = None
-        self.arrived_callback = None
+    def move_toward(self, target_pos, dt):
+        """Moves towards the given pos.  If arrived, returns True."""
 
-    def move_to(self, pos, arrived_callback=None):
-        self.arrived_callback = arrived_callback
-        self.target_pos = core.Vec3(*pos)
-        self.target_pos.normalize()
-        if not self.walk_ctr.is_playing():
-            self.walk_ctr.loop('walk')
+        # Not quite correct, but probably good enough
+        scale = self.root.get_scale(core.NodePath())[0] * 0.1
+        pos = self.get_pos() * scale
+        target = target_pos * scale
+        delta = (target - pos)
 
-    def update(self, dt):
-        if self.target_pos:
-            # Not quite correct, but probably good enough
-            scale = self.root.get_scale(core.NodePath())[0] * 0.1
-            pos = self.get_pos() * scale
-            target = self.target_pos * scale
-            delta = (target - pos)
+        dummy_np = core.NodePath("dummy")
+        dummy_np.look_at(target - pos)
+        target_h = dummy_np.get_h(self.root)
+        delta_h = ((target_h - self.model.get_h()) + 180) % 360 - 180
+        dist = delta.length()
+        if dist != 0:
+            self.model.set_h(self.model.get_h() + delta_h * min(dt * PLAYER_ROTATE_SPEED, 1))
 
-            dummy_np = core.NodePath("dummy")
-            dummy_np.look_at(target - pos)
-            target_h = dummy_np.get_h(self.root)
-            delta_h = ((target_h - self.model.get_h()) + 180) % 360 - 180
-            dist = delta.length()
-            if dist == 0:
-                self.target_pos = None
-                self.model.set_h(target_h)
+            delta *= PLAYER_WALK_SPEED / dist
+
+            if (delta * dt).length() <= dist:
+                self.set_pos(pos + delta * dt)
+                if not self.walk_ctr.playing:
+                    self.walk_ctr.play()
+                return False
+
+        self.set_pos(target_pos)
+        self.model.set_h(target_h)
+
+        if self.walk_ctr.playing:
+            # Finish the animation
+            start_frame = self.walk_ctr.frame
+            if start_frame <= 6:
+                end_frame = 6
+            elif start_frame <= 16:
+                end_frame = 16
             else:
-                delta *= PLAYER_WALK_SPEED / dist
-                if (delta * dt).length() > dist:
-                    self.set_pos(self.target_pos)
-                    self.target_pos = None
-                else:
-                    self.set_pos(pos + delta * dt)
-
-                self.model.set_h(self.model.get_h() + delta_h * min(dt * PLAYER_ROTATE_SPEED, 1))
-
-            if self.target_pos is None and self.arrived_callback:
-                self.arrived_callback()
-                self.arrived_callback = None
-        elif self.walk_ctr.is_playing():
-            self.walk_ctr.pose(self.walk_ctr.get_frame())
+                end_frame = self.walk_ctr.num_frames + 6
+            self.walk_ctr.stop()
+            if start_frame != end_frame:
+                self.walk_ctr.play(start_frame, end_frame)
+        return True
