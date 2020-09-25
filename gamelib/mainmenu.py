@@ -6,7 +6,7 @@ from direct.interval import IntervalGlobal as intervals
 
 from .universe import Universe
 from .skybox import Skybox
-from .cutscene import IntroCutscene
+from .cutscene import IntroCutscene, EndingCutscene
 
 class MainMenu(DirectObject):
     def __init__(self):
@@ -39,6 +39,11 @@ class MainMenu(DirectObject):
         self.bgm.play()
 
         base.transitions.fadeIn()
+
+        base.accept('f11', self.ending_shortcut_for_jan_entikan)
+
+    def ending_shortcut_for_jan_entikan(self):
+        base.gamestate = EndingCutscene(Universe)
 
     def cleanup(self):
         self.bgm.stop()
