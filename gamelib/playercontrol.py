@@ -110,6 +110,12 @@ class PlayerControl(FSM, DirectObject):
 
         self.universe = universe
 
+        self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
+        if self.profile_mode:
+            for i in range(4):
+                self.grow()
+
+
     def grow(self):
         ppos = list(self.player.get_pos())
         offset = 0
@@ -201,8 +207,12 @@ class PlayerControl(FSM, DirectObject):
             mpos = base.mouseWatcherNode.get_mouse()
             self.ray.set_from_lens(base.cam.node(), mpos.x, mpos.y)
 
-            self.cam_target_h = mpos.x * -10
-            self.cam_target_p = mpos.y * -45
+            if self.profile_mode:
+                self.cam_target_h = 0
+                self.cam_target_p = -40
+            else:
+                self.cam_target_h = mpos.x * -10
+                self.cam_target_p = mpos.y * -45
 
             self.traverser.traverse(self.root)
 

@@ -36,6 +36,11 @@ class GameApp(ShowBase):
 
         self.transitions.fadeScreen(1.0)
 
+        profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
+        if profile_mode:
+            import random
+            random.seed(0)
+
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
         if skip_main_menu:
             self.gamestate = Universe()
