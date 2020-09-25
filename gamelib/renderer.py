@@ -97,10 +97,12 @@ class Pipeline:
             taskmgr=None,
             max_lights=1,
             use_normal_maps=False,
-            use_emission_maps=True,
+            use_emission_maps=False,
             exposure=0.0,
             enable_shadows=True,
-            enable_fog=True,
+            soft_shadows=True,
+            enable_specular=True,
+            enable_fog=False,
             use_occlusion_maps=False,
             lut_texture=None,
     ):
@@ -124,6 +126,8 @@ class Pipeline:
         self.use_normal_maps = use_normal_maps
         self.use_emission_maps = use_emission_maps
         self.enable_shadows = enable_shadows
+        self.enable_specular = enable_specular
+        self.soft_shadows = soft_shadows
         self.enable_fog = enable_fog
         self.exposure = exposure
         self.use_occlusion_maps = use_occlusion_maps
@@ -167,6 +171,8 @@ class Pipeline:
             'use_normal_maps',
             'use_emission_maps',
             'enable_shadows',
+            'enable_specular',
+            'soft_shadows',
             'enable_fog',
             'use_occlusion_maps',
         ]
@@ -187,6 +193,10 @@ class Pipeline:
             pbr_defines['USE_EMISSION_MAP'] = ''
         if self.enable_shadows:
             pbr_defines['ENABLE_SHADOWS'] = ''
+        if self.soft_shadows:
+            pbr_defines['SOFT_SHADOWS'] = ''
+        if self.enable_specular:
+            pbr_defines['ENABLE_SPECULAR'] = ''
         if self.enable_fog:
             pbr_defines['ENABLE_FOG'] = ''
         if self.use_occlusion_maps:

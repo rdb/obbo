@@ -81,9 +81,11 @@ float saturate(float val) {
 }
 
 void main() {
+#ifdef ENABLE_SPECULAR
     vec4 metal_rough = texture2D(p3d_TextureMetalRoughness, v_texcoord);
     float perceptual_roughness = saturate(p3d_Material.roughness * metal_rough.g);
     float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
+#endif
     vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
     vec3 diffuse_color = base_color.rgb * (vec3(1.0) - F0);
 #ifdef USE_NORMAL_MAP
@@ -117,12 +119,16 @@ void main() {
         float spotcutoff = p3d_LightSource[i].spotCosCutoff;
         float shadowSpot = smoothstep(spotcutoff-SPOTSMOOTH, spotcutoff+SPOTSMOOTH, spotcos);
 #ifdef ENABLE_SHADOWS
+#ifdef SOFT_SHADOWS
         float shadowCaster =
             shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, 0.001, 0, 0)).r +
             shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0.001, 0, 0, 0)).r +
             shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(-0.001, 0, 0, 0)).r +
             shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, -0.001, 0, 0)).r;
         shadowCaster *= 0.25;
+#else
+        float shadowCaster = shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i]).r;
+#endif // SOFT_SHADOWS
 #else
         float shadowCaster = 1.0;
 #endif
@@ -134,6 +140,7 @@ void main() {
         float stepped_diffuse = min(step(DIFFUSE_STEP_EDGE, diffuse) + w, 1);
         vec3 diffuse_contrib = diffuse_color * stepped_diffuse;
 
+#ifdef ENABLE_SPECULAR
         // Blinn Phong specular
         float alpha2 = alpha_roughness * alpha_roughness;
         float shininess = 2.0 / alpha2 - 2.0;
@@ -141,6 +148,9 @@ void main() {
         float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
         float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
         vec3 spec_contrib = vec3(stepped_specular);
+#else
+        vec3 spec_contrib = vec3(0.0);
+#endif
 
         color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
 

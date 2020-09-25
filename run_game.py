@@ -61,6 +61,8 @@ class GameApp(ShowBase):
                 print(
                     'Warning: Could not import limeade, module hot-reload will be unavailble'
                 )
+        self.accept('shift-l', self.render.ls)
+        self.accept('shift-a', self.render.analyze)
         self.disable_mouse()
 
         self.task_mgr.add(self.__update)
