@@ -36,6 +36,7 @@ class GameLogic(DirectObject):
         self.growth_cycle = 0
         self.power_cap = 0
         self.power_used = 0
+        self.beacon_built = False
 
         self.accept('built', self.built)
         self.accept('caught_asteroid', self.caught_asteroid)
@@ -59,6 +60,10 @@ class GameLogic(DirectObject):
         if self.power_used / self.power_cap > 0.9:
             messenger.send('power_level_critical')
         self.update_hud()
+
+        if model == 'beacon' and not self.beacon_built:
+            # FIXME: Maybe trigger ending cinematic here?
+            messenger.send('beacon_built')
 
     def caught_asteroid(self):
         self.collected_total += 1
