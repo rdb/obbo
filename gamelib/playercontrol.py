@@ -13,9 +13,6 @@ from .util import cfg_tuple
 from .pieMenu import PieMenu, PieMenuItem
 
 
-DEFAULT_POS = (0, -18, 10)
-CAST_POS = (-12, 0, 7)
-CAM_POS_SPEED = 70
 CAM_ROTATE_SPEED = 4.0
 CAM_CAST_X_SENSITIVITY = 1.0
 CAM_START_HEADING = 180 + 45
@@ -27,7 +24,10 @@ CHARGE_MAX_TIME = 2.0
 BOBBER_SPIN_SPEED = 0.1
 MAGNET_RADIUS = 1.0
 
+# How much distance Obbo keeps from buildings while building
 BUILD_DIST = 1.0
+
+# How long Obbo takes to build something - twice the length of the build anim
 BUILD_TIME = 2.25 * 2
 
 CAST_TIME = 1.0
