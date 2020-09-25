@@ -68,7 +68,7 @@ class CutsceneState(DirectObject):
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
-            actor.actor_interval('0', playRate=3.0),
+            actor.actor_interval('0', playRate=1.0),
             base.transitions.getFadeOutIval(),
             intervals.Func(cleanup)
         )
