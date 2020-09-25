@@ -669,6 +669,7 @@ class CrashedShip(PlanetObject):
         self.old_pos = core.Point3(-1, 0, 0)
         self.new_pos = core.Point3(-1, 0, 0)
         self.build_slot = False
+        self.sprouted = True
 
     def sprout(self):
         pass
