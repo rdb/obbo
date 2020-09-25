@@ -84,3 +84,14 @@ class Player(PlanetObject):
             if start_frame != end_frame:
                 self.walk_ctr.play(start_frame, end_frame)
         return True
+
+    def look_toward(self, target_pos):
+        scale = self.root.get_scale(core.NodePath())[0] * 0.1
+        pos = self.get_pos() * scale
+        target = target_pos * scale
+        delta = (target - pos)
+
+        dummy_np = core.NodePath("dummy")
+        dummy_np.look_at(target - pos)
+        target_h = dummy_np.get_h(self.root)
+        self.model.set_h(target_h)

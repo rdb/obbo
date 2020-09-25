@@ -553,6 +553,7 @@ class PlayerControl(FSM, DirectObject):
         if self.target_pos is not None and self.build_asset_slot:
             if self.player.move_toward(self.target_pos, dt):
                 # Arrived.
+                self.player.look_toward(self.build_asset_slot.get_pos())
                 self.target_pos = None
                 self.player.build_ctr.loop('build')
                 self.build_asset_slot.build(self.build_building, BUILD_TIME)
