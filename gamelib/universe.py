@@ -68,7 +68,8 @@ class Universe(FSM, DirectObject):
             # If we skipped the main menu, do not show the instructions
             self.instructions = None
         else:
-            self.add_instructions(INSTRUCTIONS)
+            self.instructions = None
+            #self.add_instructions(INSTRUCTIONS)
 
         taskMgr.do_method_later(
             INSTRUCTIONS_AUTO_REMOVE_TIME,
