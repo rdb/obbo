@@ -424,8 +424,10 @@ class PlayerControl(FSM, DirectObject):
             asset.build(building[6:])
             taskMgr.do_method_later(SPROUT_TIME, finish_building, 'finish')
 
-        self.player.move_to(tuple(location), start_building)
-        self.pie_menu.hide(ignore_callback=True)
+        # TODO: Inform the player that they don't have enough blocks/power to build
+        if self.universe.game_logic.can_build(building[6:]):
+            self.player.move_to(tuple(location), start_building)
+            self.pie_menu.hide(ignore_callback=True)
 
     def update_line(self):
         writer = core.GeomVertexWriter(self.line.node().modify_geom(0).modify_vertex_data(), 'vertex')

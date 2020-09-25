@@ -43,6 +43,7 @@ class GameLogic(DirectObject):
     def built(self, model):
         self.tech_tree.unlock(model)
         self.storage_cap += self.tech_tree.get_capacity(model)
+        self.storage_used -= self.tech_tree.get_build_cost(model)
         pwr = self.tech_tree.get_power(model)
         if pwr >= 0:
             self.power_cap += pwr
@@ -70,8 +71,12 @@ class GameLogic(DirectObject):
     def get_unlocked(self, fltr=None):
         return self.tech_tree.get_current(fltr)
 
-    def get_build_cost(self, model):
-        return self.tech_tree.get_build_cost(model)
+    def can_build(self, model):
+        ok = self.tech_tree.get_build_cost(model) <= self.storage_used
+        pwr = self.tech_tree.get_power(model)
+        if pwr >= 0:
+            return ok
+        return ok and abs(pwr) + self.power_used <= self.power_cap
 
 
 # Example usage of the TechTree:
