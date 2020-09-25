@@ -20,13 +20,14 @@ This is an entry in the [PyWeek 30](https://pyweek.org/30/) challenge, with the 
 The game can be configured by creating a `user.prc` file in the root of the project (i.e., next to `settings.prc`).
 If this file is present, then it variables in it will take precedence over any other source.
 
-Some useful variables (TODO: document how to use these):
+Some useful variables:
 
-* `win-size`
-* `fullscreen`
-* `click-hold-threshold`
-* `cam-default-pos`
-* `cam-charging-pos`
+* `win-size` - two numbers to control the resolution (e.g., `win-size 1280 720`)
+* `fullscreen` - `true`/`false` to control fullscreen mode (e.g., `fullscreen true`)
+* `click-hold-threshold` - a floating point value for how long the mouse needs to remain pressed (in seconds) to be considered "held" (e.g., `click-hold-threshold 0.4`)
+* `confine-mouse` - `true`/`false` to control if the mouse cursor can leave the window boundaries (e.g., `confine-mouse false`)
+* `skip-main-menu` - `true`/`false` to skip the main menu, intro cutscene, etc. and jump straight to the game (e.g., `skip-main-menu true`)
+* `show-frame-rate-meter` - `true`/`false` to display an FPS counter in the top right of the screen (e.g., `show-frame-rate-meter true`)
 
 Here is an example of what a `user.prc` might look like:
 
