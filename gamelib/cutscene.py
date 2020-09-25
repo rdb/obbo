@@ -32,7 +32,10 @@ class CutsceneState(DirectObject):
 
         # Match Blender camera
         prev_p= base.cam.get_p()
-        base.cam.set_p(-90)
+        base.cam.clear_transform()
+        base.camera.clear_transform()
+        base.cam.set_p(-90)          
+        
         prev_fov = list(base.camLens.get_fov())
         base.camLens.set_fov(90, 90)
         prev_near = base.camLens.get_near()
