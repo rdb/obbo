@@ -145,10 +145,10 @@ class OptionMenu(DirectObject, OptionGUI):
         #      name as key.
         configVariables = {
             "audio-volume": str(round(base.musicManager.getVolume(), 2)),
-            "audio-music-active": "#t" if self.cbAudio["isChecked"] else "#f",
-            "audio-sfx-active": "#t" if self.cbAudio["isChecked"] else "#f",
-            "fullscreen": "#t" if self.cbFullscreen["isChecked"] else "#f",
-            "potato-mode": "#t" if ConfigVariableBool('potato-mode', False).get_value() else "#f",
+            "audio-music-active": "true" if self.cbAudio["isChecked"] else "false",
+            "audio-sfx-active": "true" if self.cbAudio["isChecked"] else "false",
+            "fullscreen": "true" if self.cbFullscreen["isChecked"] else "false",
+            "potato-mode": "true" if ConfigVariableBool('potato-mode', False).get_value() else "false",
             }
 
         page = None
