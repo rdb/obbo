@@ -23,8 +23,8 @@ class Asteroid:
         self.root.set_hpr(random.randrange(360), random.randrange(-90, 90), 0)
         self.rotation = self.root.attach_new_node('Rotation')
         self.asteroid = mesh.instance_to(self.rotation)
-        self.xoff = random.uniform(1.7, 5)
-        self.yoff = random.uniform(1.7, 5)
+        self.xoff = random.uniform(2, 6)
+        self.yoff = random.uniform(2, 6)
         self.update_pos(False)
         mat = core.Material()
         mat.set_roughness(1)
@@ -54,7 +54,7 @@ class Asteroid:
         self.asteroid.posInterval(GROWTH_TIME, (
             self.xoff,
             self.yoff,
-            -self.planet.size * 3 - self.xoff,
+            -self.planet.size * 4.2 - self.xoff,
             )
         ).start()
         if shout:
