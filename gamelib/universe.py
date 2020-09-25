@@ -15,7 +15,7 @@ from .gamelogic import GameLogic
 from .hud import HUD
 
 
-MAX_ASTEROIDS = 20
+MAX_ASTEROIDS = [6, 12, 18, 24, 30]
 SPAWN_TIME = 1.5
 
 INSTRUCTIONS = """
@@ -125,6 +125,7 @@ class Universe(FSM, DirectObject):
     def update(self, dt):
         self.player_control.update(dt)
         ft = globalClock.get_frame_time()
-        if ft > self.last_asteroid + SPAWN_TIME and len(self.asteroids) < MAX_ASTEROIDS:
+        mx_asteroids = MAX_ASTEROIDS[self.planet.size - 1]
+        if ft > self.last_asteroid + SPAWN_TIME and len(self.asteroids) < mx_asteroids:
             self.last_asteroid = ft
             self.asteroids.append(Asteroid(self.planet, self))

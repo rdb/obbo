@@ -6,8 +6,8 @@ from direct.interval.LerpInterval import *
 from .procgen import asteroid
 
 
-MIN_B = 0.2
-MAX_B = 0.4
+MIN_B = 0.4
+MAX_B = 0.8
 SCALE_DURATION = 0.3
 
 
@@ -26,13 +26,16 @@ class Asteroid:
         self.rotation.set_pos(0, 0, -1)
         self.asteroid = self.rotation.attach_new_node(node)
         self.asteroid.set_pos(
-            planet.size * random.uniform(1.5, 4.0),
-            planet.size * random.uniform(1.5, 4.0),
+            planet.size * random.uniform(1.8, 4.5),
+            planet.size * random.uniform(1.8, 4.5),
             0
         )
         mat = core.Material()
         mat.set_roughness(1)
         self.asteroid.set_material(mat)
+        self.asteroid.set_effect(core.CompassEffect.make(core.NodePath(),
+                                 core.CompassEffect.P_scale))
+        self.asteroid.node().set_bounds(core.OmniBoundingVolume())
 
         self._orbit_ival = LerpHprInterval(self.rotation, 10.0, (360, 0, 0))
         self._spin_ival = LerpHprInterval(self.asteroid, 3.0, (360, 360, 0))
