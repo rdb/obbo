@@ -29,7 +29,7 @@ class HUD(DirectObject):
         elif elem == 'msg':
             self.message.text = val1
             self.animate_item(self.message)
-            self.clear_message = globalClock.get_frame_time() + AUTO_CLEAR_MSG
+            self.clear_message = globalClock.get_frame_time() + (val2 or AUTO_CLEAR_MSG)
             self.message_active = True
         else:
             raise ValueError(f'Unkown element "{elem}"')
