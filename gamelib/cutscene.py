@@ -7,6 +7,7 @@ from direct.gui.OnscreenText import OnscreenText
 
 from .skybox import Skybox
 
+
 class CutsceneState(DirectObject):
     def __init__(self, cutscene_name, bgm_name, next_state, state_args=None):
         super().__init__()
@@ -34,8 +35,8 @@ class CutsceneState(DirectObject):
         prev_p= base.cam.get_p()
         base.cam.clear_transform()
         base.camera.clear_transform()
-        base.cam.set_p(-90)          
-        
+        base.cam.set_p(-90)
+
         prev_fov = list(base.camLens.get_fov())
         base.camLens.set_fov(90, 90)
         prev_near = base.camLens.get_near()
@@ -55,6 +56,19 @@ class CutsceneState(DirectObject):
             fg=(0.8, 0.8, 0.8, 1.0),
             pos=(0, -0.9)
         )
+
+        dlight = p3d.DirectionalLight("light")
+        dlight.color = (0.5, 0.5, 0.5, 1)
+        dlight_lens = dlight.get_lens()
+        dlight_lens.set_film_size(-3, 3)
+        dlight_lens.set_near_far(-4, 1)
+        dlight_path = self.actor.attach_new_node(dlight)
+        dlight_path.look_at((1, -1, 0))
+        self.actor.set_light(dlight_path)
+
+        alight = p3d.AmbientLight("light")
+        alight.color = (0.5, 0.5, 0.5, 1)
+        self.actor.set_light(self.actor.attach_new_node(alight))
 
         def cleanup():
             # Reset camera
