@@ -1,0 +1,4 @@
+To create a windows .cur cursor files call this command to create a cursor.cur
+file from a given cursor.png file.
+
+icotool -c -w 32 -h 32 -X 0 -Y 0 --cursor -o ./cursor.cur cursor.png
