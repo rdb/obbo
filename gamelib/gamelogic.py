@@ -41,10 +41,15 @@ class GameLogic(DirectObject):
         self.accept('caught_asteroid', self.caught_asteroid)
 
     def built(self, model):
+        current = self.tech_tree.building_count()
         self.tech_tree.unlock(model)
-        self.storage_cap += self.tech_tree.get_capacity(model)
-        self.storage_used -= self.tech_tree.get_build_cost(model)
-        pwr = self.tech_tree.get_power(model)
+        if self.tech_tree.building_count() > current:
+            new_buildings = self.tech_tree.unlocked_by(model)
+            messenger.send('tech_unlocked', [new_buildings,])  # TODO: implement player notification
+            print(f'New buildings unlocked: {new_buildings}')
+        self.storage_cap += self.tech_tree.capacity(model)
+        self.storage_used -= self.tech_tree.build_cost(model)
+        pwr = self.tech_tree.power(model)
         if pwr >= 0:
             self.power_cap += pwr
         else:
@@ -53,7 +58,7 @@ class GameLogic(DirectObject):
         # TODO: Alert the player to build more power delivery
         if self.power_used / self.power_cap > 0.9:
             messenger.send('power_level_critical')
-        messenger.send('update_hud', ['power', self.power_used, self.power_cap])
+        self.update_hud()
 
     def caught_asteroid(self):
         self.collected_total += 1
@@ -66,14 +71,18 @@ class GameLogic(DirectObject):
                 self.grow_next = 0
             else:
                 self.grow_next = PLANET_GROWTH_STEPS[self.growth_cycle]
+        self.update_hud()
+
+    def update_hud(self):
         messenger.send('update_hud', ['blocks', self.storage_used, self.storage_cap])
+        messenger.send('update_hud', ['power', self.power_used, self.power_cap])
 
     def get_unlocked(self, fltr=None):
-        return self.tech_tree.get_current(fltr)
+        return self.tech_tree.current(fltr)
 
     def can_build(self, model):
-        ok = self.tech_tree.get_build_cost(model) <= self.storage_used
-        pwr = self.tech_tree.get_power(model)
+        ok = self.tech_tree.build_cost(model) <= self.storage_used
+        pwr = self.tech_tree.power(model)
         if pwr >= 0:
             return ok
         return ok and abs(pwr) + self.power_used <= self.power_cap
@@ -82,10 +91,10 @@ class GameLogic(DirectObject):
 # Example usage of the TechTree:
 
 # gl = GameLogic()
-# print(f'Initial Tech Tree before unlocking anything: {gl.tech_tree.get_current()}')
+# print(f'Initial Tech Tree before unlocking anything: {gl.tech_tree.current()}')
 # gl.tech_tree.unlock('windmill')
-# print(f'After building the first windmill: {gl.tech_tree.get_current()}')
+# print(f'After building the first windmill: {gl.tech_tree.current()}')
 # gl.tech_tree.unlock('replicator')
-# print(f'After building the first replicator: {gl.tech_tree.get_current()}')
+# print(f'After building the first replicator: {gl.tech_tree.current()}')
 # gl.tech_tree.unlock('workbench')
-# print(f'After building the first workbench: {gl.tech_tree.get_current()}')
+# print(f'After building the first workbench: {gl.tech_tree.current()}')

@@ -18,7 +18,7 @@ class TechTree:
         self._tree:List[TechNode] = treecfg
         self._tree_dict = {i.model: i for i in treecfg}
 
-    def get_current(self, fltr:Optional[str] = None) -> Dict[str, List[str]]:
+    def current(self, fltr:Optional[str] = None) -> Dict[str, List[str]]:
         tree = {}
         for i in self._tree:
             if fltr and i.category != fltr:
@@ -36,26 +36,38 @@ class TechTree:
             tree[i.category].append(i.model)
         return tree
 
-    def get_build_cost(self, model:str) -> int:
-        return self._get_node(model).cost
+    def build_cost(self, model:str) -> int:
+        return self._node(model).cost
 
-    def get_category(self, model:str):
-        return self._get_node(model).category
+    def category(self, model:str):
+        return self._node(model).category
 
-    def get_capacity(self, model:str):
-        return self._get_node(model).capacity
+    def capacity(self, model:str):
+        return self._node(model).capacity
 
-    def get_power(self, model:str):
-        return self._get_node(model).power
+    def power(self, model:str):
+        return self._node(model).power
 
     def unlock(self, model:str) -> None:
         self._tree_dict[model].unlocked = True
+
+    def building_count(self) -> int:
+        return sum([len(i) for i in self.current().values()])
+
+    def unlocked_by(self, model:str):
+        new_buildings = []
+        for i in self._tree_dict:
+            if i == model:
+                continue
+            if model in self._tree_dict[i].depends_on:
+                new_buildings.append(i)
+        return new_buildings
 
     def reset(self) -> None:
         for i in self._tree:
             i.unlocked = False
 
-    def _get_node(self, model:str) -> TechNode:
+    def _node(self, model:str) -> TechNode:
         if model not in self._tree_dict:
             raise ValueError(f'Unknown model "{model}"')
         return self._tree_dict[model]
