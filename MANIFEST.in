@@ -1,0 +1,12 @@
+include *.md
+include settings.prc
+include run_game.py
+include buildtools.py
+include requirements.txt
+include .pman
+
+graft assets
+graft shaders
+graft artResources
+
+global-exclude __pycache__
