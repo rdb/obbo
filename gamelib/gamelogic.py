@@ -20,6 +20,8 @@ TECH_TREE_CFG = [
     TechNode('beacon', 'science', 11, -35, ('supercomputer', 'superpower')),
 ]
 
+PLANET_GROWTH_STEPS = (5, 15, 35, 75)
+
 
 class GameLogic(DirectObject):
     def __init__(self):
@@ -31,6 +33,7 @@ class GameLogic(DirectObject):
         self.storage_used = 0
         self.collected_total = 0
         self.grow_next = 5
+        self.growth_cycle = 0
         self.power_cap = 0
         self.power_used = 0
 
@@ -54,9 +57,13 @@ class GameLogic(DirectObject):
         self.collected_total += 1
         self.storage_used += 1
         self.storage_used = min(self.storage_cap, self.storage_used)
-        if self.collected_total >= self.grow_next:
+        if self.collected_total == self.grow_next:
             messenger.send('planet_grow')
-            self.grow_next *= 2
+            self.growth_cycle += 1
+            if self.growth_cycle >= len(PLANET_GROWTH_STEPS):
+                self.grow_next = 0
+            else:
+                self.grow_next = PLANET_GROWTH_STEPS[self.growth_cycle]
 
     def get_unlocked(self, fltr=None):
         return self.tech_tree.get_current(fltr)
