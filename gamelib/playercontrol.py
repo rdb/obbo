@@ -18,6 +18,8 @@ CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
 CAM_ROTATE_SPEED = 4.0
 CAM_CAST_X_SENSITIVITY = 1.0
+CAM_START_HEADING = 180 + 45
+SHIP_POSITION = (0.364267, -0.857099, 0.364267)
 
 # How long it takes to reach maximum charge
 CHARGE_MAX_TIME = 2.0
@@ -114,6 +116,7 @@ class PlayerControl(FSM, DirectObject):
         self.cam_dummy = self.player.root.attach_new_node('cam')
         self.cam_dummy.set_effect(core.CompassEffect.make(core.NodePath(),
                                   core.CompassEffect.P_scale))
+        self.cam_dummy.set_h(CAM_START_HEADING)
         self.cam_target_h = 0
         self.cam_target_p = 0
         self.focus = self.player.root.attach_new_node('focus')
@@ -143,7 +146,7 @@ class PlayerControl(FSM, DirectObject):
 
         self.crashed_ship = CrashedShip(self.universe.planet)
         self.crashed_ship.root.hide()
-        self.crashed_ship.set_pos((-2, 0, 0))
+        self.crashed_ship.set_pos(self.crashed_ship.new_pos)
         self.universe.planet.sides[4].grid[0][0].destroy()
         self.universe.planet.sides[4].grid[0][0] = self.crashed_ship
 
@@ -162,6 +165,13 @@ class PlayerControl(FSM, DirectObject):
     def enterIntro(self):
         self.ship.reparent_to(self.ship_root)
 
+        base.camera.reparent_to(self.cam_dummy)
+        base.camera.set_pos((0, -30, 30))
+        base.camera.look_at(self.cam_dummy)
+
+        self.player.set_pos((-0.235157, -0.874935, 0.42331))
+        self.player.model.set_h(45)
+
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
         if skip_main_menu:
             return
@@ -170,18 +180,21 @@ class PlayerControl(FSM, DirectObject):
         if sfx:
             sfx.play()
 
-        self.ship.set_pos(-50, 75, -35)
-        self.ship.look_at((-2, 0, 0))
-        self.ship.posInterval(3.0, (-2, 0, 0)).start()
+        base.camera.set_pos((0, -60, 60))
+
+        self.ship.set_pos(core.Point3(SHIP_POSITION) * 30)
+        self.ship.look_at(SHIP_POSITION)
+        self.ship.set_r(-60)
+        self.ship.posInterval(3.0, SHIP_POSITION).start()
         base.transitions.setFadeColor(1, 1, 1)
         Sequence(
-            Wait(2.8),
+            Wait(2.85),
             base.transitions.getFadeOutIval(0.1),
             Wait(1.0),
             Func(self.request, 'Normal'),
         ).start()
 
-    def updateIntro(self, _dt):
+    def updateIntro(self, dt):
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
         if skip_main_menu:
             self.request('Normal')
@@ -191,6 +204,8 @@ class PlayerControl(FSM, DirectObject):
         self.crashed_ship.root.show()
         self.player.root.show()
         base.transitions.fadeIn(2.0)
+        base.camera.set_pos((0, -30, 30))
+
         taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):
@@ -212,11 +227,6 @@ class PlayerControl(FSM, DirectObject):
         if self.grown >= 4:
             base.ignore('space')  # FIXME: remove before release
             base.ignore('planet_grow')
-
-    def enter(self):
-        base.camera.reparent_to(self.cam_dummy)
-        base.camera.set_pos((0, -30, 30))
-        base.camera.look_at(self.cam_dummy)
 
     def exit(self):
         """Clean up?"""
@@ -602,8 +612,8 @@ class PlayerControl(FSM, DirectObject):
         self.cursor.model.set_scale((5.0 + math.sin(globalClock.frame_time * 5)) / 3.0)
 
         cur_h = self.cam_dummy.get_h()
-        dist = self.cam_target_h - cur_h
-        dist = (dist + 180) % 360 - 180
+        dist = (self.cam_target_h - 180) - cur_h
+        dist = (dist + CAM_START_HEADING) % 360 - 180
         if abs(dist) > 0:
             sign = dist / abs(dist)
             self.cam_dummy.set_h(cur_h + dist * CAM_ROTATE_SPEED * dt)
@@ -664,7 +674,7 @@ class CrashedShip(PlanetObject):
         self.model.reparent_to(self.root)
         self.model.clear_transform()
         self.model.set_scale(0.4)
-        self.model.set_hpr(0, 270, 180)
+        self.model.set_hpr(0, 270, 90)
         self.model.set_effect(core.CompassEffect.make(core.NodePath(),
                               core.CompassEffect.P_scale))
         self.model.find("**/crashed_ship_roof").set_two_sided(True)
@@ -676,8 +686,8 @@ class CrashedShip(PlanetObject):
         collider.node().set_into_collide_mask(0b0010)
         #collider.show()
 
-        self.old_pos = core.Point3(-1, 0, 0)
-        self.new_pos = core.Point3(-1, 0, 0)
+        self.old_pos = core.Vec3(*SHIP_POSITION)
+        self.new_pos = self.old_pos
         self.build_slot = False
         self.sprouted = True
 

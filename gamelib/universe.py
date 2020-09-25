@@ -112,7 +112,6 @@ class Universe(FSM, DirectObject):
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
         self.accept_once('mouse1', self.remove_instructions)
-        self.player_control.enter()
         self.bgm = base.loader.load_music('music/menu.ogg')
         self.bgm.set_loop(True)
         self.bgm.play()
