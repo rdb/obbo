@@ -24,6 +24,7 @@ class Player(PlanetObject):
 
         self.rod_tip = model.expose_joint(None, 'modelRoot', 'bobber')
 
+        self.idle_ctr = self.model.get_anim_control('idle')
         self.walk_ctr = self.model.get_anim_control('walk')
         self.charge_ctr = self.model.get_anim_control('fish_charge')
         self.cast_ctr = self.model.get_anim_control('fish_cast')
@@ -42,14 +43,6 @@ class Player(PlanetObject):
 
         self.target_pos = None
         self.arrived_callback = None
-
-    def start_charge(self):
-        self.charge_ctr.set_play_rate(2.0)
-        self.charge_ctr.play()
-
-    def stop_charge(self):
-        self.charge_ctr.set_play_rate(-2.0)
-        self.charge_ctr.play()
 
     def move_to(self, pos, arrived_callback=None):
         self.arrived_callback = arrived_callback

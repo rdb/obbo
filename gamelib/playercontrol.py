@@ -17,8 +17,7 @@ from .pieMenu import PieMenu, PieMenuItem
 DEFAULT_POS = (0, -18, 10)
 CAST_POS = (-12, 0, 7)
 CAM_POS_SPEED = 70
-AIM_SPEED_MULT = 50
-CAM_ROTATE_SPEED = 5.0
+CAM_ROTATE_SPEED = 4.0
 CAM_CAST_X_SENSITIVITY = 1.0
 
 # How long it takes to reach maximum charge
@@ -33,7 +32,7 @@ CAST_MAX_DISTANCE = 15.0
 
 MAGNET_SNAP_TIME = 0.15
 
-REEL_SPEED = 10.0
+REEL_SPEED = 4.0
 
 # How close the bobber can get to Obbo before ending the reel
 REEL_MIN_DISTANCE = 0.8
@@ -116,6 +115,8 @@ class PlayerControl(FSM, DirectObject):
         self.mouse_delta = None
         self.mouse_last = None
         self.catch = None
+
+        self.player.charge_ctr.play_rate = (self.player.charge_ctr.num_frames / self.player.charge_ctr.frame_rate) / CHARGE_MAX_TIME
 
         self.request('Normal')
 
@@ -214,6 +215,7 @@ class PlayerControl(FSM, DirectObject):
         self.bobber.stash()
         self.line.stash()
         self.player.reel_ctr.stop()
+        self.player.idle_ctr.loop(True)
 
         # Interrupt mouse hold if we just came in here holding the mouse,
         # so that we don't re-cast the line right away.
@@ -283,12 +285,20 @@ class PlayerControl(FSM, DirectObject):
 
     def exitNormal(self):
         self.cursor.model.hide()
+        self.player.idle_ctr.stop()
 
     def enterCharge(self):
-        self.player.start_charge()
+        self.player.charge_ctr.play()
         self.toggle_cam_view('charging')
         self.cam_target_p = 45
         self.crosshair.show()
+
+        self.bobber.unstash()
+        self.line.unstash()
+        self.bobber.reparent_to(self.player.rod_tip)
+        self.bobber.set_pos(0, 0, 0)
+        self.bobber.set_hpr(0, 0, 0)
+
         props = core.WindowProperties()
         props.set_cursor_hidden(True)
         props.set_mouse_mode(core.WindowProperties.M_relative)
@@ -296,10 +306,11 @@ class PlayerControl(FSM, DirectObject):
 
     def updateCharge(self, dt):
         self.update_cast_cam()
-        self.player.model.set_h(self.cam_dummy.get_h() + 45)
+        self.update_line()
+        self.player.model.set_h(self.cam_dummy.get_h())
 
     def exitCharge(self):
-        self.player.stop_charge()
+        self.player.charge_ctr.play()
         self.toggle_cam_view()
         self.crosshair.hide()
         props = core.WindowProperties()
@@ -309,22 +320,34 @@ class PlayerControl(FSM, DirectObject):
 
     def enterCast(self, power):
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
-        self.bobber.unstash()
-        self.line.unstash()
-        rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
-        direction = self.crosshair.model.get_pos(self.player.model).normalized()
-        self.bobber.set_pos(rod_tip_pos + direction * 3)
-        self.bobber.look_at(rod_tip_pos + direction * distance)
-        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
-        Parallel(
-            LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
-            LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+        self.bobber.set_pos(0, 0, 0)
+        self.bobber.set_hpr(0, 0, 0)
+
+        self.player.cast_ctr.play()
+        Sequence(
+            Wait(5 / self.player.cast_ctr.frame_rate),
+            Func(self.fling_bobber, distance),
         ).start()
+
         self.down_time = None
         props = core.WindowProperties()
         props.set_cursor_hidden(True)
         props.set_mouse_mode(core.WindowProperties.M_relative)
         base.win.request_properties(props)
+
+    def fling_bobber(self, distance):
+        self.bobber.wrt_reparent_to(self.player.model)
+
+        rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
+        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        self.bobber.set_pos(rod_tip_pos + direction * 3)
+        self.bobber.look_at(rod_tip_pos + direction * distance)
+
+        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
+        Parallel(
+            LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
+            LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
+        ).start()
 
     def updateCast(self, dt):
         self.update_cast_cam()
