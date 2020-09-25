@@ -353,6 +353,7 @@ class AssetSlot(PlanetObject):
         model = core.NodePath('placeholder')
         model.reparent_to(self.slot_node)
         self.placeholder = model
+        self.collider = None
 
         self.build_slot = build_slot
         self.building_placed = False
@@ -373,6 +374,7 @@ class AssetSlot(PlanetObject):
         else:
             cached_asset = loader.load_model(fn)
             cached_asset.set_scale(0.25)
+            cached_asset.clear_model_nodes()
             cached_asset.flatten_strong()
             self._asset_cache[fn] = cached_asset
 
@@ -401,19 +403,21 @@ class AssetSlot(PlanetObject):
             radius = 0.5
             if 'mountain' in lower:
                 radius *= 4
-            self.collider = model.attach_new_node(core.CollisionNode("collider"))
+            self.collider = self.slot_node.attach_new_node(core.CollisionNode("collider"))
             self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), radius))
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0010)
             #self.collider.show()
         elif 'buildspacesign' in lower:
             radius = 1
-            self.collider = model.attach_new_node(core.CollisionNode("build_spot"))
+            self.collider = self.slot_node.attach_new_node(core.CollisionNode("build_spot"))
             self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), radius))
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0001)
             self.collider.node().set_tag('pick_type', 'build_spot')
             self.collider.node().set_python_tag('asset', self)
+        if self.collider:
+            self.collider.set_pos(model.get_pos())
 
         face = model.find("**/Face/+GeomNode")
         if face:
