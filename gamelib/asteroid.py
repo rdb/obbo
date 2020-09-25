@@ -7,7 +7,7 @@ from .procgen import asteroid
 
 
 MIN_B = 0.2
-MAX_B = 0.7
+MAX_B = 0.4
 SCALE_DURATION = 0.3
 
 

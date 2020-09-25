@@ -60,7 +60,7 @@ class Universe(FSM, DirectObject):
         self.alight.color = (0.5, 0.5, 0.5, 1)
         self.root.set_light(self.root.attach_new_node(self.alight))
 
-        self.asteroids = [Asteroid(self.planet, self) for _ in range(12)]
+        self.asteroids = [Asteroid(self.planet, self) for _ in range(6)]
         self.last_asteroid = 0
 
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
