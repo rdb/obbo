@@ -5,6 +5,8 @@ from direct.showbase.DirectObject import DirectObject
 from direct.interval import IntervalGlobal as intervals
 from direct.gui.OnscreenText import OnscreenText
 
+from .skybox import Skybox
+
 class CutsceneState(DirectObject):
     def __init__(self, cutscene_name, bgm_name, next_state, state_args=None):
         super().__init__()
@@ -23,6 +25,10 @@ class CutsceneState(DirectObject):
         camjoint = actor.expose_joint(None, 'modelRoot', 'camera')
         base.camera.set_pos((0, 0, 0))
         base.camera.reparent_to(camjoint)
+
+        self.skybox = Skybox(camjoint)
+        self.skybox.root.set_compass()
+
 
         # Match Blender camera
         prev_p= base.cam.get_p()
