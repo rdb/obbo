@@ -12,6 +12,8 @@ from .skybox import Skybox
 from .playercontrol import PlayerControl
 from .gamelogic import GameLogic
 from .hud import HUD
+from .endstate import EndState
+from .cutscene import EndingCutscene
 
 
 MAX_ASTEROIDS = [6, 12, 18, 24, 30]
@@ -75,8 +77,10 @@ class Universe(FSM, DirectObject):
             'remove insntructions'
         )
 
-        base.accept('display_msg', self.display_message)
+        self.accept('display_msg', self.display_message)
         self.request('Universe')
+
+        self.accept('beacon_built', self.handle_victory)
 
     def display_message(self, text, duration=INSTRUCTIONS_AUTO_REMOVE_TIME):
         self.add_instructions(text)
@@ -106,6 +110,9 @@ class Universe(FSM, DirectObject):
             self.instructions = None
         if task is not None:
             return task.done
+
+    def handle_victory(self):
+        base.gamestate = EndingCutscene(EndState, state_args=[self])
 
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
