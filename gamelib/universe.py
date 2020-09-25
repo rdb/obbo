@@ -44,6 +44,7 @@ class Universe(FSM, DirectObject):
         self.planet = Planet()
         self.planet.root.reparent_to(self.root)
         self.player_control = PlayerControl(self)
+        self.planet_size = self.planet.size
 
         self.dlight = core.DirectionalLight("light")
         self.dlight.color = (0.5, 0.5, 0.5, 1)
@@ -133,3 +134,7 @@ class Universe(FSM, DirectObject):
         if ft > self.last_asteroid + SPAWN_TIME and len(self.asteroids) < mx_asteroids:
             self.last_asteroid = ft
             self.asteroids.append(Asteroid(self.planet, self))
+        if self.planet_size != self.planet.size:
+            self.planet_size = self.planet.size
+            for i in self.asteroids:
+                i.update_pos()
