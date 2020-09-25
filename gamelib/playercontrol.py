@@ -186,7 +186,7 @@ class PlayerControl(FSM, DirectObject):
         if self.down_time is None:
             return
 
-        if self.cursor_on_build_spot:
+        if self.cursor_on_build_spot and self.state == 'Normal':
             self.request('Build', self.build_asset_slot)
             self.cursor_on_build_spot = False
             self.build_asset_slot = None
