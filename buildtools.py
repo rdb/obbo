@@ -59,11 +59,12 @@ def opt_bam(bampath):
             geomnode.set_geom_state(idx, state)
 
     if bampath.get_basename() == 'buildings.bam':
-        for child in modelroot.children:
-            pos = child.get_pos()
-            child.set_pos(0, 0, 0)
-            child.flatten_strong()
-            child.set_pos(pos)
+        pass
+        # for child in modelroot.children:
+        #     pos = child.get_pos()
+        #     child.set_pos(0, 0, 0)
+        #     child.flatten_strong()
+        #     child.set_pos(pos)
     else:
         modelroot.flatten_strong()
     modelroot.write_bam_file(bampath)

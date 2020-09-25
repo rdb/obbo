@@ -426,6 +426,15 @@ class AssetSlot(PlanetObject):
         if self.building_placed:
             raise RuntimeError('Cannot build here, slot already has a building')
         building = loader.loadModel("models/buildings.bam").find(f'**/{building_name}')
+        for i, hpr in (('rotate_x', (0, 0, 360)), ('rotate_y', (0, 360, 0)), ('rotate_z', (360, 0, 0))):
+            spinner = building.find(f'**/={i}')
+            if spinner.get_error_type() != 0:
+                continue
+            joint = building.attach_new_node('joint')
+            joint.set_transform(spinner.get_transform(building))
+            spinner.reparent_to(joint)
+            spinner.clear_transform()
+            spinner.hprInterval(5, hpr, (0, 0, 0)).loop()
         self.collider.remove_node()
         self.model.remove_node()
         # self.model = core.NodePath(building_name)
@@ -439,10 +448,7 @@ class AssetSlot(PlanetObject):
         h = random.randrange(360) + 720
         h = random.choice((h, -h))
         self.slot_node.set_scale(0.000001)
-        #Parallel(
         self.slot_node.scaleInterval(time, 1).start()
-        #    self.slot_node.hprInterval(time, (h, 0, 0), blendType='easeInOut'),
-        #).start()
         self.building_placed = True
         self.planet.free_build_slots -= 1
         messenger.send('built', [building_name])
