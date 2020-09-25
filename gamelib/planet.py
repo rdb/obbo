@@ -378,20 +378,23 @@ class AssetSlot(PlanetObject):
             cached_asset.flatten_strong()
             self._asset_cache[fn] = cached_asset
 
-        model = cached_asset.instance_to(self.slot_node)
-        model.set_h(random.random() * 360)
-        self.model = model
         if self.build_slot:
-            self.model.set_scale(0.8)
-            self.model.set_z(0.6)
+            model = cached_asset.copy_to(self.slot_node)
+            model.set_scale(0.8)
+            model.set_z(0.6)
             Parallel(
                 Sequence(
-                    LerpPosInterval(self.model, 0.75, (0, 0, 0.8), startPos=(0, 0, 0.6), blendType='easeInOut'),
-                    LerpPosInterval(self.model, 0.75, (0, 0, 0.6), startPos=(0, 0, 0.8), blendType='easeInOut'),
+                    LerpPosInterval(model, 0.75, (0, 0, 0.8), startPos=(0, 0, 0.6), blendType='easeInOut'),
+                    LerpPosInterval(model, 0.75, (0, 0, 0.6), startPos=(0, 0, 0.8), blendType='easeInOut'),
                 ),
-                LerpHprInterval(self.model, 1.5, (360, 0, 0),
+                LerpHprInterval(model, 1.5, (360, 0, 0),
                     startHpr=(0, 0, 0)),
             ).loop()
+        else:
+            model = cached_asset.instance_to(self.slot_node)
+            model.set_h(random.random() * 360)
+
+        self.model = model
 
         lower = fn.lower()
         mfilter = (
@@ -412,13 +415,14 @@ class AssetSlot(PlanetObject):
             self.collider.node().set_into_collide_mask(0b0010)
             #self.collider.show()
         elif 'buildspacesign' in lower:
-            radius = 1
-            self.collider = self.slot_node.attach_new_node(core.CollisionNode("build_spot"))
-            self.collider.node().add_solid(core.CollisionSphere((0, 0, 0.25), radius))
+            radius = 0.65
+            self.collider = self.model.attach_new_node(core.CollisionNode("build_spot"))
+            self.collider.node().add_solid(core.CollisionSphere((0, 0, -0.6), radius))
             self.collider.node().set_from_collide_mask(0b0000)
             self.collider.node().set_into_collide_mask(0b0001)
             self.collider.node().set_tag('pick_type', 'build_spot')
             self.collider.node().set_python_tag('asset', self)
+            #self.collider.show()
         if self.collider:
             self.collider.set_pos(model.get_pos())
 
@@ -428,6 +432,16 @@ class AssetSlot(PlanetObject):
             self.randomize_face()
             # Change face every 3-9 seconds
             taskMgr.do_method_later(random.random() * 6 + 3, self.__cycle_face, 'cycle-face')
+
+    def on_hover(self):
+        if self.build_slot:
+            self.model.scaleInterval(0.15, 1.0, blendType='easeInOut').start()
+            self.model.colorScaleInterval(0.15, (2, 2, 2, 1), blendType='easeInOut').start()
+
+    def on_blur(self):
+        if self.build_slot:
+            self.model.scaleInterval(0.15, 0.8, blendType='easeInOut').start()
+            self.model.colorScaleInterval(0.15, (1, 1, 1, 1), blendType='easeInOut').start()
 
     def randomize_face(self):
         offset = random.choice([(0, 0), (0.5, 0), (0, 0.25), (0, 0.5), (0, 0.75)])

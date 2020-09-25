@@ -98,7 +98,7 @@ class PlayerControl(FSM, DirectObject):
         self.line.set_antialias(core.AntialiasAttrib.M_line)
 
         self.cursor_pos = None
-        self.cursor_on_build_spot = False
+        self.cursor_asset_slot = None
         self.pie_menu = None
         self.down_pos = None
         self.down_time = None
@@ -106,8 +106,6 @@ class PlayerControl(FSM, DirectObject):
         self.target = Cursor(universe.planet)
         self.target.root.hide()
         self.target_pos = None
-
-        self.build_asset_slot = None
 
         self.cam_dummy = self.player.root.attach_new_node('cam')
         self.cam_dummy.set_effect(core.CompassEffect.make(core.NodePath(),
@@ -180,19 +178,19 @@ class PlayerControl(FSM, DirectObject):
             self.down_pos = self.cursor_pos
         self.down_time = globalClock.frame_time
 
-        if self.state == 'Cast' and not self.cursor_on_build_spot:
+        if self.state == 'Cast' and not self.cursor_asset_slot:
             self.player.reel_ctr.play()
-        elif self.state == 'Build' and not self.cursor_on_build_spot:
+        elif self.state == 'Build' and not self.cursor_asset_slot:
             self.request('Normal')
 
     def on_mouse_up(self):
         if self.down_time is None:
             return
 
-        if self.cursor_on_build_spot and self.state == 'Normal':
-            self.request('Build', self.build_asset_slot)
-            self.cursor_on_build_spot = False
-            self.build_asset_slot = None
+        if self.cursor_asset_slot and self.state == 'Normal':
+            self.request('Build', self.cursor_asset_slot)
+            self.cursor_asset_slot.on_blur()
+            self.cursor_asset_slot = None
 
         elif self.state == 'Cast':
             self.player.reel_ctr.stop()
@@ -280,16 +278,24 @@ class PlayerControl(FSM, DirectObject):
                             min_dist = dist
                             asset = i
 
-                    self.cursor_on_build_spot = True
-                    self.build_asset_slot = asset
+                    if self.cursor_asset_slot != asset:
+                        asset.on_hover()
+                    self.cursor_asset_slot = asset
+                    self.cursor_pos = None
+                    self.cursor.model.hide()
                 else:
-                    self.cursor_on_build_spot = False
-                self.cursor_pos = point
-
-                self.cursor.set_pos(self.cursor_pos)
-                self.cursor.model.show()
+                    if self.cursor_asset_slot:
+                        self.cursor_asset_slot.on_blur()
+                        self.cursor_asset_slot = None
+                    self.cursor_pos = point
+                    self.cursor.set_pos(self.cursor_pos)
+                    self.cursor.model.show()
             else:
                 self.cursor.model.hide()
+
+                if self.cursor_asset_slot:
+                    self.cursor_asset_slot.on_blur()
+                    self.cursor_asset_slot = None
 
             if self.down_time is not None:
                 cur_time = globalClock.frame_time
@@ -439,7 +445,7 @@ class PlayerControl(FSM, DirectObject):
         ).start()
         messenger.send('caught_asteroid')
 
-    def enterBuild(self, asset):
+    def enterBuild(self, asset_slot):
         self.ignore('mouse1')
         self.ignore('mouse1-up')
         self.target_pos = None
@@ -452,7 +458,7 @@ class PlayerControl(FSM, DirectObject):
             items.append(PieMenuItem(model.capitalize(), f'build_{model}', model))
         self.pie_menu = PieMenu(items, lambda: self.request('Normal'))
         for item in items:
-            self.accept_once(item.event, self.build, [item.event, self.down_pos, asset])
+            self.accept_once(item.event, self.build, [item.event, asset_slot])
         self.down_pos = None
         self.pie_menu.show()
 
@@ -462,29 +468,29 @@ class PlayerControl(FSM, DirectObject):
             self.request('Normal')
             return task.done
 
-        if self.target_pos is not None and self.build_asset:
+        if self.target_pos is not None and self.build_asset_slot:
             if self.player.move_toward(self.target_pos, dt):
                 # Arrived.
                 self.target_pos = None
                 self.player.build_ctr.loop('build')
-                self.build_asset.build(self.build_building, BUILD_TIME)
+                self.build_asset_slot.build(self.build_building, BUILD_TIME)
                 taskMgr.do_method_later(BUILD_TIME, finish_building, 'finish')
-                self.build_asset = None
+                self.build_asset_slot = None
                 self.build_building = None
 
     def exitBuild(self):
         self.accept('mouse1', self.on_mouse_down)
         self.accept('mouse1-up', self.on_mouse_up)
 
-    def build(self, building, location, asset):
+    def build(self, building, asset_slot):
         # TODO: Inform the player that they don't have enough blocks/power to build
         if self.universe.game_logic.can_build(building[6:]):
-            self.target_pos = core.Vec3(location)
+            self.target_pos = core.Vec3(asset_slot.get_pos())
             dir = core.Vec3(self.target_pos - self.player.get_pos())
             dir.normalize()
             self.target_pos -= dir * BUILD_DIST / self.universe.planet.root.get_scale()[0]
             self.target_pos.normalize()
-            self.build_asset = asset
+            self.build_asset_slot = asset_slot
             self.build_building = building[6:]
             self.pie_menu.hide(ignore_callback=True)
 
