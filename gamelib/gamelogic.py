@@ -1,4 +1,5 @@
 from direct.showbase.DirectObject import DirectObject
+from panda3d import core
 
 from .techtree import TechTree, TechNode
 
@@ -32,8 +33,8 @@ class GameLogic(DirectObject):
 
         # Game state
         # FIXME: Set storage cap back to 5 and used to 0 before release!!!
-        self.storage_cap = 500
-        self.storage_used = 500
+        self.storage_cap = core.ConfigVariableInt('storage-cap', 5).get_value()
+        self.storage_used = core.ConfigVariableInt('storage-used', 0).get_value()
         self.collected_total = 0
         self.grow_next = 5
         self.growth_cycle = 0
