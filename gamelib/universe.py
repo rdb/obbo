@@ -12,6 +12,7 @@ from .util import srgb_color
 from .skybox import Skybox
 from .playercontrol import PlayerControl
 from .gamelogic import GameLogic
+from .hud import HUD
 
 
 MAX_ASTEROIDS = 20
@@ -38,6 +39,7 @@ class Universe(FSM, DirectObject):
         self.skybox = Skybox(self.root)
 
         self.game_logic = GameLogic()
+        self.hud = HUD()
 
         self.planet = Planet()
         self.planet.root.reparent_to(self.root)

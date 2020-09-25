@@ -52,6 +52,7 @@ class GameLogic(DirectObject):
         # TODO: Alert the player to build more power delivery
         if self.power_used / self.power_cap > 0.9:
             messenger.send('power_level_critical')
+        messenger.send('update_hud', ['power', self.power_used, self.power_cap])
 
     def caught_asteroid(self):
         self.collected_total += 1
@@ -64,6 +65,7 @@ class GameLogic(DirectObject):
                 self.grow_next = 0
             else:
                 self.grow_next = PLANET_GROWTH_STEPS[self.growth_cycle]
+        messenger.send('update_hud', ['blocks', self.storage_used, self.storage_cap])
 
     def get_unlocked(self, fltr=None):
         return self.tech_tree.get_current(fltr)
