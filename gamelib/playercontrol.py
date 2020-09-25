@@ -22,7 +22,7 @@ SHIP_POSITION = (0.364267, -0.857099, 0.364267)
 CHARGE_MAX_TIME = 2.0
 
 BOBBER_SPIN_SPEED = 0.1
-MAGNET_RADIUS = 1.0
+MAGNET_RADIUS = 1.5
 
 # How much distance Obbo keeps from buildings while building
 BUILD_DIST = 1.0
