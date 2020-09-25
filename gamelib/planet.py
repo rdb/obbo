@@ -382,12 +382,15 @@ class AssetSlot(PlanetObject):
         model.set_h(random.random() * 360)
         self.model = model
         if self.build_slot:
-            self.model.set_z(0.7)
-            Sequence(
-                LerpHprInterval(self.model, 0.75, (180, 0, 0),
+            self.model.set_scale(0.8)
+            self.model.set_z(0.6)
+            Parallel(
+                Sequence(
+                    LerpPosInterval(self.model, 0.75, (0, 0, 0.8), startPos=(0, 0, 0.6), blendType='easeInOut'),
+                    LerpPosInterval(self.model, 0.75, (0, 0, 0.6), startPos=(0, 0, 0.8), blendType='easeInOut'),
+                ),
+                LerpHprInterval(self.model, 1.5, (360, 0, 0),
                     startHpr=(0, 0, 0)),
-                LerpHprInterval(self.model, 0.75, (360, 0, 0),
-                    startHpr=(180, 0, 0))
             ).loop()
 
         lower = fn.lower()
