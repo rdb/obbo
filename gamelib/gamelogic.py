@@ -21,7 +21,7 @@ TECH_TREE_CFG = [
 ]
 PLANET_GROWTH_STEPS = (5, 15, 35, 75)
 INSTRUCTIONS = {
-    'first_catch': 'The planet ate some of my asteroid  >_<'
+    'first_catch': 'Hey! The planet ate some of my asteroid  >_<'
 }
 
 
@@ -51,6 +51,7 @@ class GameLogic(DirectObject):
         if self.tech_tree.building_count() > current:
             new_buildings = self.tech_tree.unlocked_by(model)
             messenger.send('tech_unlocked', [new_buildings,])  # TODO: implement player notification
+            messenger.send('update_hud', ['msg', 'New technology unlocked!'])
             print(f'New buildings unlocked: {new_buildings}')
         self.storage_cap += self.tech_tree.capacity(model)
         self.storage_used -= self.tech_tree.build_cost(model)
@@ -64,9 +65,7 @@ class GameLogic(DirectObject):
         if self.power_used / self.power_cap > 0.66:
             print('power level critical')
             messenger.send('power_level_critical')
-            messenger.send('update_hud', ['msg', 'Power level Critical!', 0])
-        else:
-            messenger.send('update_hud', ['msg', '...', 0])
+            messenger.send('update_hud', ['msg', 'Power level Critical!'])
 
         self.update_hud()
 
