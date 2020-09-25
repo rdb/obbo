@@ -99,7 +99,7 @@ class Planet:
                 for row in side.grid:
                     for cell in row:
                         if cell.build_slot:
-                            if cell not in self.build_slot_queue:
+                            if cell not in self.build_slot_queue and not cell.sprouted:
                                 self.build_slot_queue.append(cell)
                             continue
                         cell.sprout()
