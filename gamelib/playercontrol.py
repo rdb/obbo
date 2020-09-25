@@ -152,8 +152,8 @@ class PlayerControl(FSM, DirectObject):
 
         self.request('Intro')
 
-        # FIXME: remove grow with space before release
-        base.accept('space', self.grow)
+        if core.ConfigVariableBool('space-to-grow', False).get_value():
+            base.accept('space', self.grow)
         self.grown = 0
         base.accept('planet_grow', self.grow)
 
