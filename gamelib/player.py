@@ -22,7 +22,7 @@ class Player(PlanetObject):
         model.reparent_to(self.model_pos)
         self.model = model
 
-        self.rod_tip = model.expose_joint(None, 'modelRoot', 'rod_0')
+        self.rod_tip = model.expose_joint(None, 'modelRoot', 'bobber')
 
         self.walk_ctr = self.model.get_anim_control('walk')
         self.charge_ctr = self.model.get_anim_control('fish_charge')

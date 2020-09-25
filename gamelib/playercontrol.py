@@ -80,6 +80,22 @@ class PlayerControl(FSM, DirectObject):
         #self.bobber_collider.show()
         self.asteroid_handler = core.CollisionHandlerQueue()
 
+        # Create fishing line.
+        vdata = core.GeomVertexData("line", core.GeomVertexFormat.get_v3(), core.Geom.UH_stream)
+        vdata.set_num_rows(2)
+        lines = core.GeomLines(core.Geom.UH_static)
+        lines.add_next_vertices(2)
+        geom = core.Geom(vdata)
+        geom.add_primitive(lines)
+        self.line = self.player.root.attach_new_node(core.GeomNode('line'))
+        self.line.node().add_geom(geom)
+        self.line.stash()
+        self.line.set_shader_off(1)
+        self.line.node().set_bounds(core.OmniBoundingVolume())
+        self.line.node().set_final(True)
+        self.line.set_render_mode_thickness(2)
+        self.line.set_antialias(core.AntialiasAttrib.M_line)
+
         self.cursor_pos = None
         self.cursor_on_build_spot = False
         self.pie_menu = None
@@ -196,6 +212,7 @@ class PlayerControl(FSM, DirectObject):
         self.crosshair.hide()
         self.toggle_cam_view()
         self.bobber.stash()
+        self.line.stash()
         self.player.reel_ctr.stop()
 
         # Interrupt mouse hold if we just came in here holding the mouse,
@@ -293,6 +310,7 @@ class PlayerControl(FSM, DirectObject):
     def enterCast(self, power):
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
         self.bobber.unstash()
+        self.line.unstash()
         rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
         direction = self.crosshair.model.get_pos(self.player.model).normalized()
         self.bobber.set_pos(rod_tip_pos + direction * 3)
@@ -310,6 +328,7 @@ class PlayerControl(FSM, DirectObject):
 
     def updateCast(self, dt):
         self.update_cast_cam()
+        self.update_line()
 
         if self.down_time is not None:
             self.updateReel(dt)
@@ -347,6 +366,7 @@ class PlayerControl(FSM, DirectObject):
 
     def updateReel(self, dt):
         self.update_cast_cam()
+        self.update_line()
 
         # Reel in
         rod_tip_pos = self.player.rod_tip.get_pos(self.bobber.parent)
@@ -406,6 +426,11 @@ class PlayerControl(FSM, DirectObject):
 
         self.player.move_to(tuple(location), start_building)
         self.pie_menu.hide(ignore_callback=True)
+
+    def update_line(self):
+        writer = core.GeomVertexWriter(self.line.node().modify_geom(0).modify_vertex_data(), 'vertex')
+        writer.set_data3(self.player.rod_tip.get_pos(self.player.root))
+        writer.set_data3(self.bobber.get_pos(self.player.root))
 
     def update_cast_cam(self):
         if self.state == 'Build':
