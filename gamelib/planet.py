@@ -52,13 +52,6 @@ class Planet:
         self.free_build_slots = 0
         self.set_size(1)
 
-        self.left_eye = PlanetEye(self)
-        self.left_eye.set_pos((-0.3, -1, 1))
-        self.right_eye = PlanetEye(self)
-        self.right_eye.set_pos((0.3, -1, 1))
-        self.mouth = PlanetMouth(self)
-        self.mouth.set_pos((0, -1.2, 1))
-
     def grow(self, player_face):
         new_size = self.size + 1
         self.new_build_slots = math.ceil(new_size * 2.4)  # Change factor to increase/decrease build_slots
@@ -274,38 +267,6 @@ class PlanetObject:
         #up_vector = true_up_vector * equator_proximity + up_vector * (1 - equator_proximity)
         #up_vector.normalize()
         self.pivot.look_at(pos, up_vector)
-
-
-class PlanetEye(PlanetObject):
-    def __init__(self, planet):
-        super().__init__(planet)
-
-        self.model = loader.load_model("models/sphere.bam")
-        self.model.set_scale(0.15/4, 0.15/4, 0.001/4)
-        self.model.set_color((0, 0, 0, 1), 1)
-        self.model.reparent_to(self.root)
-
-
-class PlanetMouth(PlanetObject):
-    def __init__(self, planet):
-        super().__init__(planet)
-
-        cardmaker = core.CardMaker("")
-        cardmaker.set_frame(-0.1, 0.1, -0.1, 0.1)
-
-        tex = loader.load_texture("textures/mouth.png")
-        tex.wrap_u = core.Texture.WM_clamp
-        tex.wrap_v = core.Texture.WM_clamp
-
-        mat = core.Material()
-        mat.base_color = (1, 1, 1, 1)
-
-        self.model = self.root.attach_new_node(cardmaker.generate())
-        self.model.set_material(mat)
-        self.model.set_texture(tex)
-        self.model.set_color((1, 1, 1, 1), 1)
-        self.model.set_hpr(180, -90, 0)
-        self.model.set_transparency(core.TransparencyAttrib.M_binary)
 
 
 class PlanetProp(PlanetObject):
