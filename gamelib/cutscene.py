@@ -77,6 +77,9 @@ class CutsceneState(DirectObject):
             base.camLens.set_fov(*prev_fov)
             base.camLens.set_near(prev_near)
 
+            # fix for changing resolution size during cutscene
+            base.camLens.set_aspect_ratio(base.get_aspect_ratio())
+
             # Cleanup the scene
             bgm.stop()
             self.instructions.remove_node()
