@@ -8,7 +8,6 @@ from direct.fsm.FSM import FSM
 
 from .planet import Planet
 from .asteroid import Asteroid
-from .util import srgb_color
 from .skybox import Skybox
 from .playercontrol import PlayerControl
 from .gamelogic import GameLogic
@@ -32,7 +31,6 @@ INSTRUCTIONS_AUTO_REMOVE_TIME = 20
 class Universe(FSM, DirectObject):
     def __init__(self):
         super().__init__('Universe')
-        base.set_background_color(srgb_color(0x595961))
 
         self.root = base.render.attach_new_node("universe")
 

@@ -9,6 +9,7 @@ import pman.shim
 from gamelib import renderer
 from gamelib.universe import Universe
 from gamelib.mainmenu import MainMenu
+from gamelib.util import srgb_color
 
 
 panda3d.core.load_prc_file(
@@ -34,6 +35,7 @@ class GameApp(ShowBase):
         )
         self.accept('escape', sys.exit)
 
+        self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
         bgm = base.loader.load_music('music/menu.ogg')
