@@ -106,6 +106,13 @@ class IntroCutscene(CutsceneState):
     def __init__(self, next_state, state_args=None):
         super().__init__('intro', 'intro_sequence', next_state, state_args)
 
+        self.obbo_face = self.actor.find('**/obbo_face')
+        taskMgr.doMethodLater(1050 / self.actor.get_frame_rate('0'), self.on_scare_obbo, 'scare-obbo')
+
+    def on_scare_obbo(self, task):
+        # Obbo bumps into asteroid
+        self.obbo_face.set_shader_input('uv_shift', (0.5, 0.25), priority=1)
+
 class EndingCutscene(CutsceneState):
     def __init__(self, next_state, state_args=None):
         super().__init__('ending', 'end_sequence', next_state, state_args)
