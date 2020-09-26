@@ -76,6 +76,9 @@ setup(
         'sdist_built': SDistBuilt,
     },
     options={
+        'sdist': {
+            'formats': ['zip'],
+        },
         'build_apps': {
             'include_patterns': [
                 CONFIG['build']['export_dir']+'/**',
