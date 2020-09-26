@@ -18,7 +18,7 @@ TECH_TREE_CFG = [
     TechNode('supercomputer', 'science', 9, -15, ('lab',)),
     TechNode('soppower', 'power', 8, 16, ('lab',), deprecated_by='superpower'),
     TechNode('superpower', 'power', 11, 40, ('supercomputer', 'soppower')),
-    TechNode('beacon', 'science', 11, -35, ('supercomputer', 'superpower')),
+    TechNode('beacon', 'science', 16, -35, ('supercomputer', 'superpower')),
 ]
 PLANET_GROWTH_STEPS = (4, 14, 29, 49)
 INSTRUCTIONS = {
