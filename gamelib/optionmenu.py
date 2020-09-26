@@ -131,6 +131,15 @@ class OptionMenu(DirectObject, OptionGUI):
         self.cmbResolution.set(selected, fCommand = 0)
         self.cmbResolution["command"] = self.cmbResolutionChanged
 
+        ## INVERT Y AXIS TOGGLE
+        self.cbInvertAxis["isChecked"] = p3d.ConfigVariableBool('invert-y-axis', False)
+        if self.cbInvertAxis['isChecked']:
+            self.cbInvertAxis['image'] = self.cbInvertAxis['checkedImage']
+        else:
+            self.cbInvertAxis['image'] = self.cbInvertAxis['uncheckedImage']
+        self.cbInvertAxis.setImage()
+        self.cbInvertAxis["command"] = self.cbInvertAxisChanged
+
         base.set_bgm('credits')
 
     def cleanup(self):
@@ -207,6 +216,10 @@ class OptionMenu(DirectObject, OptionGUI):
         base.win.requestProperties(props)
         base.taskMgr.step()
 
+    def cbInvertAxisChanged(self, args=None):
+        invert = self.cbInvertAxis['isChecked']
+        ConfigVariableBool('invert-y-axis').setValue(invert)
+
     def writeConfig(self):
         """Save current config in the prc file or if no prc file exists
         create one. The prc file is set in the prcFile variable"""
@@ -227,6 +240,7 @@ class OptionMenu(DirectObject, OptionGUI):
             "fullscreen": "true" if self.cbFullscreen["isChecked"] else "false",
             "win-size": "{} {}".format(base.win.getXSize(), base.win.getYSize()),
             "potato-mode": "true" if ConfigVariableBool('potato-mode', False).get_value() else "false",
+            "invert-y-axis": "true" if ConfigVariableBool('invert-y-axis', False).get_value() else "false",
             }
 
         page = None

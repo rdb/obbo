@@ -734,6 +734,8 @@ class PlayerControl(FSM, DirectObject):
 
             self.cam_target_h = mpos.x * -1 * (360 * CAM_CAST_X_SENSITIVITY)
             self.cam_target_p = mpos.y * -45 + 45
+            invert = -1.0 if core.ConfigVariableBool('invert-y-axis', False) else 1.0
+            self.cam_target_p *= invert
 
             border = 0.5 / CAM_CAST_X_SENSITIVITY
             if mpos.x > 1 - border or mpos.x < -1 + border:

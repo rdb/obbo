@@ -175,6 +175,25 @@ class GUI:
         )
         self.cmbResolution.setTransparency(2)
 
+        self.cbInvertAxis = DirectCheckBox(
+            checkedImage='textures/checkbox_checked.png',
+            frameColor=(0.8, 0.8, 0.8, 0.0),
+            frameSize=(-1.0, 1.0, -1.0, 1.0),
+            hpr=LVecBase3f(0, 0, 0),
+            image='textures/checkbox_unchecked.png',
+            isChecked=False,
+            pos=LPoint3f(0.14, 0, -0.5),
+            relief=1,
+            scale=LVecBase3f(0.05, 0.05, 0.05),
+            uncheckedImage='textures/checkbox_unchecked.png',
+            image_scale=LVecBase3f(1, 1, 1),
+            image_pos=LPoint3f(0, 0, 0),
+            text='Invert Y Axis',
+            text_pos=(-4.5, -0.23),
+            text_fg=(1, 1, 1, 1),
+            parent=rootParent,
+        )
+        self.cbMusicAudio.setTransparency(2)
 
     def show(self):
         self.cbMusicAudio.show()
@@ -183,6 +202,7 @@ class GUI:
         self.sliderSFXVolume.show()
         self.cbFullscreen.show()
         self.cbGraphicMode.show()
+        self.cbInvertAxis.show()
         self.cmbResolution.show()
 
     def hide(self):
@@ -192,6 +212,7 @@ class GUI:
         self.sliderSFXVolume.hide()
         self.cbFullscreen.hide()
         self.cbGraphicMode.hide()
+        self.cbInvertAxis.hide()
         self.cmbResolution.hide()
 
     def destroy(self):
@@ -201,4 +222,5 @@ class GUI:
         self.sliderSFXVolume.destroy()
         self.cbFullscreen.destroy()
         self.cbGraphicMode.destroy()
+        self.cbInvertAxis.destroy()
         self.cmbResolution.destroy()
