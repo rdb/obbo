@@ -29,7 +29,7 @@ class MainMenu(DirectObject):
         scene_camera = self.root.find('**/-Camera')
         campos = scene_camera.get_pos(self.root)
         base.camera.set_pos(campos)
-        self.picker.set_pos(campos)
+        self.picker.reparent_to(base.camera)
 
         self.accept('mouse1-up', self.handle_click)
 
