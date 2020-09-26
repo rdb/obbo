@@ -49,7 +49,9 @@ class GameApp(ShowBase):
             lut_texture=self.luttex,
         )
         self.set_graphics_quality(potato_mode)
-        self.accept('escape', sys.exit)
+
+        if panda3d.core.ConfigVariableBool('esc-to-exit', False).get_value():
+            self.accept('escape', sys.exit)
 
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
