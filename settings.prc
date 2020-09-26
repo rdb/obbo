@@ -1,4 +1,4 @@
-window-title Panda3D Game
+window-title Obbo's Descent
 framebuffer-srgb true
 background-color 0 0 0
 screenshot-extension png
