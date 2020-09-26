@@ -20,7 +20,7 @@ TECH_TREE_CFG = [
     TechNode('superpower', 'power', 11, 40, ('supercomputer', 'soppower')),
     TechNode('beacon', 'science', 16, -35, ('supercomputer', 'superpower')),
 ]
-PLANET_GROWTH_STEPS = (4, 14, 29, 49)
+PLANET_GROWTH_STEPS = (2, 12, 27, 47)
 INSTRUCTIONS = {
     'first_catch': 'Hey! The planet ate some of my asteroid  >_<'
 }
