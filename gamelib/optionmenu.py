@@ -49,17 +49,28 @@ class OptionMenu(DirectObject, OptionGUI):
         base.transitions.fadeIn()
 
         ## AUDIO VOLUME
-        self.sliderVolume.setValue(base.musicManager.getVolume())
-        self.sliderVolume["command"] = self.sliderVolumeChanged
+        self.sliderMusicVolume.setValue(base.musicManager.getVolume())
+        self.sliderMusicVolume["command"] = self.sliderMusicVolumeChanged
+        self.sliderSFXVolume.setValue(base.sfxManagerList[0].getVolume())
+        self.sliderSFXVolume["command"] = self.sliderSFXVolumeChanged
 
-        ## AUDIO MUTE TOGGLE
-        self.cbAudio["isChecked"] = base.musicActive
-        if self.cbAudio['isChecked']:
-            self.cbAudio['image'] = self.cbAudio['checkedImage']
+        ## Music AUDIO MUTE TOGGLE
+        self.cbMusicAudio["isChecked"] = base.musicActive
+        if self.cbMusicAudio['isChecked']:
+            self.cbMusicAudio['image'] = self.cbMusicAudio['checkedImage']
         else:
-            self.cbAudio['image'] = self.cbAudio['uncheckedImage']
-        self.cbAudio.setImage()
-        self.cbAudio["command"] = self.cbAudioChanged
+            self.cbMusicAudio['image'] = self.cbMusicAudio['uncheckedImage']
+        self.cbMusicAudio.setImage()
+        self.cbMusicAudio["command"] = self.cbMusicAudioChanged
+
+        ## SFX AUDIO MUTE TOGGLE
+        self.cbSFXAudio["isChecked"] = base.musicActive
+        if self.cbSFXAudio['isChecked']:
+            self.cbSFXAudio['image'] = self.cbSFXAudio['checkedImage']
+        else:
+            self.cbSFXAudio['image'] = self.cbSFXAudio['uncheckedImage']
+        self.cbSFXAudio.setImage()
+        self.cbSFXAudio["command"] = self.cbSFXAudioChanged
 
         ## FULLSCREEN
         self.cbFullscreen["isChecked"] = base.win.isFullscreen()
@@ -141,19 +152,26 @@ class OptionMenu(DirectObject, OptionGUI):
             npname = entry.getIntoNodePath().name
 
             if npname == 'BackSignSign':
+                self.writeConfig()
                 base.change_state('MainMenu')
-                self.cleanup()
+                # self.cleanup()
                 break
 
-    def sliderVolumeChanged(self):
-        volume = round(self.sliderVolume["value"], 2)
-        self.sliderVolume["text"] = "Volume: {}%".format(int(volume * 100))
+    def sliderMusicVolumeChanged(self):
+        volume = round(self.sliderMusicVolume["value"], 2)
+        self.sliderMusicVolume["text"] = "Music Volume: {}%".format(int(volume * 100))
         base.musicManager.setVolume(volume)
+
+    def sliderSFXVolumeChanged(self):
+        volume = round(self.sliderSFXVolume["value"], 2)
+        self.sliderSFXVolume["text"] = "SFX Volume: {}%".format(int(volume * 100))
         base.sfxManagerList[0].setVolume(volume)
 
-    def cbAudioChanged(self, args=None):
-        base.enableSoundEffects(self.cbAudio["isChecked"])
-        base.enableMusic(self.cbAudio["isChecked"])
+    def cbMusicAudioChanged(self, args=None):
+        base.enableMusic(self.cbMusicAudio["isChecked"])
+
+    def cbSFXAudioChanged(self, args=None):
+        base.enableSoundEffects(self.cbSFXAudio["isChecked"])
 
     def cbFullscreenChanged(self, args=None):
         # get the window properties and clear them
@@ -201,9 +219,10 @@ class OptionMenu(DirectObject, OptionGUI):
         #      configurations value as value in this dictionary and it's
         #      name as key.
         configVariables = {
-            "audio-volume": str(round(base.musicManager.getVolume(), 2)),
-            "audio-music-active": "true" if self.cbAudio["isChecked"] else "false",
-            "audio-sfx-active": "true" if self.cbAudio["isChecked"] else "false",
+            "audio-music-volume": str(round(base.musicManager.getVolume(), 2)),
+            "audio-sfx-volume": str(round(base.sfxManagerList[0].getVolume(), 2)),
+            "audio-music-active": "true" if self.cbMusicAudio["isChecked"] else "false",
+            "audio-sfx-active": "true" if self.cbSFXAudio["isChecked"] else "false",
             "fullscreen": "true" if self.cbFullscreen["isChecked"] else "false",
             "win-size": "{} {}".format(base.win.getXSize(), base.win.getYSize()),
             "potato-mode": "true" if ConfigVariableBool('potato-mode', False).get_value() else "false",
