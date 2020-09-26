@@ -20,7 +20,7 @@ TECH_TREE_CFG = [
     TechNode('superpower', 'power', 11, 40, ('supercomputer', 'soppower')),
     TechNode('beacon', 'science', 11, -35, ('supercomputer', 'superpower')),
 ]
-PLANET_GROWTH_STEPS = (5, 15, 35, 75)
+PLANET_GROWTH_STEPS = (4, 14, 29, 49)
 INSTRUCTIONS = {
     'first_catch': 'Hey! The planet ate some of my asteroid  >_<'
 }
@@ -81,14 +81,14 @@ class GameLogic(DirectObject):
             self.blocks_per_catch = 3
 
     def caught_asteroid(self):
-        self.collected_total += 1
+        self.collected_total += self.blocks_per_catch
         self.storage_used += self.blocks_per_catch
         self.storage_used = min(self.storage_cap, self.storage_used)
-        if self.collected_total == self.grow_next:
+        if self.collected_total >= self.grow_next:
             messenger.send('planet_grow')
             self.growth_cycle += 1
             if self.growth_cycle >= len(PLANET_GROWTH_STEPS):
-                self.grow_next = 0
+                self.grow_next = float('inf')
             else:
                 self.grow_next = PLANET_GROWTH_STEPS[self.growth_cycle]
         self.update_hud()
