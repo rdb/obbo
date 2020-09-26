@@ -756,6 +756,7 @@ class Crosshair:
         self.model.hide()
         self.model.set_billboard_point_eye()
         self.model.set_bin('fixed', 10)
+        self.model.set_light_off(1)
         self.model.set_depth_test(False)
         self.model.set_depth_write(False)
 
