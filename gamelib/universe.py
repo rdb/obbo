@@ -12,7 +12,6 @@ from .skybox import Skybox
 from .playercontrol import PlayerControl
 from .gamelogic import GameLogic
 from .hud import HUD
-from .endstate import EndState
 from .cutscene import EndingCutscene
 
 
@@ -80,8 +79,15 @@ class Universe(FSM, DirectObject):
 
         self.accept('display_msg', self.display_message)
         self.request('Universe')
-        base.accept('f11', self.handle_victory)
+        self.accept('f11', self.handle_victory)
         self.accept('beacon_built', self.handle_victory)
+
+    def cleanup(self):
+        self.root.remove_node()
+        self.hud.cleanup()
+        self.player_control.cleanup()
+        base.render.clear_light()
+        self.ignore_all()
 
     def display_message(self, text, duration=INSTRUCTIONS_AUTO_REMOVE_TIME):
         self.add_instructions(text)
@@ -115,7 +121,7 @@ class Universe(FSM, DirectObject):
     def handle_victory(self):
         self.player_control.universe.hud.hide()
         self.player_control.player.root.hide()
-        base.gamestate = EndingCutscene(self.planet, EndState, state_args=[self])
+        base.gamestate = EndingCutscene(self.planet, 'End', state_args=[self])
 
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()

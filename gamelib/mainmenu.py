@@ -4,9 +4,7 @@ import panda3d.core as p3d
 from direct.showbase.DirectObject import DirectObject
 from direct.interval import IntervalGlobal as intervals
 
-from .universe import Universe
 from .skybox import Skybox
-from .cutscene import IntroCutscene, EndingCutscene
 
 class MainMenu(DirectObject):
     def __init__(self):
@@ -56,20 +54,13 @@ class MainMenu(DirectObject):
             npname = entry.getIntoNodePath().name
 
             if npname == 'StartSignSign':
-                self.cleanup()
                 ival = base.transitions.getFadeOutIval()
-                def change_state():
-                    base.gamestate = IntroCutscene(Universe)
-                ival.append(intervals.Func(change_state))
+                ival.append(intervals.Func(base.change_state, 'IntroCutscene', ['Universe']))
                 ival.start()
                 break
             elif npname == 'OptionSignSign':
-                self.cleanup()
                 ival = base.transitions.getFadeOutIval()
-                def change_state():
-                    from .optionmenu import OptionMenu
-                    base.gamestate = OptionMenu()
-                ival.append(intervals.Func(change_state))
+                ival.append(intervals.Func(base.change_state, 'OptionMenu'))
                 ival.start()
                 break
             elif npname == 'QuitSignSign':

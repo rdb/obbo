@@ -11,7 +11,6 @@ from .skybox import Skybox
 class CutsceneState(DirectObject):
     def __init__(self, cutscene_name, bgm_name, next_state, state_args=None):
         super().__init__()
-        state_args = [] if state_args is None else state_args
 
         parent = base.render
         model = base.loader.load_model(f'models/Cutscenes/{cutscene_name}.bam')
@@ -32,15 +31,15 @@ class CutsceneState(DirectObject):
 
 
         # Match Blender camera
-        prev_p= base.cam.get_p()
+        self.prev_p= base.cam.get_p()
         base.cam.clear_transform()
         base.camera.clear_transform()
         
         base.cam.set_p(-90)
 
-        prev_fov = list(base.camLens.get_fov())
+        self.prev_fov = list(base.camLens.get_fov())
         base.camLens.set_fov(90, 90)
-        prev_near = base.camLens.get_near()
+        self.prev_near = base.camLens.get_near()
         base.camLens.set_near(0.1)
 
         # Play some background music if available
@@ -69,36 +68,32 @@ class CutsceneState(DirectObject):
         alight.color = (0.5, 0.5, 0.5, 1)
         self.actor.set_light(self.actor.attach_new_node(alight))
 
-        def cleanup():
-            # Reset camera
-            base.camera.reparent_to(base.render)
-            base.cam.set_p(prev_p)
-            base.camLens.set_fov(*prev_fov)
-            base.camLens.set_near(prev_near)
-
-            # fix for changing resolution size during cutscene
-            base.camLens.set_aspect_ratio(base.get_aspect_ratio())
-
-            # Cleanup the scene
-            self.instructions.remove_node()
-            base.transitions.letterboxOff()
-            self.actor.cleanup()
-            self.actor = None
-
-            # Transition to the next state
-            print('transition')
-            base.gamestate = next_state(*state_args)
-
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
             actor.actor_interval('0', playRate=1.0),
             base.transitions.getFadeOutIval(),
-            intervals.Func(cleanup)
+            intervals.Func(base.change_state, next_state, state_args)
         )
         ival.start()
 
         self.accept('space', ival.finish)
+
+    def cleanup(self):
+        # Reset camera
+        base.camera.reparent_to(base.render)
+        base.cam.set_p(self.prev_p)
+        base.camLens.set_fov(*self.prev_fov)
+        base.camLens.set_near(self.prev_near)
+
+        # fix for changing resolution size during cutscene
+        base.camLens.set_aspect_ratio(base.get_aspect_ratio())
+
+        # Cleanup the scene
+        self.instructions.remove_node()
+        base.transitions.letterboxOff()
+        self.actor.cleanup()
+        self.actor = None
 
     def update(self, _dt):
         pass

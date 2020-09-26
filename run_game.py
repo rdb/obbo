@@ -8,9 +8,23 @@ import pman
 import pman.shim
 
 from gamelib import renderer
+from gamelib.util import srgb_color
+
+# States
 from gamelib.universe import Universe
 from gamelib.mainmenu import MainMenu
-from gamelib.util import srgb_color
+from gamelib.cutscene import IntroCutscene, EndingCutscene
+from gamelib.optionmenu import OptionMenu
+from gamelib.endstate import EndState
+
+GAME_STATES = {
+    'Universe': Universe,
+    'MainMenu': MainMenu,
+    'IntroCutscene': IntroCutscene,
+    'EndingCutscene': EndingCutscene,
+    'OptionMenu': OptionMenu,
+    'End': EndState,
+}
 
 
 panda3d.core.load_prc_file(
@@ -57,10 +71,11 @@ class GameApp(ShowBase):
             random.seed(0)
 
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        self.gamestate = None
         if skip_main_menu:
-            self.gamestate = Universe()
+            self.change_state('Universe')
         else:
-            self.gamestate = MainMenu()
+            self.change_state('MainMenu')
 
         self.accept('f1', self.screenshot)
         def save_lut_screen():
@@ -114,6 +129,12 @@ class GameApp(ShowBase):
     def __update(self, task):
         self.gamestate.update(globalClock.dt)
         return task.cont
+
+    def change_state(self, next_state, state_args=None):
+        state_args = state_args if state_args is not None else []
+        if self.gamestate:
+            self.gamestate.cleanup()
+        self.gamestate = GAME_STATES[next_state](*state_args)
 
     def load_lut(self, filename):
         path = panda3d.core.Filename(filename)

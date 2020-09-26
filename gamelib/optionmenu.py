@@ -141,14 +141,8 @@ class OptionMenu(DirectObject, OptionGUI):
             npname = entry.getIntoNodePath().name
 
             if npname == 'BackSignSign':
-                self.writeConfig()
+                base.change_state('MainMenu')
                 self.cleanup()
-                #ival = base.transitions.getFadeOutIval()
-                #def change_state():
-                from .mainmenu import MainMenu
-                base.gamestate = MainMenu()
-                #ival.append(intervals.Func(change_state))
-                #ival.start()
                 break
 
     def sliderVolumeChanged(self):

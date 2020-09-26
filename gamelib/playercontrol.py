@@ -158,9 +158,9 @@ class PlayerControl(FSM, DirectObject):
         self.request('Intro')
 
         if core.ConfigVariableBool('space-to-grow', False).get_value():
-            base.accept('space', self.grow)
+            self.accept('space', self.grow)
         self.grown = 0
-        base.accept('planet_grow', self.grow)
+        self.accept('planet_grow', self.grow)
 
         sfx = [
             "menu_accept",
@@ -188,6 +188,9 @@ class PlayerControl(FSM, DirectObject):
         if self.profile_mode:
             for i in range(4):
                 self.grow()
+
+    def cleanup(self):
+        self.ignore_all()
 
     def enterIntro(self):
         self.universe.hud.hide()
