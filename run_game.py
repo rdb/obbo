@@ -39,7 +39,7 @@ class GameApp(ShowBase):
         self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
-        bgm = base.loader.load_music('music/menu.ogg')
+        bgm = base.loader.load_music('music/credits.ogg')
         bgm.set_loop(True)
         bgm.play()
 
