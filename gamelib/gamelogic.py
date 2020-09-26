@@ -36,7 +36,7 @@ class GameLogic(DirectObject):
         self.storage_cap = core.ConfigVariableInt('storage-cap', 5).get_value()
         self.storage_used = core.ConfigVariableInt('storage-used', 0).get_value()
         self.collected_total = 0
-        self.grow_next = 5
+        self.grow_next = PLANET_GROWTH_STEPS[0]
         self.growth_cycle = 0
         self.power_cap = 0
         self.power_used = 0
