@@ -340,6 +340,7 @@ class AssetSlot(PlanetObject):
             cached_asset.set_scale(0.25)
             cached_asset.clear_model_nodes()
             cached_asset.flatten_strong()
+            cached_asset.set_shader_input('is_planet_prop', True)
             self._asset_cache[fn] = cached_asset
 
         if self.build_slot:
