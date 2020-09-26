@@ -10,8 +10,10 @@ This is an entry in the [PyWeek 30](https://pyweek.org/30/) challenge, with the 
 * `f1` - Save screenshot (saves to the game's directory)
 * `f3` - Toggle wireframe rendering of meshes
 * `f5` - Hot reload game files (only available when running from source)
-* `left mouse button` - Click to move, hold to start casting
+* `left mouse button` - Click to move, hold to start casting, click and hold to reel in
 * `right mouse button` - cancel current cast
+
+Click on a spinning build icon to get build options.
 
 ## Configuration
 
@@ -41,7 +43,7 @@ fullscreen true
 
 * Python 3.7+
 * Python packages in `requirements.txt`
-* `blend2bamex` entry point for `pman` (run `pip install -e .` to get this)
+* `blend2bamex` and `gen_asteroids` entry points for `pman` (run `pip install -e .` to get these)
 * Blender 2.90 (preferably on the system PATH)
 * [limeade](https://pypi.org/project/limeade/) (optional, allows hot reloading of source code)
 
@@ -54,7 +56,7 @@ To run, simply cd to the directory containing the game and type:
 python run_game.py
 ```
 
-## Acknowledgements
+## Acknowledgments
 
 TODO
 
