@@ -88,10 +88,10 @@ class PieMenu:
         geom.set_texture_off(10)
         building.copy_to(geom).clear_transform()
 
-        #tp_small = TextProperties()
-        #tp_small.text_scale = 0.8
-        #tp_mgr = TextPropertiesManager.get_global_ptr()
-        #tp_mgr.set_properties('small', tp_small)
+        tp_small = TextProperties()
+        tp_small.text_scale = 0.8
+        tp_mgr = TextPropertiesManager.get_global_ptr()
+        tp_mgr.set_properties('small', tp_small)
 
         txt = f'{item.name}\n\1small\1{item.cost} B / {item.power} P\2'
         btn = DirectButton(
