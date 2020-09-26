@@ -444,6 +444,7 @@ class PlayerControl(FSM, DirectObject):
         self.cursor.model.hide()
         self.player.walk_ctr.stop()
         self.player.idle_ctr.stop()
+        self.sfx["obbo_walk"].stop()
 
     def enterCharge(self):
         self.sfx["obbo_charge"].play()
