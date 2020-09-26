@@ -16,7 +16,7 @@ class MainMenu(DirectObject):
         self.root.reparent_to(base.render)
 
         self.skybox = Skybox(self.root)
-
+        self.skybox.root.set_hpr(90,-20,-65)
         self.traverser = p3d.CollisionTraverser()
         self.ray = p3d.CollisionRay()
         picker = p3d.CollisionNode('picker')
