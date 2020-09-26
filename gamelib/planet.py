@@ -6,7 +6,7 @@ from direct.task.Task import Task
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
 
-from .util import srgb_color, ease_elastic_out
+from .util import srgb_color, ease_elastic_out, shake_cam
 
 
 BASE_RADIUS = 1
@@ -56,6 +56,7 @@ class Planet:
         new_size = self.size + 1
         self.new_build_slots = math.ceil(new_size * 2.4)  # Change factor to increase/decrease build_slots
         self.set_size(new_size, player_face)
+        shake_cam(GROWTH_TIME)
 
     def set_size(self, size, player_face=None):
         self.size = size

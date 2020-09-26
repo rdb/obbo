@@ -9,7 +9,7 @@ from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
-from .util import cfg_tuple
+from .util import cfg_tuple, shake_cam
 from .pieMenu import PieMenu, PieMenuItem
 
 
@@ -606,19 +606,7 @@ class PlayerControl(FSM, DirectObject):
             Func(lambda: self.request('Normal')),
         ).start()
         messenger.send('caught_asteroid')
-        start_pos = base.camera.get_pos()
-        x = start_pos.x
-        y = start_pos.y
-        Sequence(
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z), start_pos),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, start_pos),
-        ).start()
+        shake_cam(0.8, True)
 
     def enterBuild(self, asset_slot):
         self.ignore('mouse1')
