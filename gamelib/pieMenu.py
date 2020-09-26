@@ -52,6 +52,16 @@ class PieMenu:
 
         self.menuCircle.hide()
         self.cancelFrame.hide()
+        sfx = [
+            "menu_accept",
+            "menu_hover",
+            "menu_spam",
+            "catched_nothing",
+        ]
+        self.sfx = {}
+        for sfx_name in sfx:
+            self.sfx[sfx_name] = loader.load_sfx("sfx/"+sfx_name+".wav")
+
 
     def updateCircle(self, newItems):
         self.numItems = len(newItems)
@@ -79,6 +89,7 @@ class PieMenu:
 
     def createButton(self, x, y, item):
         building = self.buildings.find("**/{}".format(item.buildingName))
+        building.find("**/*_face").hide()
         geom = NodePath("geom")
         geom.setDepthWrite(True)
         geom.setDepthTest(True)
@@ -126,18 +137,24 @@ class PieMenu:
         #btn.component('text0').hide()
 
         ival = btn["geom2_geom"].get_child(0).hprInterval(1, (360, 0, 0), (0, 0, 0))
-        btn.bind(DGG.ENTER, lambda x: ival.loop())
+        def hover_over():
+            ival.loop()
+            self.sfx["menu_hover"].play()
+
+        btn.bind(DGG.ENTER, lambda x: hover_over())
         btn.bind(DGG.EXIT, lambda x: ival.finish())
         return btn
 
     def _send(self, item):
         if not (item.shake_cost or item.shake_power):
             base.messenger.send(item.event)
+            self.sfx["menu_accept"].play()
             return
         if item.shake_cost:
             base.messenger.send('shake', ['blocks'])
         if item.shake_power:
             base.messenger.send('shake', ['power'])
+        self.sfx["catched_nothing"].play()
 
     def show(self, x=None, y=None):
         if not base.mouseWatcherNode.hasMouse():
@@ -163,6 +180,7 @@ class PieMenu:
 
 
     def hide(self, args=None, ignore_callback=False):
+        self.sfx["menu_accept"].play()
         interval_duration = 0.15
         Sequence(
             Parallel(

@@ -615,7 +615,6 @@ class PlayerControl(FSM, DirectObject):
         ).start()
 
     def enterBuild(self, asset_slot):
-        self.sfx["menu_accept"].play()
         self.ignore('mouse1')
         self.ignore('mouse1-up')
         self.target_pos = None
