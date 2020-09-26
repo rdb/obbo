@@ -628,6 +628,11 @@ class PlayerControl(FSM, DirectObject):
         items = []
         blocks = self.universe.game_logic.blocks_available()
         power_have = self.universe.game_logic.power_available()
+        planet = self.universe.planet
+        if planet.free_build_slots + len(planet.build_slot_queue) == 1 and planet.size == 5:
+            buildable = [i for i in buildable if i == 'beacon']
+            if not buildable:
+                messenger.send('update_hud', ['msg', 'Looks like Obbo will not be rescued!!!', 60])
         for model in buildable:
             cost = self.universe.game_logic.get_cost(model)
             power = self.universe.game_logic.get_power(model)
