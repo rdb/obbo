@@ -26,6 +26,7 @@ class OptionMenu(DirectObject, OptionGUI):
 
         self.root = base.loader.load_model('models/generalMenu.bam')
         self.root.reparent_to(base.render)
+        self.root.set_y(15)
 
         self.skybox = Skybox(self.root)
 
@@ -42,7 +43,7 @@ class OptionMenu(DirectObject, OptionGUI):
         scene_camera = self.root.find('**/-Camera')
         campos = scene_camera.get_pos(self.root)
         base.camera.set_pos(campos)
-        self.picker.set_pos(campos)
+        self.picker.reparent_to(base.camera)
 
         self.accept('mouse1-up', self.handle_click)
 
