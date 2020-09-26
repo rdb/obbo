@@ -162,11 +162,6 @@ class PlayerControl(FSM, DirectObject):
         self.grown = 0
         base.accept('planet_grow', self.grow)
 
-        self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
-        if self.profile_mode:
-            for i in range(4):
-                self.grow()
-
         sfx = [
             "menu_accept",
             "menu_hover",
@@ -188,6 +183,11 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["obbo_reel_in"].set_volume(0.8)
         self.sfx["obbo_walk"].set_loop(True)
         self.sfx["menu_spam"].set_volume(0.4)
+
+        self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
+        if self.profile_mode:
+            for i in range(4):
+                self.grow()
 
     def enterIntro(self):
         self.universe.hud.hide()
