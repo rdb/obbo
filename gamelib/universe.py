@@ -79,8 +79,9 @@ class Universe(FSM, DirectObject):
 
         self.accept('display_msg', self.display_message)
         self.request('Universe')
-        self.accept('f11', self.handle_victory)
         self.accept('beacon_built', self.handle_victory)
+        if core.ConfigVariableBool('enable-cheats').get_value():
+            self.accept('f11', self.handle_victory)
 
     def cleanup(self):
         self.root.remove_node()
