@@ -97,7 +97,7 @@ class PlayerControl(FSM, DirectObject):
         bobbercol.set_from_collide_mask(0b0100)
         bobbercol.set_into_collide_mask(0b0000)
         self.bobber_collider = self.bobber.attach_new_node(bobbercol)
-        # self.bobber_collider.show()
+        #self.bobber_collider.show()
         self.bobber_bob_ival = None
         self.bobber_cast_complete = False
         self.asteroid_handler = core.CollisionHandlerQueue()
@@ -277,7 +277,7 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["planet_grows"].play()
 
 
-        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.6))
+        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.3))
 
     def exit(self):
         """Clean up?"""
