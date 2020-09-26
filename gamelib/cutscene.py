@@ -45,9 +45,7 @@ class CutsceneState(DirectObject):
 
         # Play some background music if available
         if bgm_name:
-            bgm = base.loader.load_music(f'music/{bgm_name}.ogg')
-            bgm.set_loop(True)
-            bgm.play()
+            base.set_bgm(bgm_name)
 
         self.actor = actor
 
@@ -82,7 +80,6 @@ class CutsceneState(DirectObject):
             base.camLens.set_aspect_ratio(base.get_aspect_ratio())
 
             # Cleanup the scene
-            bgm.stop()
             self.instructions.remove_node()
             base.transitions.letterboxOff()
             self.actor.cleanup()

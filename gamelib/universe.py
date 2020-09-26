@@ -120,15 +120,12 @@ class Universe(FSM, DirectObject):
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
         self.accept_once('mouse1', self.remove_instructions)
-        self.bgm = base.loader.load_music('music/menu.ogg')
-        self.bgm.set_loop(True)
-        self.bgm.play()
+        base.set_bgm('menu')
         base.messenger.send('update_hud', ['msg', 'Click to move, hold to cast...', 45])
 
     def exitUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeOut()
         self.player_control.exit()
-        self.bgm.stop()
 
     def update(self, dt):
         self.player_control.update(dt)

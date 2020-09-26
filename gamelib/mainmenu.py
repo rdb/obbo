@@ -35,6 +35,7 @@ class MainMenu(DirectObject):
         self.accept('mouse1-up', self.handle_click)
 
         base.transitions.fadeIn()
+        base.set_bgm('credits')
 
     def cleanup(self):
         self.root.remove_node()

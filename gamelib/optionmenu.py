@@ -119,6 +119,8 @@ class OptionMenu(DirectObject, OptionGUI):
         self.cmbResolution.set(selected, fCommand = 0)
         self.cmbResolution["command"] = self.cmbResolutionChanged
 
+        base.set_bgm('credits')
+
     def cleanup(self):
         self.root.remove_node()
         self.picker.remove_node()

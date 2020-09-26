@@ -39,9 +39,7 @@ class GameApp(ShowBase):
         self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
-        bgm = base.loader.load_music('music/credits.ogg')
-        bgm.set_loop(True)
-        bgm.play()
+        self.bgm_name = None
 
         self.transitions.fadeScreen(1.0)
 
@@ -96,6 +94,14 @@ class GameApp(ShowBase):
                 root.node().remove_all_children()
                 model = loader.load_model(root.node().fullpath)
                 root.node().steal_children(model.node())
+
+    def set_bgm(self, bgm):
+        if self.bgm_name != bgm:
+            self.bgm_name = bgm
+            bgmpath = f'music/{bgm}.ogg'
+            self.bgm_audio = self.loader.load_music(bgmpath)
+            self.bgm_audio.set_loop(True)
+            self.bgm_audio.play()
 
     def __update(self, task):
         self.gamestate.update(globalClock.dt)
