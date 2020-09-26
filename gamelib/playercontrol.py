@@ -617,7 +617,7 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["obbo_reel_in"].stop()
         self.sfx["astroid_collected"].play()
         Sequence(
-            catch.asteroid.scaleInterval(1.0, 0.0001),
+            catch.asteroid.scaleInterval(1.0, 0.001),
             Func(catch.destroy),
             Func(lambda: self.request('Normal')),
         ).start()
