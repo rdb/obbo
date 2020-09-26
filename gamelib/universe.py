@@ -126,6 +126,20 @@ class Universe(FSM, DirectObject):
         self.player_control.ignore('space')
         base.gamestate = EndingCutscene(self.planet, 'End', state_args=[self])
 
+        # Destroy asteroids
+        for asteroid in self.asteroids[:]:
+            asteroid.stop()
+            asteroid.destroy()
+
+        self.asteroids.clear()
+
+        # Hide building icons
+        for side in self.planet.sides:
+            for row in side.grid:
+                for cell in row:
+                    if cell.build_slot and not cell.building_placed:
+                        cell.model.remove_node()
+
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
         self.accept_once('mouse1', self.remove_instructions)
