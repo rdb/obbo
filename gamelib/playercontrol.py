@@ -263,8 +263,8 @@ class PlayerControl(FSM, DirectObject):
         if self.grown >= 4:
             base.ignore('space')  # FIXME: remove before release
             base.ignore('planet_grow')
-        else:
-            self.sfx["planet_grows"].play()
+
+        self.sfx["planet_grows"].play()
 
 
         self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.6))
