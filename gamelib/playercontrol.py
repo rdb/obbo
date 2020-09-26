@@ -581,10 +581,13 @@ class PlayerControl(FSM, DirectObject):
         # TODO: Maybe modify PieMenu to accept a dict with categories? Definitely is too much for more than 5/6 items
         buildable = [j for i in self.universe.game_logic.get_unlocked().values() for j in i]
         items = []
+        blocks = self.universe.game_logic.blocks_available()
+        power_have = self.universe.game_logic.power_available()
         for model in buildable:
             cost = self.universe.game_logic.get_cost(model)
             power = self.universe.game_logic.get_power(model)
-            items.append(PieMenuItem(model.capitalize(), f'build_{model}', model, cost, power))
+            not_enough_power = power < 0 and abs(power) > power_have
+            items.append(PieMenuItem(model.capitalize(), f'build_{model}', model, cost, power, cost > blocks, not_enough_power))
         self.pie_menu = PieMenu(items, lambda: self.request('Normal'))
         for item in items:
             self.accept_once(item.event, self.build, [item.event, asset_slot])

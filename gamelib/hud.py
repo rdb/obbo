@@ -17,15 +17,20 @@ class HUD(DirectObject):
         self.message_active = False
 
         self.accept('update_hud', self.update_hud)
+        self.accept('shake', self.shake)
         base.taskMgr.do_method_later(1, self.update, 'hud_update')
 
     def update_hud(self, elem, val1, val2=None):
         if elem == 'blocks':
+            prev = self.blocks.text
             self.blocks.text = f'Blocks: {val1}/{val2}'
-            self.animate_item(self.blocks)
+            if prev != self.blocks.text:
+                self.animate_item(self.blocks)
         elif elem == 'power':
+            prev = self.power.text
             self.power.text = f'Power: {val1}/{val2}'
-            self.animate_item(self.power)
+            if prev != self.power.text:
+                self.animate_item(self.power)
         elif elem == 'msg':
             self.message.text = val1
             self.animate_item(self.message)
@@ -43,6 +48,12 @@ class HUD(DirectObject):
             node.scaleInterval(0.15, 1.05, blendType='easeInOut'),
             node.scaleInterval(0.15, 1, blendType='easeInOut'),
         ).start()
+
+    def shake(self, elem):
+        elements = {'blocks': self.blocks, 'power': self.power, 'msg':self.message}
+        if elem not in elements:
+            raise ValueError(f'Unknown element "{elem}"')
+        self.animate_item(elements[elem])
 
     def update(self, task):
         if self.message_active and self.clear_message <= globalClock.get_frame_time():

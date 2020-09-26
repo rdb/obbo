@@ -46,6 +46,7 @@ class GameLogic(DirectObject):
 
         self.accept('built', self.built)
         self.accept('caught_asteroid', self.caught_asteroid)
+        self.update_hud()
 
     def built(self, model):
         current = self.tech_tree.building_count()
@@ -114,6 +115,12 @@ class GameLogic(DirectObject):
         if pwr >= 0:
             return ok
         return ok and abs(pwr) + self.power_used <= self.power_cap
+
+    def blocks_available(self):
+        return self.storage_used
+
+    def power_available(self):
+        return self.power_cap - self.power_used
 
 
 # Example usage of the TechTree:

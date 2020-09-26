@@ -19,12 +19,14 @@ from panda3d.core import (
 from direct.interval.IntervalGlobal import Parallel, Sequence, Func
 
 class PieMenuItem:
-    def __init__(self, name, event, buildingName, cost, power):
+    def __init__(self, name, event, buildingName, cost, power, shake_cost, shake_power):
         self.name = name
         self.event = event
         self.buildingName = buildingName
         self.cost = cost
         self.power = f'+{power}' if power > 0 else f'{power}'
+        self.shake_cost = shake_cost
+        self.shake_power = shake_power
 
 class PieMenu:
     def __init__(self, items, hide_callback):
@@ -97,8 +99,10 @@ class PieMenu:
             geom_scale=0.45,
             parent=self.menuCircle,
             pressEffect=False,
-            command=base.messenger.send,
-            extraArgs=(item.event,)
+            command=self._send,
+            extraArgs=(item,)
+            #command=base.messenger.send,
+            #extraArgs=(item.event,)
         )
         btn.setBin('gui-popup', 2)
         btn.setTransparency(1)
@@ -107,6 +111,15 @@ class PieMenu:
         btn.bind(DGG.ENTER, lambda x: ival.loop())
         btn.bind(DGG.EXIT, lambda x: ival.finish())
         return btn
+
+    def _send(self, item):
+        if not (item.shake_cost or item.shake_power):
+            base.messenger.send(item.event)
+            return
+        if item.shake_cost:
+            base.messenger.send('shake', ['blocks'])
+        if item.shake_power:
+            base.messenger.send('shake', ['power'])
 
     def show(self, x=None, y=None):
         if not base.mouseWatcherNode.hasMouse():
