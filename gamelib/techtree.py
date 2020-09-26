@@ -10,6 +10,7 @@ class TechNode:
     power:int  # Negative number means consumer, positive delivery
     depends_on:Tuple[str] = field(default_factory=tuple)
     capacity:int = 0
+    deprecated_by:str = ''
     unlocked:bool = False
 
 
@@ -30,7 +31,13 @@ class TechTree:
                     break
             if not unlocked:
                 continue
-
+            deprecated = False
+            for j in self._tree:
+                if j.unlocked and i.deprecated_by == j.model:
+                    deprecated = True
+                    break
+            if deprecated:
+                continue
             if i.category not in tree:
                 tree[i.category] = []
             tree[i.category].append(i.model)

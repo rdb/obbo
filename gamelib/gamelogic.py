@@ -5,18 +5,18 @@ from .techtree import TechTree, TechNode
 
 
 TECH_TREE_CFG = [
-    TechNode('windmill', 'power', 2, 3),
-    TechNode('replicator', 'science', 3, -1, ('windmill',)),
-    TechNode('workbench', 'science', 5, -1, ('replicator',)),
+    TechNode('windmill', 'power', 2, 3, deprecated_by='solarpower'),
+    TechNode('replicator', 'science', 3, -1, ('windmill',), deprecated_by='workbench'),
+    TechNode('workbench', 'science', 5, -1, ('replicator',), deprecated_by='lab'),
     TechNode('tent', 'trophy', 3, 0, ('workbench',)),
-    TechNode('chest', 'storage', 3, 0, ('workbench',), 10),
-    TechNode('solarpower', 'power', 5, 9, ('workbench',)),
+    TechNode('chest', 'storage', 3, 0, ('workbench',), 10, deprecated_by='solarpower'),
+    TechNode('solarpower', 'power', 5, 9, ('workbench',), deprecated_by='soppower'),
     TechNode('house', 'trophy', 7, 0, ('solarpower',)),
     TechNode('garage', 'storage', 7, 0, ('solarpower',), 25),
-    TechNode('lab', 'science', 7, -10, ('solarpower',)),
+    TechNode('lab', 'science', 7, -10, ('solarpower',), deprecated_by='supercomputer'),
     TechNode('mansion', 'trophy', 10, 0, ('lab',)),
     TechNode('supercomputer', 'science', 9, -15, ('lab',)),
-    TechNode('soppower', 'power', 8, 16, ('lab',)),
+    TechNode('soppower', 'power', 8, 16, ('lab',), deprecated_by='superpower'),
     TechNode('superpower', 'power', 11, 40, ('supercomputer', 'soppower')),
     TechNode('beacon', 'science', 11, -35, ('supercomputer', 'superpower')),
 ]
@@ -40,6 +40,7 @@ class GameLogic(DirectObject):
         self.growth_cycle = 0
         self.power_cap = 0
         self.power_used = 0
+        self.blocks_per_catch = 1
         self.first_asteroid = True
         self.beacon_built = False
 
@@ -73,10 +74,14 @@ class GameLogic(DirectObject):
         if model == 'beacon' and not self.beacon_built:
             # FIXME: Maybe trigger ending cinematic here?
             messenger.send('beacon_built')
+        elif model == 'replicator' and self.blocks_per_catch < 2:
+            self.blocks_per_catch = 2
+        elif model == 'lab' and self.blocks_per_catch < 3:
+            self.blocks_per_catch = 3
 
     def caught_asteroid(self):
         self.collected_total += 1
-        self.storage_used += 1
+        self.storage_used += self.blocks_per_catch
         self.storage_used = min(self.storage_cap, self.storage_used)
         if self.collected_total == self.grow_next:
             messenger.send('planet_grow')
