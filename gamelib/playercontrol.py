@@ -158,7 +158,7 @@ class PlayerControl(FSM, DirectObject):
 
         self.request('Intro')
 
-        if core.ConfigVariableBool('enable-cheats').get_value():
+        if core.ConfigVariableBool('enable-cheats', False).get_value():
             self.accept('space', self.grow)
         self.grown = 0
         self.accept('planet_grow', self.grow)
