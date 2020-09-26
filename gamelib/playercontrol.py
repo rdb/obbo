@@ -306,7 +306,7 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["planet_grows"].play()
 
 
-        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.3))
+        self.bobber_collider.set_scale(max(1, self.universe.planet.size * 0.5))
 
     def exit(self):
         """Clean up?"""
