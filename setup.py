@@ -56,6 +56,7 @@ class SDistBuilt(sdist.sdist):
 setup(
     name=APP_NAME,
     packages=['gamelib'],
+    version='1.0.0',
     setup_requires=[
         'pytest-runner',
     ],
