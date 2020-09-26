@@ -37,6 +37,7 @@ CAST_BOB_MAGNITUDE = 0.5
 CAST_BOB_TIME = 0.4
 
 MAGNET_SNAP_TIME = 0.15
+MAGNET_SNAP_DIST = 2.0
 
 REEL_SPEED = 8.0
 
@@ -80,7 +81,7 @@ class PlayerControl(FSM, DirectObject):
         self.bobber.set_scale(0.05)
         self.bobber.flatten_light()
         self.bobber.stash()
-        self.magnet_snap_point = core.Point3(0, 1.6, 0)
+        self.magnet_snap_point = core.Point3(0, MAGNET_SNAP_DIST, 0)
         bobbercol = core.CollisionNode('Bobber')
         bobbercol.add_solid(core.CollisionSphere(center=(-0.3, 1.2, 0), radius=MAGNET_RADIUS))
         bobbercol.add_solid(core.CollisionSphere(center=(0.3, 1.2, 0), radius=MAGNET_RADIUS))
