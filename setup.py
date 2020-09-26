@@ -96,6 +96,15 @@ setup(
                 'pandagl',
                 'p3openal_audio',
             ],
+            'icons': {
+                APP_NAME: [
+                    'artResources/Icon/icon16.png',
+                    'artResources/Icon/icon32.png',
+                    'artResources/Icon/icon64.png',
+                    'artResources/Icon/icon128.png',
+                    'artResources/Icon/icon256.png',
+                ],
+            },
         },
     }
 )
