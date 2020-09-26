@@ -624,6 +624,9 @@ class PlayerControl(FSM, DirectObject):
         messenger.send('caught_asteroid')
         shake_cam(0.8, True)
 
+    def updateConsume(self, dt):
+        self.update_line()
+
     def enterBuild(self, asset_slot):
         self.ignore('mouse1')
         self.ignore('mouse1-up')
