@@ -31,6 +31,7 @@ class MainMenu(DirectObject):
         base.camera.set_pos(campos)
         self.picker.reparent_to(base.camera)
 
+        self.accept('escape', sys.exit)
         self.accept('mouse1-up', self.handle_click)
 
         base.transitions.fadeIn()
