@@ -39,6 +39,8 @@ class CutsceneState(DirectObject):
         base.cam.clear_transform()
         base.camera.clear_transform()
         base.cam.set_p(-90)
+        self.prev_fov = list(base.camLens.get_fov())
+        base.camLens.set_fov(90, 90)
         self.prev_near = base.camLens.get_near()
         base.camLens.set_near(0.1)
 
@@ -83,6 +85,7 @@ class CutsceneState(DirectObject):
         # Reset camera
         base.camera.reparent_to(base.render)
         base.cam.set_p(self.prev_p)
+        base.camLens.set_fov(*self.prev_fov)
         base.camLens.set_near(self.prev_near)
 
         # Reset mouse cursor
@@ -106,9 +109,6 @@ class IntroCutscene(CutsceneState):
     def __init__(self, next_state, state_args=None):
         super().__init__('intro', 'intro_sequence', next_state, state_args)
 
-        self.prev_fov = list(base.camLens.get_fov())
-        base.camLens.set_fov(90, 90)
-
         ship_node = self.actor.find('**/ship/+GeomNode').node()
         cupola_state = ship_node.get_geom_state(1)
         cupola_state = cupola_state.set_attrib(p3d.CullBinAttrib.make('fixed', 0))
@@ -120,10 +120,6 @@ class IntroCutscene(CutsceneState):
     def on_scare_obbo(self, task):
         # Obbo bumps into asteroid
         self.obbo_face.set_shader_input('uv_shift', (0.5, 0.25), priority=1)
-
-    def cleanup(self):
-        super().cleanup()
-        base.camLens.set_fov(*self.prev_fov)
 
 class EndingCutscene(CutsceneState):
     def __init__(self, planet, next_state, state_args=None):
