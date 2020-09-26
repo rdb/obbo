@@ -185,6 +185,7 @@ class PlayerControl(FSM, DirectObject):
         self.sfx = {}
         for sfx_name in sfx:
             self.sfx[sfx_name] = loader.load_sfx("sfx/"+sfx_name+".wav")
+        self.sfx["obbo_reel_in"].set_volume(0.8)
         self.sfx["obbo_walk"].set_loop(True)
         self.sfx["menu_spam"].set_volume(0.4)
 
@@ -345,6 +346,8 @@ class PlayerControl(FSM, DirectObject):
         else:
             if not self.player.walk_ctr.playing and not self.player.idle_ctr.playing:
                 self.player.idle_ctr.loop(True)
+                if self.sfx["obbo_walk"].status() == self.sfx["obbo_walk"].PLAYING:
+                    self.sfx["obbo_walk"].stop()
 
         if base.mouseWatcherNode.has_mouse():
             mpos = base.mouseWatcherNode.get_mouse()
@@ -589,6 +592,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.reel_ctr.stop()
 
     def enterConsume(self, catch):
+        self.sfx["obbo_reel_in"].stop()
         self.sfx["astroid_collected"].play()
         Sequence(
             catch.asteroid.scaleInterval(1.0, 0.0001),
