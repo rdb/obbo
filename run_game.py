@@ -8,9 +8,23 @@ import pman
 import pman.shim
 
 from gamelib import renderer
+from gamelib.util import srgb_color
+
+# States
 from gamelib.universe import Universe
 from gamelib.mainmenu import MainMenu
-from gamelib.util import srgb_color
+from gamelib.cutscene import IntroCutscene, EndingCutscene
+from gamelib.optionmenu import OptionMenu
+from gamelib.endstate import EndState
+
+GAME_STATES = {
+    'Universe': Universe,
+    'MainMenu': MainMenu,
+    'IntroCutscene': IntroCutscene,
+    'EndingCutscene': EndingCutscene,
+    'OptionMenu': OptionMenu,
+    'End': EndState,
+}
 
 
 panda3d.core.load_prc_file(
@@ -29,19 +43,25 @@ class GameApp(ShowBase):
         ShowBase.__init__(self)
         pman.shim.init(self)
         potato_mode = panda3d.core.ConfigVariableBool('potato-mode', False).get_value()
-        self.luttext = self.load_lut('lut.png')
+        self.luttex = self.load_lut('lut.png')
         self.render_pipeline = renderer.Pipeline(
-            lut_texture=self.luttext,
-            enable_shadows=not potato_mode,
+            lut_texture=self.luttex,
         )
+        self.set_graphics_quality(potato_mode)
         self.accept('escape', sys.exit)
 
         self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
-        bgm = base.loader.load_music('music/menu.ogg')
-        bgm.set_loop(True)
-        bgm.play()
+        # Get volume levels from config
+        self.musicManager.set_volume(
+            panda3d.core.ConfigVariableDouble('audio-music-volume', 1.0).get_value()
+        )
+        self.sfxManagerList[0].set_volume(
+            panda3d.core.ConfigVariableDouble('audio-sfx-volume', 1.0).get_value()
+        )
+
+        self.bgm_name = None
 
         self.transitions.fadeScreen(1.0)
 
@@ -51,22 +71,17 @@ class GameApp(ShowBase):
             random.seed(0)
 
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
+        self.gamestate = None
         if skip_main_menu:
-            self.gamestate = Universe()
+            self.change_state('Universe')
         else:
-            self.gamestate = MainMenu()
+            self.change_state('MainMenu')
 
         self.accept('f1', self.screenshot)
         def save_lut_screen():
             self.screenshot(embedLUT=True)
         self.accept('f2', save_lut_screen)
         self.accept('f3', self.toggle_wireframe)
-        def toggle_lut():
-            if self.render_pipeline.lut_texture is None:
-                self.render_pipeline.lut_texture = self.luttext
-            else:
-                self.render_pipeline.lut_texture = None
-        self.accept('f4', toggle_lut)
         if not pman.is_frozen():
             try:
                 import limeade # pylint:disable=import-outside-toplevel
@@ -86,6 +101,10 @@ class GameApp(ShowBase):
 
         self.task_mgr.add(self.__update)
 
+    def set_graphics_quality(self, is_low):
+        rpipe = self.render_pipeline
+        rpipe.enable_shadows = not is_low
+
     def refresh(self):
         import limeade
         limeade.refresh()
@@ -97,9 +116,23 @@ class GameApp(ShowBase):
                 model = loader.load_model(root.node().fullpath)
                 root.node().steal_children(model.node())
 
+    def set_bgm(self, bgm):
+        if self.bgm_name != bgm:
+            self.bgm_name = bgm
+            bgmpath = f'music/{bgm}.ogg'
+            self.bgm_audio = self.loader.load_music(bgmpath)
+            self.bgm_audio.set_loop(True)
+            self.bgm_audio.play()
+
     def __update(self, task):
         self.gamestate.update(globalClock.dt)
         return task.cont
+
+    def change_state(self, next_state, state_args=None):
+        state_args = state_args if state_args is not None else []
+        if self.gamestate:
+            self.gamestate.cleanup()
+        self.gamestate = GAME_STATES[next_state](*state_args)
 
     def load_lut(self, filename):
         path = panda3d.core.Filename(filename)

@@ -9,7 +9,7 @@ from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
-from .util import cfg_tuple
+from .util import cfg_tuple, shake_cam
 from .pieMenu import PieMenu, PieMenuItem
 
 
@@ -68,6 +68,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.model.set_h(180)
         self.player.root.hide()
         self.crosshair = Crosshair()
+        self.crosshair.model.reparent_to(self.player.model)
 
         self.pusher = core.CollisionHandlerPusher()
         self.pusher.add_collider(self.player.collider, self.player.root)
@@ -158,14 +159,9 @@ class PlayerControl(FSM, DirectObject):
         self.request('Intro')
 
         if core.ConfigVariableBool('space-to-grow', False).get_value():
-            base.accept('space', self.grow)
+            self.accept('space', self.grow)
         self.grown = 0
-        base.accept('planet_grow', self.grow)
-
-        self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
-        if self.profile_mode:
-            for i in range(4):
-                self.grow()
+        self.accept('planet_grow', self.grow)
 
         sfx = [
             "menu_accept",
@@ -188,6 +184,14 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["obbo_reel_in"].set_volume(0.8)
         self.sfx["obbo_walk"].set_loop(True)
         self.sfx["menu_spam"].set_volume(0.4)
+
+        self.profile_mode = panda3d.core.ConfigVariableBool('profile-mode', False).get_value()
+        if self.profile_mode:
+            for i in range(4):
+                self.grow()
+
+    def cleanup(self):
+        self.ignore_all()
 
     def enterIntro(self):
         self.universe.hud.hide()
@@ -449,6 +453,16 @@ class PlayerControl(FSM, DirectObject):
         self.update_line()
         self.player.model.set_h(self.cam_dummy.get_h())
 
+        time = globalClock.frame_time - self.down_time
+        power = time / CHARGE_MAX_TIME
+        distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
+
+        #rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
+        rod_tip_pos = core.Point3(0.940263, 1.43792, 2.81651)
+        direction = self.crosshair.model.parent.get_relative_vector(base.camera, (0, 1, 0))
+        direction.normalize()
+        self.crosshair.model.set_pos(rod_tip_pos + direction * distance)
+
     def exitCharge(self):
         self.sfx["obbo_charge"].stop()
         self.player.charge_ctr.play()
@@ -483,16 +497,19 @@ class PlayerControl(FSM, DirectObject):
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
 
     def fling_bobber(self, distance):
+        if self.state != 'Cast':
+            return
         self.bobber.wrt_reparent_to(self.player.model)
 
         rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
-        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        crosshair_pos = self.crosshair.model.get_pos(self.player.model)
+        direction = (crosshair_pos - rod_tip_pos).normalized()
         self.bobber.set_pos(rod_tip_pos + direction * 3)
-        self.bobber.look_at(rod_tip_pos + direction * distance)
+        self.bobber.look_at(rod_tip_pos + direction * 4)
 
         Sequence(
             Parallel(
-                LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
+                LerpPosInterval(self.bobber, CAST_TIME, crosshair_pos, blendType='easeOut'),
                 LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
             ),
             Func(self.sfx["obbo_cast"].stop),
@@ -560,7 +577,6 @@ class PlayerControl(FSM, DirectObject):
     def enterReel(self, asteroid=None):
         if asteroid is not None:
             self.sfx["astroid_attaches"].play()
-            print('hit an asteroid!')
             asteroid.stop()
             asteroid.asteroid.wrt_reparent_to(self.bobber)
 
@@ -602,19 +618,7 @@ class PlayerControl(FSM, DirectObject):
             Func(lambda: self.request('Normal')),
         ).start()
         messenger.send('caught_asteroid')
-        start_pos = base.camera.get_pos()
-        x = start_pos.x
-        y = start_pos.y
-        Sequence(
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z), start_pos),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x + 0.05, y - 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, (x - 0.05, y + 0.05, start_pos.z)),
-            base.camera.posInterval(0.1, start_pos),
-        ).start()
+        shake_cam(0.8, True)
 
     def enterBuild(self, asset_slot):
         self.ignore('mouse1')
@@ -626,6 +630,11 @@ class PlayerControl(FSM, DirectObject):
         items = []
         blocks = self.universe.game_logic.blocks_available()
         power_have = self.universe.game_logic.power_available()
+        planet = self.universe.planet
+        if planet.free_build_slots + len(planet.build_slot_queue) == 1 and planet.size == 5:
+            buildable = [i for i in buildable if i == 'beacon']
+            if not buildable:
+                messenger.send('update_hud', ['msg', 'Looks like Obbo will not be rescued!!!', 60])
         for model in buildable:
             cost = self.universe.game_logic.get_cost(model)
             power = self.universe.game_logic.get_power(model)
@@ -739,9 +748,12 @@ class Crosshair:
         self.model.set_material(mat)
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
-        self.model.set_pos(0, 50, 4)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
         self.model.hide()
+        self.model.set_billboard_point_eye()
+        self.model.set_bin('fixed', 10)
+        self.model.set_depth_test(False)
+        self.model.set_depth_write(False)
 
     def show(self):
         self.model.show()

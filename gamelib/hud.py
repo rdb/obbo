@@ -44,6 +44,12 @@ class HUD(DirectObject):
         self.power.show()
         self.message.show()
 
+    def cleanup(self):
+        self.blocks.remove_node()
+        self.power.remove_node()
+        self.message.remove_node()
+        self.ignore_all()
+
     def update_hud(self, elem, val1, val2=None):
         if elem == 'blocks':
             prev = self.blocks.text

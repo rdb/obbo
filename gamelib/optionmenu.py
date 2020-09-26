@@ -119,6 +119,8 @@ class OptionMenu(DirectObject, OptionGUI):
         self.cmbResolution.set(selected, fCommand = 0)
         self.cmbResolution["command"] = self.cmbResolutionChanged
 
+        base.set_bgm('credits')
+
     def cleanup(self):
         self.root.remove_node()
         self.picker.remove_node()
@@ -139,14 +141,8 @@ class OptionMenu(DirectObject, OptionGUI):
             npname = entry.getIntoNodePath().name
 
             if npname == 'BackSignSign':
-                self.writeConfig()
+                base.change_state('MainMenu')
                 self.cleanup()
-                #ival = base.transitions.getFadeOutIval()
-                #def change_state():
-                from .mainmenu import MainMenu
-                base.gamestate = MainMenu()
-                #ival.append(intervals.Func(change_state))
-                #ival.start()
                 break
 
     def sliderVolumeChanged(self):
@@ -174,7 +170,9 @@ class OptionMenu(DirectObject, OptionGUI):
         base.win.requestProperties(props)
 
     def cbGraphicModeChanged(self, args=None):
-        ConfigVariableBool('potato-mode').setValue(self.cbGraphicMode['isChecked'])
+        potato_mode = self.cbGraphicMode['isChecked']
+        base.set_graphics_quality(potato_mode)
+        ConfigVariableBool('potato-mode').setValue(potato_mode)
 
     def cmbResolutionChanged(self, args):
         resx = int(args.split("x")[0])

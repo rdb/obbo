@@ -48,7 +48,7 @@ class Asteroid:
         self.asteroid.set_scale(1e-9)
         self.asteroid.scaleInterval(SCALE_DURATION, 1.0, blendType='easeIn').start()
 
-    def update_pos(self, shout=True):
+    def update_pos(self, shout=False):
         if shout:
             print(f'before {self.asteroid.get_pos(self.planet.root)} {self.planet.size}')
         self.asteroid.posInterval(GROWTH_TIME, (

@@ -6,7 +6,7 @@ from direct.task.Task import Task
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
 
-from .util import srgb_color
+from .util import srgb_color, ease_elastic_out, shake_cam
 
 
 BASE_RADIUS = 1
@@ -56,6 +56,7 @@ class Planet:
         new_size = self.size + 1
         self.new_build_slots = math.ceil(new_size * 2.4)  # Change factor to increase/decrease build_slots
         self.set_size(new_size, player_face)
+        shake_cam(GROWTH_TIME)
 
     def set_size(self, size, player_face=None):
         self.size = size
@@ -318,6 +319,7 @@ class AssetSlot(PlanetObject):
         self.building_placed = False
         self.sprouted = False
         self.slot_num = AssetSlot._slot_num
+        self.build_time = None
 
         self.planet = planet
         AssetSlot._slot_num += 1
@@ -339,6 +341,7 @@ class AssetSlot(PlanetObject):
             cached_asset.set_scale(0.25)
             cached_asset.clear_model_nodes()
             cached_asset.flatten_strong()
+            cached_asset.set_shader_input('is_planet_prop', True)
             self._asset_cache[fn] = cached_asset
 
         if self.build_slot:
@@ -444,11 +447,21 @@ class AssetSlot(PlanetObject):
         self.collider.node().set_into_collide_mask(0b0010)
         building.set_pos(0, 0, 0)
         building.reparent_to(self.slot_node)
-        self.slot_node.set_scale(0.1)
-        h = random.randrange(360) + 720
-        h = random.choice((h, -h))
-        self.slot_node.set_scale(0.000001)
-        self.slot_node.scaleInterval(time, 1).start()
+        self.build_time = time
+        taskMgr.add(self.__pop_in)
+        #self.slot_node.set_scale(0.000001)
+        #self.slot_node.scaleInterval(time, 1).start()
         self.building_placed = True
         self.planet.free_build_slots -= 1
         messenger.send('built', [building_name])
+
+    def __pop_in(self, task):
+        v = task.time / self.build_time
+        v = min(1.0, v)
+        p = ease_elastic_out(v)
+        s = (1 - 1e-4) * p + 1e-4
+        s = max(s, 1e-4)
+        self.slot_node.set_scale(s)
+        if v == 1.0:
+            return task.done
+        return task.cont

@@ -188,6 +188,7 @@ class Pipeline:
             fragment=pbr_frag_str,
         )
         self.render_node.set_shader(pbrshader)
+        self.render_node.set_shader_input('is_planet_prop', False)
 
     def _setup_tonemapping(self):
         if self._shader_ready:
