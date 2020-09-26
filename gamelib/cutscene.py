@@ -66,7 +66,7 @@ class CutsceneState(DirectObject):
 
         # Play some background music if available
         if bgm_name:
-            base.set_bgm(bgm_name)
+            base.set_bgm(bgm_name, loop=False)
 
         self.actor = actor
 

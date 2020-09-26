@@ -118,12 +118,12 @@ class GameApp(ShowBase):
                 model = loader.load_model(root.node().fullpath)
                 root.node().steal_children(model.node())
 
-    def set_bgm(self, bgm):
+    def set_bgm(self, bgm, loop=True):
         if self.bgm_name != bgm:
             self.bgm_name = bgm
             bgmpath = f'music/{bgm}.ogg'
             self.bgm_audio = self.loader.load_music(bgmpath)
-            self.bgm_audio.set_loop(True)
+            self.bgm_audio.set_loop(loop)
             self.bgm_audio.play()
 
     def __update(self, task):
