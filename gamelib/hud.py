@@ -23,8 +23,8 @@ class HUD(DirectObject):
             mgr.setGraphic(name, graphic)
             graphic.setZ(-0.4)
 
-        self.blocks = OnscreenText('\5Blocks\5: 0/5', pos=(0.3, -0.1), fg=(1,) * 4, parent=base.a2dTopLeft, scale=0.055, mayChange=True)
-        self.power = OnscreenText('\5Energy\5: 0/0', pos=(-0.3, -0.1), fg=(1,) * 4, parent=base.a2dTopRight, scale=0.055, mayChange=True)
+        self.blocks = OnscreenText('\5Blocks\5 0/5', pos=(0.3, -0.1), fg=(1,) * 4, parent=base.a2dTopLeft, scale=0.055, mayChange=True)
+        self.power = OnscreenText('\5Energy\5 0/0', pos=(-0.3, -0.1), fg=(1,) * 4, parent=base.a2dTopRight, scale=0.055, mayChange=True)
         self.message = OnscreenText('...', pos=(0, -0.1), fg=(1,) * 4, parent=base.a2dTopCenter, scale=0.055, mayChange=True, align=core.TextNode.ACenter)
 
         self.clear_message = 0
@@ -53,12 +53,12 @@ class HUD(DirectObject):
     def update_hud(self, elem, val1, val2=None):
         if elem == 'blocks':
             prev = self.blocks.text
-            self.blocks.text = f'\5Blocks\5: {val1}/{val2}'
+            self.blocks.text = f'\5Blocks\5 {val1}/{val2}'
             if prev != self.blocks.text:
                 self.animate_item(self.blocks)
         elif elem == 'power':
             prev = self.power.text
-            self.power.text = f'\5Energy\5: {val1}/{val2}'
+            self.power.text = f'\5Energy\5 {val1}/{val2}'
             if prev != self.power.text:
                 self.animate_item(self.power)
         elif elem == 'msg':
