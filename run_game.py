@@ -82,12 +82,6 @@ class GameApp(ShowBase):
             self.screenshot(embedLUT=True)
         self.accept('f2', save_lut_screen)
         self.accept('f3', self.toggle_wireframe)
-        def toggle_lut():
-            if self.render_pipeline.lut_texture is None:
-                self.render_pipeline.lut_texture = self.luttext
-            else:
-                self.render_pipeline.lut_texture = None
-        self.accept('f4', toggle_lut)
         if not pman.is_frozen():
             try:
                 import limeade # pylint:disable=import-outside-toplevel
