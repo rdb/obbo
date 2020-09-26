@@ -17,8 +17,16 @@ from panda3d.core import (
     OmniBoundingVolume,
     TextProperties,
     TextPropertiesManager,
+    DynamicTextFont
 )
 from direct.interval.IntervalGlobal import Parallel, Sequence, Func
+
+
+FONT = DynamicTextFont('assets/fonts/Jellee-Bold.ttf')
+FONT.set_outline((0, 0, 0, 1), 2, 0.2)
+FONT.fg = (1, 1, 1, 1)
+
+
 
 class PieMenuItem:
     def __init__(self, name, event, buildingName, cost, power, shake_cost, shake_power):
@@ -113,8 +121,8 @@ class PieMenu:
             text=txt,
             text_scale=0.32,
             text_pos=(0,-1),
+            text_font=FONT,
             text_fg=(1, 1, 1, 1),
-            text_shadow=(0, 0, 0, 1),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
             pos=LPoint3f(x, 0, y),
             relief=None,
@@ -125,20 +133,7 @@ class PieMenu:
             pressEffect=False,
             command=self._send,
             extraArgs=(item,)
-            #command=base.messenger.send,
-            #extraArgs=(item.event,)
         )
-        #btn.setBin('gui-popup', 2)
-        #btn.setTransparency(1)
-        #top_text = OnscreenText(
-        #    text=txt,
-        #    scale=0.3,
-        #    fg=(0,) * 3 + (1, ),
-        #    parent=btn,
-        #)
-        #top_text.set_pos(0.0025, 0, -1.0025)
-
-        #btn.component('text0').hide()
 
         ival = btn["geom2_geom"].get_child(0).hprInterval(1, (360, 0, 0), (0, 0, 0))
         def hover_over():
