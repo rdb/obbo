@@ -50,6 +50,7 @@ class CutsceneState(DirectObject):
         # Hide the mouse cursor
         props = p3d.WindowProperties()
         props.set_cursor_hidden(True)
+        props.set_mouse_mode(p3d.WindowProperties.M_absolute)
         base.win.request_properties(props)
 
         # Match Blender camera
