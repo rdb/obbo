@@ -9,9 +9,6 @@ from .skybox import Skybox
 import random
 
 
-CUTSCENE_PLAY_RATE = 1.0
-
-
 CREDITS_NAMES = ["hendrik-jan", "tizilogic", "rdb", "fireclaw", "moguri", "sour patch bullet"]
 random.shuffle(CREDITS_NAMES)
 
@@ -27,6 +24,9 @@ ENDING_LINES = [
 
 
 class CutsceneState(DirectObject):
+
+    cutscene_play_rate = p3d.ConfigVariableDouble('cutscene-play-rate', 1.0)
+
     def __init__(self, cutscene_name, bgm_name, next_state, state_args=None):
         super().__init__()
 
@@ -66,7 +66,7 @@ class CutsceneState(DirectObject):
 
         # Play some background music if available
         if bgm_name:
-            base.set_bgm(bgm_name, loop=False)
+            base.set_bgm(bgm_name, loop=False, play_rate=self.cutscene_play_rate.value)
 
         self.actor = actor
 
@@ -97,7 +97,7 @@ class CutsceneState(DirectObject):
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
-            actor.actor_interval('0', playRate=CUTSCENE_PLAY_RATE),
+            actor.actor_interval('0', playRate=self.cutscene_play_rate.value),
             base.transitions.getFadeOutIval(),
             *self.get_extra_intervals(),
             intervals.Func(self.ignore, 'space'),
