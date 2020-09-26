@@ -253,15 +253,7 @@ class PlanetObject:
 
         pos = core.Vec3(*pos).normalized()
 
-        # Avoid gimbal lock by preserving the up vector near the poles, but
-        # gradually lerping towards either (0, 0, 1) or (0, 0, -1) when nearing
-        # the equator, so that the player doesn't get too disoriented.
         up_vector = self.pivot.get_quat().get_up()
-        #equator_proximity = 1 - abs(pos.z)
-        #equator_proximity *= 0.1
-        #true_up_vector = core.Vec3(0, 0, 1 if up_vector[2] > 0 else -1)
-        #up_vector = true_up_vector * equator_proximity + up_vector * (1 - equator_proximity)
-        #up_vector.normalize()
         self.pivot.look_at(pos, up_vector)
 
 
