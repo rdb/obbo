@@ -241,6 +241,10 @@ class PlayerControl(FSM, DirectObject):
         taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):
+        if self.universe.planet.size > 4:
+            print("Can't grow any more!")
+            return
+
         ppos = list(self.player.get_pos())
         offset = 0
         idx = None
