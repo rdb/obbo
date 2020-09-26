@@ -182,7 +182,7 @@ class GUI:
             hpr=LVecBase3f(0, 0, 0),
             image='textures/checkbox_unchecked.png',
             isChecked=False,
-            pos=LPoint3f(0.14, 0, -0.5),
+            pos=LPoint3f(0.14, 0, -0.52),
             relief=1,
             scale=LVecBase3f(0.05, 0.05, 0.05),
             uncheckedImage='textures/checkbox_unchecked.png',
@@ -190,10 +190,10 @@ class GUI:
             image_pos=LPoint3f(0, 0, 0),
             text='Invert Y Axis',
             text_pos=(-4.5, -0.23),
-            text_fg=(1, 1, 1, 1),
+            text_fg=(0, 0, 0, 1),
             parent=rootParent,
         )
-        self.cbMusicAudio.setTransparency(2)
+        self.cbInvertAxis.setTransparency(2)
 
     def show(self):
         self.cbMusicAudio.show()
