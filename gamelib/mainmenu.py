@@ -36,11 +36,6 @@ class MainMenu(DirectObject):
 
         base.transitions.fadeIn()
 
-        base.accept('f11', self.ending_shortcut_for_jan_entikan)
-
-    def ending_shortcut_for_jan_entikan(self):
-        base.gamestate = EndingCutscene(Universe)
-
     def cleanup(self):
         self.root.remove_node()
         self.picker.remove_node()

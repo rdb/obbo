@@ -80,7 +80,7 @@ class Universe(FSM, DirectObject):
 
         self.accept('display_msg', self.display_message)
         self.request('Universe')
-
+        base.accept('f11', self.handle_victory)
         self.accept('beacon_built', self.handle_victory)
 
     def display_message(self, text, duration=INSTRUCTIONS_AUTO_REMOVE_TIME):
@@ -113,7 +113,8 @@ class Universe(FSM, DirectObject):
             return task.done
 
     def handle_victory(self):
-        base.gamestate = EndingCutscene(EndState, state_args=[self])
+        self.player_control.player.root.hide()
+        base.gamestate = EndingCutscene(self.planet, EndState, state_args=[self])
 
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()

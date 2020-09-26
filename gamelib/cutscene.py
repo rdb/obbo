@@ -35,6 +35,7 @@ class CutsceneState(DirectObject):
         prev_p= base.cam.get_p()
         base.cam.clear_transform()
         base.camera.clear_transform()
+        
         base.cam.set_p(-90)
 
         prev_fov = list(base.camLens.get_fov())
@@ -122,5 +123,9 @@ class IntroCutscene(CutsceneState):
         self.obbo_face.set_shader_input('uv_shift', (0.5, 0.25), priority=1)
 
 class EndingCutscene(CutsceneState):
-    def __init__(self, next_state, state_args=None):
+    def __init__(self, planet, next_state, state_args=None):
         super().__init__('ending', 'end_sequence', next_state, state_args)
+        self.actor.find("**/planet").hide()
+        planet_joint = self.actor.expose_joint(None, 'modelRoot', 'planet')
+        planet.root.reparent_to(planet_joint)
+        
