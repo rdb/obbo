@@ -562,7 +562,6 @@ class PlayerControl(FSM, DirectObject):
     def enterReel(self, asteroid=None):
         if asteroid is not None:
             self.sfx["astroid_attaches"].play()
-            print('hit an asteroid!')
             asteroid.stop()
             asteroid.asteroid.wrt_reparent_to(self.bobber)
 
