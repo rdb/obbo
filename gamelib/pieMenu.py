@@ -5,7 +5,7 @@ import math
 
 from direct.gui import DirectGuiGlobals as DGG
 
-from direct.gui.DirectGui import DirectFrame, DirectButton
+from direct.gui.DirectGui import DirectFrame, DirectButton, OnscreenText
 from panda3d.core import (
     LPoint3f,
     LVecBase3f,
@@ -14,7 +14,9 @@ from panda3d.core import (
     NodePath,
     Vec3,
     Point3,
-    OmniBoundingVolume
+    OmniBoundingVolume,
+    TextProperties,
+    TextPropertiesManager,
 )
 from direct.interval.IntervalGlobal import Parallel, Sequence, Func
 
@@ -86,11 +88,18 @@ class PieMenu:
         geom.set_texture_off(10)
         building.copy_to(geom).clear_transform()
 
+        tp_small = TextProperties()
+        tp_small.text_scale = 0.8
+        tp_mgr = TextPropertiesManager.get_global_ptr()
+        tp_mgr.set_properties('small', tp_small)
+
+        txt = f'{item.name}\n\1small\1{item.cost} B {item.power} P\2'
         btn = DirectButton(
-            text=f'{item.name}({item.cost}B/{item.power}P)',
+            text=txt,
             text_scale=0.32,
             text_pos=(0,-1),
-            text_fg=(1, 1, 1, 1),
+            text_fg=(0, 0, 0, 1),
+            #text_shadow=(0, 0, 0, 1),
             frameSize=(-1.0, 1.0, -1.0, 1.0),
             pos=LPoint3f(x, 0, y),
             relief=None,
@@ -106,6 +115,15 @@ class PieMenu:
         )
         btn.setBin('gui-popup', 2)
         btn.setTransparency(1)
+        top_text = OnscreenText(
+            text=txt,
+            scale=0.295,
+            fg=(1,) * 4,
+            parent=btn,
+        )
+        top_text.set_pos(0.0025, 0, -1.0025)
+
+        #btn.component('text0').hide()
 
         ival = btn["geom2_geom"].get_child(0).hprInterval(1, (360, 0, 0), (0, 0, 0))
         btn.bind(DGG.ENTER, lambda x: ival.loop())
