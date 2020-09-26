@@ -7,6 +7,7 @@ from direct.interval import IntervalGlobal as intervals
 #from .mainmenu import MainMenu
 from .skybox import Skybox
 from .optionmenuGUI import GUI as OptionGUI
+from .util import srgb_color
 
 import os
 from panda3d.core import (
@@ -47,9 +48,11 @@ class OptionMenu(DirectObject, OptionGUI):
 
         base.transitions.fadeIn()
 
+        ## AUDIO VOLUME
         self.sliderVolume.setValue(base.musicManager.getVolume())
         self.sliderVolume["command"] = self.sliderVolumeChanged
 
+        ## AUDIO MUTE TOGGLE
         self.cbAudio["isChecked"] = base.musicActive
         if self.cbAudio['isChecked']:
             self.cbAudio['image'] = self.cbAudio['checkedImage']
@@ -58,6 +61,7 @@ class OptionMenu(DirectObject, OptionGUI):
         self.cbAudio.setImage()
         self.cbAudio["command"] = self.cbAudioChanged
 
+        ## FULLSCREEN
         self.cbFullscreen["isChecked"] = base.win.isFullscreen()
         if self.cbFullscreen['isChecked']:
             self.cbFullscreen['image'] = self.cbFullscreen['checkedImage']
@@ -66,6 +70,7 @@ class OptionMenu(DirectObject, OptionGUI):
         self.cbFullscreen.setImage()
         self.cbFullscreen["command"] = self.cbFullscreenChanged
 
+        ## GRAPHICS MODE
         self.cbGraphicMode["isChecked"] = ConfigVariableBool('potato-mode', False).get_value()
         if self.cbGraphicMode['isChecked']:
             self.cbGraphicMode['image'] = self.cbGraphicMode['checkedImage']
@@ -73,6 +78,46 @@ class OptionMenu(DirectObject, OptionGUI):
             self.cbGraphicMode['image'] = self.cbGraphicMode['uncheckedImage']
         self.cbGraphicMode.setImage()
         self.cbGraphicMode["command"] = self.cbGraphicModeChanged
+
+        ## SCREEN RESOLUTION
+        # Setting the items like this somehow breaks the mute button...
+
+        self.windowSizeX = base.win.getXSize()
+        self.windowSizeY = base.win.getYSize()
+        # get the display resolutions
+        di = base.pipe.getDisplayInformation()
+        sizes = []
+        for index in range(di.getTotalDisplayModes()):
+            tmptext = "{0}x{1}".format(
+                di.getDisplayModeWidth(index),
+                di.getDisplayModeHeight(index))
+            # keep the sizes reasonable
+            if di.getDisplayModeWidth(index) < 800: continue
+            if di.getDisplayModeHeight(index) < 600: continue
+            if not tmptext in sizes:
+                sizes.append(tmptext)
+        selected = 0
+        if sizes == []:
+            sizes.append("800x600")
+            sizes.append("960x540")
+            sizes.append("1280x720")
+            sizes.append("1920x1080")
+        curSize = "{}x{}".format(self.windowSizeX, self.windowSizeY)
+        if curSize not in sizes:
+            sizes.append(curSize)
+        for i in range(len(sizes)):
+            if sizes[i].split("x")[0] == str(self.windowSizeX) \
+            and sizes[i].split("x")[1] == str(self.windowSizeY):
+                selected = i
+                break
+
+        self.cmbResolution["frameSize"] = (-2.712, 2.712, -0.563, 0.563)
+        self.cmbResolution["image_scale"]= (2.712, 1, 0.563)
+        self.cmbResolution["highlightColor"] = srgb_color(0xfb4771)
+        self.cmbResolution.popupMarker["frameColor"] = (0,0,0,0)
+        self.cmbResolution["items"] = sizes
+        self.cmbResolution.set(selected, fCommand = 0)
+        self.cmbResolution["command"] = self.cmbResolutionChanged
 
     def cleanup(self):
         self.root.remove_node()
@@ -131,6 +176,20 @@ class OptionMenu(DirectObject, OptionGUI):
     def cbGraphicModeChanged(self, args=None):
         ConfigVariableBool('potato-mode').setValue(self.cbGraphicMode['isChecked'])
 
+    def cmbResolutionChanged(self, args):
+        resx = int(args.split("x")[0])
+        resy = int(args.split("x")[1])
+        props = WindowProperties()
+
+        # get the window properties and clear them
+        props = WindowProperties()
+        props.clear()
+        props.clearSize()
+        props.setSize(resx, resy)
+
+        base.win.requestProperties(props)
+        base.taskMgr.step()
+
     def writeConfig(self):
         """Save current config in the prc file or if no prc file exists
         create one. The prc file is set in the prcFile variable"""
@@ -148,6 +207,7 @@ class OptionMenu(DirectObject, OptionGUI):
             "audio-music-active": "true" if self.cbAudio["isChecked"] else "false",
             "audio-sfx-active": "true" if self.cbAudio["isChecked"] else "false",
             "fullscreen": "true" if self.cbFullscreen["isChecked"] else "false",
+            "win-size": "{} {}".format(base.win.getXSize(), base.win.getYSize()),
             "potato-mode": "true" if ConfigVariableBool('potato-mode', False).get_value() else "false",
             }
 
