@@ -65,15 +65,14 @@ class GameLogic(DirectObject):
             self.power_used += abs(pwr)
 
         # TODO: Alert the player to build more power delivery
-        if self.power_cap and self.power_used / self.power_cap > 0.66:
-            print('power level critical')
-            messenger.send('power_level_critical')
-            messenger.send('update_hud', ['msg', 'Power level Critical!'])
+        # if self.power_cap and self.power_used / self.power_cap > 0.66:
+        #     print('power level critical')
+        #     messenger.send('power_level_critical')
+        #     messenger.send('update_hud', ['msg', 'Power level Critical!'])
 
         self.update_hud()
 
         if model == 'beacon' and not self.beacon_built:
-            # FIXME: Maybe trigger ending cinematic here?
             messenger.send('beacon_built')
         elif model == 'replicator' and self.blocks_per_catch < 2:
             self.blocks_per_catch = 2
