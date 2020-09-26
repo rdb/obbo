@@ -29,14 +29,16 @@ class CutsceneState(DirectObject):
         self.skybox = Skybox(camjoint)
         self.skybox.root.set_compass()
 
+        # Hide the mouse cursor
+        props = p3d.WindowProperties()
+        props.set_cursor_hidden(True)
+        base.win.request_properties(props)
 
         # Match Blender camera
         self.prev_p= base.cam.get_p()
         base.cam.clear_transform()
         base.camera.clear_transform()
-        
         base.cam.set_p(-90)
-
         self.prev_fov = list(base.camLens.get_fov())
         base.camLens.set_fov(90, 90)
         self.prev_near = base.camLens.get_near()
@@ -86,6 +88,11 @@ class CutsceneState(DirectObject):
         base.camLens.set_fov(*self.prev_fov)
         base.camLens.set_near(self.prev_near)
 
+        # Reset mouse cursor
+        props = p3d.WindowProperties()
+        props.set_cursor_hidden(False)
+        base.win.request_properties(props)
+
         # fix for changing resolution size during cutscene
         base.camLens.set_aspect_ratio(base.get_aspect_ratio())
 
@@ -120,4 +127,3 @@ class EndingCutscene(CutsceneState):
         self.actor.find("**/planet").hide()
         planet_joint = self.actor.expose_joint(None, 'modelRoot', 'planet')
         planet.root.reparent_to(planet_joint)
-        
