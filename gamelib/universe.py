@@ -126,7 +126,7 @@ class Universe(FSM, DirectObject):
     def enterUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeIn()
         self.accept_once('mouse1', self.remove_instructions)
-        base.set_bgm('menu')
+        base.set_bgm('ingame')
         base.messenger.send('update_hud', ['msg', 'Click to move, hold to cast...', 45])
 
     def exitUniverse(self): # pylint: disable=invalid-name
