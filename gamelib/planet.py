@@ -195,13 +195,6 @@ class PlanetSide:
         for slot in new_slots:
             slot.attach_model(random.choice(pool))
 
-        # Also place a bunch of props
-        #for n in range(new_size - 1):
-        #    prop = PlanetProp(self.planet)
-        #    prop.set_pos((random.random() - 0.5, random.random() - 0.5, random.random() - 0.5))
-        #    self.props.append(prop)
-        #    prop.sprout()
-
     def _size_changed(self, size, build_slots=0):
         while size > len(self.grid):
             self.__grow_grid(build_slots)
@@ -270,32 +263,6 @@ class PlanetObject:
         #up_vector = true_up_vector * equator_proximity + up_vector * (1 - equator_proximity)
         #up_vector.normalize()
         self.pivot.look_at(pos, up_vector)
-
-
-class PlanetProp(PlanetObject):
-    def __init__(self, planet):
-        super().__init__(planet)
-
-        self.model = loader.load_model(random.choice([
-            "models/Environment/Flowers/Flower1.bam",
-            "models/Environment/Flowers/Flower2.bam",
-            "models/Environment/Grass/grass1.bam",
-            "models/Environment/Grass/grass2.bam",
-        ]))
-        self.model.set_effect(core.CompassEffect.make(core.NodePath(),
-                              core.CompassEffect.P_scale))
-        self.model.reparent_to(self.root)
-        self.model.set_scale(0.0000000001)
-        self.model.hide()
-        self.sprouted = False
-
-    def sprout(self):
-        if self.sprouted:
-            return
-
-        self.model.show()
-        self.model.scaleInterval(SPROUT_TIME, 0.25).start()
-        self.sprouted = True
 
 
 class AssetSlot(PlanetObject):
