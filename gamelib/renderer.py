@@ -95,7 +95,7 @@ class Pipeline:
             window=None,
             camera_node=None,
             taskmgr=None,
-            exposure=0.0,
+            exposure=0.5,
             enable_shadows=True,
             soft_shadows=True,
             enable_specular=True,
