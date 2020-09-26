@@ -566,6 +566,7 @@ class PlayerControl(FSM, DirectObject):
 
             asteroid.asteroid.posInterval(MAGNET_SNAP_TIME, self.magnet_snap_point).start()
             self.catch = asteroid
+            self.catch.asteroid.set_scale(1)
 
         if not self.player.reel_ctr.playing:
             self.player.reel_ctr.play()
