@@ -68,6 +68,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.model.set_h(180)
         self.player.root.hide()
         self.crosshair = Crosshair()
+        self.crosshair.model.reparent_to(self.player.model)
 
         self.pusher = core.CollisionHandlerPusher()
         self.pusher.add_collider(self.player.collider, self.player.root)
@@ -452,6 +453,16 @@ class PlayerControl(FSM, DirectObject):
         self.update_line()
         self.player.model.set_h(self.cam_dummy.get_h())
 
+        time = globalClock.frame_time - self.down_time
+        power = time / CHARGE_MAX_TIME
+        distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
+
+        #rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
+        rod_tip_pos = core.Point3(0.940263, 1.43792, 2.81651)
+        direction = self.crosshair.model.parent.get_relative_vector(base.camera, (0, 1, 0))
+        direction.normalize()
+        self.crosshair.model.set_pos(rod_tip_pos + direction * distance)
+
     def exitCharge(self):
         self.sfx["obbo_charge"].stop()
         self.player.charge_ctr.play()
@@ -491,13 +502,14 @@ class PlayerControl(FSM, DirectObject):
         self.bobber.wrt_reparent_to(self.player.model)
 
         rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
-        direction = self.crosshair.model.get_pos(self.player.model).normalized()
+        crosshair_pos = self.crosshair.model.get_pos(self.player.model)
+        direction = (crosshair_pos - rod_tip_pos).normalized()
         self.bobber.set_pos(rod_tip_pos + direction * 3)
-        self.bobber.look_at(rod_tip_pos + direction * distance)
+        self.bobber.look_at(rod_tip_pos + direction * 4)
 
         Sequence(
             Parallel(
-                LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
+                LerpPosInterval(self.bobber, CAST_TIME, crosshair_pos, blendType='easeOut'),
                 LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
             ),
             Func(self.sfx["obbo_cast"].stop),
@@ -736,9 +748,12 @@ class Crosshair:
         self.model.set_material(mat)
         self.model.set_texture(tex)
         self.model.set_color((1, 1, 1, 1), 1)
-        self.model.set_pos(0, 50, 4)
         self.model.set_transparency(core.TransparencyAttrib.M_binary)
         self.model.hide()
+        self.model.set_billboard_point_eye()
+        self.model.set_bin('fixed', 10)
+        self.model.set_depth_test(False)
+        self.model.set_depth_write(False)
 
     def show(self):
         self.model.show()
