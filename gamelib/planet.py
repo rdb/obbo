@@ -319,7 +319,7 @@ class AssetSlot(PlanetObject):
             ).loop()
         else:
             model = cached_asset.instance_to(self.slot_node)
-            model.set_h(random.random() * 360)
+            self.slot_node.set_h(random.random() * 360)
 
         self.model = model
 
