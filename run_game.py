@@ -43,6 +43,7 @@ class GameApp(ShowBase):
         ShowBase.__init__(self)
         pman.shim.init(self)
         potato_mode = panda3d.core.ConfigVariableBool('potato-mode', False).get_value()
+        self.set_background_color(srgb_color(0x292931))
         self.luttex = self.load_lut('lut.png')
         self.render_pipeline = renderer.Pipeline(
             lut_texture=self.luttex,
@@ -50,7 +51,6 @@ class GameApp(ShowBase):
         self.set_graphics_quality(potato_mode)
         self.accept('escape', sys.exit)
 
-        self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
         # Get volume levels from config
