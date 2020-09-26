@@ -483,6 +483,8 @@ class PlayerControl(FSM, DirectObject):
         self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
 
     def fling_bobber(self, distance):
+        if self.state != 'Cast':
+            return
         self.bobber.wrt_reparent_to(self.player.model)
 
         rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
