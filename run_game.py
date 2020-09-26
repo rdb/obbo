@@ -39,6 +39,14 @@ class GameApp(ShowBase):
         self.set_background_color(srgb_color(0x292931))
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
+        # Get volume levels from config
+        self.musicManager.set_volume(
+            panda3d.core.ConfigVariableDouble('audio-music-volume', 1.0).get_value()
+        )
+        self.sfxManagerList[0].set_volume(
+            panda3d.core.ConfigVariableDouble('audio-sfx-volume', 1.0).get_value()
+        )
+
         self.bgm_name = None
 
         self.transitions.fadeScreen(1.0)
