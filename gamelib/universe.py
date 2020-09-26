@@ -121,6 +121,7 @@ class Universe(FSM, DirectObject):
         self.bgm = base.loader.load_music('music/menu.ogg')
         self.bgm.set_loop(True)
         self.bgm.play()
+        base.messenger.send('update_hud', ['msg', 'Click to move, hold to cast...', 45])
 
     def exitUniverse(self): # pylint: disable=invalid-name
         base.transitions.fadeOut()
