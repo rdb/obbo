@@ -9,7 +9,7 @@ from direct.showbase.DirectObject import DirectObject
 
 from .player import Player
 from .planet import PlanetObject
-from .util import cfg_tuple, shake_cam
+from .util import cfg_tuple, shake_cam, srgb_color
 from .pieMenu import PieMenu, PieMenuItem
 
 
@@ -68,8 +68,17 @@ class PlayerControl(FSM, DirectObject):
         self.player.set_pos((0, 0, 1))
         self.player.model.set_h(180)
         self.player.root.hide()
+
         self.crosshair = Crosshair()
         self.crosshair.model.reparent_to(self.player.model)
+
+        self.raycast_segment = core.CollisionSegment((0, 0, 0), (0, 0, 1))
+        self.raycast_collider = self.player.model.attach_new_node(core.CollisionNode("line"))
+        self.raycast_collider.node().add_solid(self.raycast_segment)
+        self.raycast_collider.node().set_from_collide_mask(0)
+        self.raycast_collider.node().set_into_collide_mask(0)
+        self.raycast_handler = core.CollisionHandlerQueue()
+        self.traverser.add_collider(self.raycast_collider, self.raycast_handler)
 
         self.pusher = core.CollisionHandlerPusher()
         self.pusher.add_collider(self.player.collider, self.player.root)
@@ -309,8 +318,11 @@ class PlayerControl(FSM, DirectObject):
             self.sfx["obbo_reel_in"].stop()
 
         elif self.state == 'Charge':
-            time = globalClock.frame_time - self.down_time
-            self.request('Cast', time / CHARGE_MAX_TIME)
+            if self.raycast_handler.get_num_entries() > 0:
+                self.request('Normal')
+            else:
+                time = globalClock.frame_time - self.down_time
+                self.request('Cast', time / CHARGE_MAX_TIME)
 
         self.down_time = None
 
@@ -442,6 +454,7 @@ class PlayerControl(FSM, DirectObject):
 
         self.bobber.unstash()
         self.line.unstash()
+        self.raycast_collider.node().set_from_collide_mask(0b0001)
         self.bobber.reparent_to(self.player.rod_tip)
         self.bobber.set_pos(0, 0, 0)
         self.bobber.set_hpr(0, 0, 0)
@@ -463,16 +476,30 @@ class PlayerControl(FSM, DirectObject):
         distance = max(min(power, 1) * CAST_MAX_DISTANCE, CAST_MIN_DISTANCE)
 
         #rod_tip_pos = self.player.rod_tip.get_pos(self.player.model)
-        rod_tip_pos = core.Point3(0.940263, 1.43792, 2.81651)
+        rod_tip_pos = core.Point3(0.940263, 1.43792, 2.81651) # where it will be at the end of the anim
         direction = self.crosshair.model.parent.get_relative_vector(base.camera, (0, 1, 0))
         direction.normalize()
-        self.crosshair.model.set_pos(rod_tip_pos + direction * distance)
+        crosshair_pos = rod_tip_pos + direction * distance
+        self.crosshair.model.set_pos(crosshair_pos)
+
+        self.raycast_segment.set_point_a(rod_tip_pos)
+        if rod_tip_pos != crosshair_pos:
+            self.raycast_segment.set_point_b(crosshair_pos)
+
+            self.traverser.traverse(self.universe.planet.collide)
+
+            if self.raycast_handler.get_num_entries() > 0:
+                self.crosshair.model.set_color_scale(srgb_color(0xfb4771))
+            else:
+                self.crosshair.model.set_color_scale((1, 1, 1, 1))
 
     def exitCharge(self):
         self.sfx["obbo_charge"].stop()
         self.player.charge_ctr.play()
         self.toggle_cam_view()
         self.crosshair.hide()
+        self.crosshair.model.set_color_scale((1, 1, 1, 1))
+        self.raycast_collider.node().set_from_collide_mask(0)
         props = core.WindowProperties()
         props.set_cursor_hidden(False)
         props.set_mouse_mode(self.default_mouse_mode)
