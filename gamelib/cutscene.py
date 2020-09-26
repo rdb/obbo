@@ -44,6 +44,8 @@ class CutsceneState(DirectObject):
         self.prev_near = base.camLens.get_near()
         base.camLens.set_near(0.1)
 
+        base.camLens.set_aspect_ratio(base.get_aspect_ratio())
+
         # Play some background music if available
         if bgm_name:
             base.set_bgm(bgm_name)
