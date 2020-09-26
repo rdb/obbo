@@ -42,8 +42,8 @@ varying vec4 v_shadow_pos[MAX_LIGHTS];
 void main() {
     vec4 model_pos = p3d_Vertex;
     if (is_planet_prop) {
-        model_pos.xyz *= 1.0 + sin(osg_FrameTime * 5.0) / 70.0;
-        model_pos.x += sin(osg_FrameTime * 3) * abs(model_pos.z) / 20.0;
+        model_pos.xyz *= 1.0 + sin(osg_FrameTime * 3.0) / 60.0;
+        model_pos.x += sin(osg_FrameTime * 1.5) * abs(model_pos.z * model_pos.z) / 15.0;
     }
     vec4 vert_pos4 = p3d_ModelViewMatrix * model_pos;
     v_position = vec3(vert_pos4);
