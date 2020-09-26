@@ -45,7 +45,7 @@ class Asteroid:
         self.collider.set_from_collide_mask(0b0100)
         self.collider = self.asteroid.attach_new_node(self.collider)
         self.collider.set_python_tag('asteroid', self)
-        self.asteroid.set_scale(1e-9)
+        self.asteroid.set_scale(1e-3)
         self.asteroid.scaleInterval(SCALE_DURATION, 1.0, blendType='easeIn').start()
 
     def update_pos(self, shout=False):
