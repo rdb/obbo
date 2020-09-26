@@ -65,7 +65,7 @@ class GameLogic(DirectObject):
             self.power_used += abs(pwr)
 
         # TODO: Alert the player to build more power delivery
-        if self.power_used / self.power_cap > 0.66:
+        if self.power_cap and self.power_used / self.power_cap > 0.66:
             print('power level critical')
             messenger.send('power_level_critical')
             messenger.send('update_hud', ['msg', 'Power level Critical!'])
