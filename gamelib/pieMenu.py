@@ -93,7 +93,7 @@ class PieMenu:
         tp_mgr = TextPropertiesManager.get_global_ptr()
         tp_mgr.set_properties('small', tp_small)
 
-        txt = f'{item.name}\n\1small\1{item.cost} B {item.power} P\2'
+        txt = f'{item.name}\n\1small\1{item.cost} B / {item.power} P\2'
         btn = DirectButton(
             text=txt,
             text_scale=0.32,
@@ -117,8 +117,8 @@ class PieMenu:
         btn.setTransparency(1)
         top_text = OnscreenText(
             text=txt,
-            scale=0.295,
-            fg=(1,) * 4,
+            scale=0.3,
+            fg=(0.9,) * 4,
             parent=btn,
         )
         top_text.set_pos(0.0025, 0, -1.0025)
