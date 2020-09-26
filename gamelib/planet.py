@@ -378,7 +378,7 @@ class AssetSlot(PlanetObject):
             self.collider.node().set_into_collide_mask(0b0010)
             #self.collider.show()
         elif 'buildspacesign' in lower:
-            radius = 0.65
+            radius = 0.75
             self.collider = self.model.attach_new_node(core.CollisionNode("build_spot"))
             self.collider.node().add_solid(core.CollisionSphere((0, 0, -0.6), radius))
             self.collider.node().set_from_collide_mask(0b0000)
