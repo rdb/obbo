@@ -159,6 +159,8 @@ class EndingCutscene(CutsceneState):
         planet_joint = self.actor.expose_joint(None, 'modelRoot', 'planet')
         planet.super_root.reparent_to(planet_joint)
 
+        self.actor.find("**/helmet").set_bin("fixed", 10)
+
     def get_extra_intervals(self):
         root = base.aspect2dp.attach_new_node("credits")
 
