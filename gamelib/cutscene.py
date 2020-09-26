@@ -6,6 +6,24 @@ from direct.interval import IntervalGlobal as intervals
 from direct.gui.OnscreenText import OnscreenText
 
 from .skybox import Skybox
+import random
+
+
+CUTSCENE_PLAY_RATE = 1.0
+
+
+CREDITS_NAMES = ["hendrik-jan", "tizilogic", "rdb", "fireclaw", "moguri", "sour patch bullet"]
+random.shuffle(CREDITS_NAMES)
+
+ENDING_TITLE = "Thank you for playing!"
+
+ENDING_LINES = [
+    "Obbo's Descent was lovingly made by:",
+] + CREDITS_NAMES + [
+    "",
+    "We hope you enjoyed playing it",
+    "as much as we enjoyed making it.",
+]
 
 
 class CutsceneState(DirectObject):
@@ -79,13 +97,18 @@ class CutsceneState(DirectObject):
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
-            actor.actor_interval('0', playRate=1.0),
+            actor.actor_interval('0', playRate=CUTSCENE_PLAY_RATE),
             base.transitions.getFadeOutIval(),
+            *self.get_extra_intervals(),
+            intervals.Func(self.ignore, 'space'),
             intervals.Func(base.change_state, next_state, state_args)
         )
         ival.start()
 
         self.accept('space', ival.finish)
+
+    def get_extra_intervals(self):
+        return []
 
     def cleanup(self):
         # Reset camera
@@ -133,3 +156,40 @@ class EndingCutscene(CutsceneState):
         self.actor.find("**/planet").hide()
         planet_joint = self.actor.expose_joint(None, 'modelRoot', 'planet')
         planet.super_root.reparent_to(planet_joint)
+
+    def get_extra_intervals(self):
+        root = base.aspect2dp.attach_new_node("credits")
+
+        ending_title = OnscreenText(
+            parent=root,
+            text='Thank you for playing!',
+            fg=(0, 0, 0, 1),
+            pos=(0, 0.5),
+        )
+        ending_title.hide()
+        ending_title.set_color_scale((1, 1, 1, 0))
+
+        y = 0.5
+        ending_lines = []
+        for line in ENDING_LINES:
+            y -= 0.1
+            text = OnscreenText(
+                parent=root,
+                text=line,
+                fg=(0, 0, 0, 1),
+                pos=(0, y),
+                scale=0.04,
+            )
+            text.set_color_scale((1, 1, 1, 0))
+            ending_lines.append(text)
+
+        return [
+            intervals.Func(root.show),
+            intervals.Func(ending_title.show),
+            ending_title.colorScaleInterval(2, (1, 1, 1, 1)),
+            intervals.Wait(0.5),
+        ] + [ending_line.colorScaleInterval(0.8, (1, 1, 1, 1)) for ending_line in ending_lines] + [
+            intervals.Wait(4.0),
+            root.colorScaleInterval(2, (1, 1, 1, 0)),
+            intervals.Func(root.hide),
+        ]

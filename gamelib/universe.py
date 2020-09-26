@@ -120,8 +120,10 @@ class Universe(FSM, DirectObject):
             return task.done
 
     def handle_victory(self):
+        self.planet.root.set_scale(1 + 5 ** 1.5)
         self.player_control.universe.hud.hide()
         self.player_control.player.root.hide()
+        self.player_control.ignore('space')
         base.gamestate = EndingCutscene(self.planet, 'End', state_args=[self])
 
     def enterUniverse(self): # pylint: disable=invalid-name
