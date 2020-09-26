@@ -130,4 +130,4 @@ class EndingCutscene(CutsceneState):
         super().__init__('ending', 'end_sequence', next_state, state_args)
         self.actor.find("**/planet").hide()
         planet_joint = self.actor.expose_joint(None, 'modelRoot', 'planet')
-        planet.root.reparent_to(planet_joint)
+        planet.super_root.reparent_to(planet_joint)

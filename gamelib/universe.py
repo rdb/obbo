@@ -41,7 +41,7 @@ class Universe(FSM, DirectObject):
         self.hud = HUD()
 
         self.planet = Planet()
-        self.planet.root.reparent_to(self.root)
+        self.planet.super_root.reparent_to(self.root)
         self.player_control = PlayerControl(self)
         self.planet_size = self.planet.size
 

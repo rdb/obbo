@@ -778,7 +778,7 @@ class Cursor(PlanetObject):
         self.model.set_light_off(1)
         self.model.set_alpha_scale(0.5)
         self.model.set_transparency(core.TransparencyAttrib.M_alpha)
-        self.model.set_effect(core.CompassEffect.make(core.NodePath(), core.CompassEffect.P_scale))
+        self.model.set_effect(core.CompassEffect.make(planet.super_root, core.CompassEffect.P_scale))
 
 
 class CrashedShip(PlanetObject):
@@ -790,7 +790,7 @@ class CrashedShip(PlanetObject):
         self.model.clear_transform()
         self.model.set_scale(0.4)
         self.model.set_hpr(0, 270, 90)
-        self.model.set_effect(core.CompassEffect.make(core.NodePath(),
+        self.model.set_effect(core.CompassEffect.make(planet.super_root,
                               core.CompassEffect.P_scale))
         self.model.find("**/crashed_ship_roof").set_two_sided(True)
         collider = self.model.attach_new_node(core.CollisionNode("ship"))

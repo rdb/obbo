@@ -21,7 +21,9 @@ class Planet:
     from having 1 point, to 3, 9, 16, 25, 36, etc.
     """
     def __init__(self):
-        self.root = core.NodePath("planet")
+        self.super_root = core.NodePath("planet-super-root")
+
+        self.root = self.super_root.attach_new_node("planet-root")
         self.sphere = loader.load_model("models/sphere.bam")
         self.sphere.reparent_to(self.root)
 
@@ -305,7 +307,7 @@ class AssetSlot(PlanetObject):
         super().__init__(planet)
 
         self.slot_node = self.root.attach_new_node("slot")
-        self.slot_node.set_effect(core.CompassEffect.make(core.NodePath(),
+        self.slot_node.set_effect(core.CompassEffect.make(planet.super_root,
                                   core.CompassEffect.P_scale))
         self.slot_node.hide()
         self.slot_node.set_scale(0.00000000001)
