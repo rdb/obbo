@@ -89,7 +89,11 @@ class PieMenu:
 
     def createButton(self, x, y, item):
         building = self.buildings.find("**/{}".format(item.buildingName))
-        building.find("**/*_face").hide()
+        try:
+            building.find("**/*_face").hide()
+        except AssertionError:
+            pass
+
         geom = NodePath("geom")
         geom.setDepthWrite(True)
         geom.setDepthTest(True)
