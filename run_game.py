@@ -53,6 +53,8 @@ class GameApp(ShowBase):
 
         self.render.set_shader_inputs(uv_shift=(0.0, 0.0))
 
+        self.camLens.set_fov(30)
+
         # Get volume levels from config
         self.musicManager.set_volume(
             panda3d.core.ConfigVariableDouble('audio-music-volume', 1.0).get_value()

@@ -12,6 +12,7 @@ class MainMenu(DirectObject):
 
         self.root = base.loader.load_model('models/mainMenu.bam')
         self.root.reparent_to(base.render)
+        self.root.set_y(10)
 
         self.skybox = Skybox(self.root)
         self.skybox.root.set_hpr(90,-20,-65)
