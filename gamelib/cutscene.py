@@ -72,6 +72,10 @@ class CutsceneState(DirectObject):
         alight.color = (0.5, 0.5, 0.5, 1)
         self.actor.set_light(self.actor.attach_new_node(alight))
 
+        # fadeIn calls renderFrame, so make sure the animation is already
+        # in frame 0 so we don't see a flash of the bind pose
+        self.actor.pose('0', 0)
+
         base.transitions.letterboxOn()
         base.transitions.fadeIn()
         ival = intervals.Sequence(
