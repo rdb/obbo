@@ -1,4 +1,5 @@
 window-title Obbo's Descent
+win-size 1280 720
 framebuffer-srgb true
 background-color 0 0 0
 screenshot-extension png
