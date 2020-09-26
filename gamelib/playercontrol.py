@@ -1,11 +1,13 @@
 # pylint: disable=invalid-name
 import math
+import sys
 
 from panda3d import core
 from direct.fsm.FSM import FSM
 from direct.interval.LerpInterval import *
 from direct.interval.IntervalGlobal import *
 from direct.showbase.DirectObject import DirectObject
+from direct.gui.OnscreenText import OnscreenText
 
 from .player import Player
 from .planet import PlanetObject
@@ -200,6 +202,30 @@ class PlayerControl(FSM, DirectObject):
             for i in range(4):
                 self.grow()
 
+        self.pause_title = OnscreenText(
+            parent=base.aspect2dp,
+            text='Game Paused',
+            fg=(0, 0, 0, 1),
+            pos=(0, 0.5),
+        )
+        self.pause_line1 = OnscreenText(
+            parent=base.aspect2dp,
+            text='Press Q to quit the game',
+            fg=(0, 0, 0, 1),
+            pos=(0, 0),
+            scale=0.04,
+        )
+        self.pause_line2 = OnscreenText(
+            parent=base.aspect2dp,
+            text='Press escape to return to the game',
+            fg=(0, 0, 0, 1),
+            pos=(0, -0.1),
+            scale=0.04,
+        )
+        self.pause_title.hide()
+        self.pause_line1.hide()
+        self.pause_line2.hide()
+
     def cleanup(self):
         self.ignore_all()
 
@@ -229,12 +255,14 @@ class PlayerControl(FSM, DirectObject):
         self.ship.set_r(-60)
         self.ship.posInterval(3.0, SHIP_POSITION).start()
         base.transitions.setFadeColor(1, 1, 1)
-        Sequence(
+        seq = Sequence(
             Wait(2.85),
             base.transitions.getFadeOutIval(0.1),
             Wait(1.0),
             Func(self.request, 'Normal'),
-        ).start()
+        )
+        seq.start()
+        base.accept('escape', seq.finish)
 
     def updateIntro(self, dt):
         skip_main_menu = panda3d.core.ConfigVariableBool('skip-main-menu', False).get_value()
@@ -242,6 +270,7 @@ class PlayerControl(FSM, DirectObject):
             self.request('Normal')
 
     def exitIntro(self):
+        self.ignore('escape')
         self.ship.detach_node()
         self.crashed_ship.root.show()
         self.player.root.show()
@@ -350,6 +379,7 @@ class PlayerControl(FSM, DirectObject):
 
         self.accept('mouse1', self.on_mouse_down)
         self.accept('mouse1-up', self.on_mouse_up)
+        self.accept('escape', self.request, ['Pause'])
 
         # Interrupt mouse hold if we just came in here holding the mouse,
         # so that we don't re-cast the line right away.
@@ -445,6 +475,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.walk_ctr.stop()
         self.player.idle_ctr.stop()
         self.sfx["obbo_walk"].stop()
+        self.ignore('escape')
 
     def enterCharge(self):
         self.sfx["obbo_charge"].play()
@@ -465,6 +496,7 @@ class PlayerControl(FSM, DirectObject):
         props.set_mouse_mode(core.WindowProperties.M_relative)
         base.win.request_properties(props)
 
+        self.accept('escape', self.cancel)
         self.accept('mouse3-up', self.cancel)
 
     def updateCharge(self, dt):
@@ -507,6 +539,7 @@ class PlayerControl(FSM, DirectObject):
         base.win.request_properties(props)
         base.messenger.send("reset_cursor")
 
+        self.ignore('escape')
         self.ignore('mouse3-up')
 
     def enterCast(self, power):
@@ -659,6 +692,7 @@ class PlayerControl(FSM, DirectObject):
     def enterBuild(self, asset_slot):
         self.ignore('mouse1')
         self.ignore('mouse1-up')
+        self.accept('escape', self.request, ['Normal'])
         self.target_pos = None
         self.target.root.hide()
         # TODO: Maybe modify PieMenu to accept a dict with categories? Definitely is too much for more than 5/6 items
@@ -704,6 +738,7 @@ class PlayerControl(FSM, DirectObject):
     def exitBuild(self):
         self.accept('mouse1', self.on_mouse_down)
         self.accept('mouse1-up', self.on_mouse_up)
+        self.ignore('escape')
 
     def build(self, building, asset_slot):
         if self.universe.game_logic.can_build(building[6:]):
@@ -768,6 +803,37 @@ class PlayerControl(FSM, DirectObject):
         if abs(dist) > 0:
             sign = dist / abs(dist)
             self.cam_dummy.set_p(cur_p + dist * CAM_ROTATE_SPEED * dt)
+
+    def enterPause(self):
+        self.pause_title.set_color_scale((1, 1, 1, 0))
+        self.pause_title.show()
+        self.pause_line1.set_color_scale((1, 1, 1, 0))
+        self.pause_line1.show()
+        self.pause_line2.set_color_scale((1, 1, 1, 0))
+        self.pause_line2.show()
+        Sequence(
+            base.transitions.getFadeOutIval(),
+            self.pause_title.colorScaleInterval(0.4, (1, 1, 1, 1)),
+            self.pause_line1.colorScaleInterval(0.3, (1, 1, 1, 1)),
+            self.pause_line2.colorScaleInterval(0.3, (1, 1, 1, 1)),
+            Func(lambda: self.accept('q', sys.exit)),
+            Func(lambda: self.accept('escape', self.request, ['Normal'])),
+        ).start()
+
+    def exitPause(self):
+        Sequence(
+            Parallel(
+                base.transitions.getFadeInIval(),
+                self.pause_title.colorScaleInterval(1.0, (1, 1, 1, 0)),
+                self.pause_line1.colorScaleInterval(1.0, (1, 1, 1, 0)),
+                self.pause_line2.colorScaleInterval(1.0, (1, 1, 1, 0)),
+            ),
+            Func(self.pause_title.hide),
+            Func(self.pause_line1.hide),
+            Func(self.pause_line2.hide),
+        ).start()
+        self.ignore('q')
+        self.ignore('escape')
 
 
 class Crosshair:

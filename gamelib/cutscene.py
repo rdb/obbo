@@ -101,11 +101,13 @@ class CutsceneState(DirectObject):
             base.transitions.getFadeOutIval(),
             *self.get_extra_intervals(),
             intervals.Func(self.ignore, 'space'),
+            intervals.Func(self.ignore, 'escape'),
             intervals.Func(base.change_state, next_state, state_args)
         )
         ival.start()
 
         self.accept('space', ival.finish)
+        self.accept('escape', ival.finish)
 
     def get_extra_intervals(self):
         return []
