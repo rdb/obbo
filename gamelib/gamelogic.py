@@ -9,7 +9,7 @@ TECH_TREE_CFG = [
     TechNode('replicator', 'science', 3, -1, ('windmill',), deprecated_by='workbench'),
     TechNode('workbench', 'science', 5, -1, ('replicator',), deprecated_by='lab'),
     TechNode('tent', 'trophy', 3, 0, ('workbench',)),
-    TechNode('chest', 'storage', 3, 0, ('workbench',), 10, deprecated_by='solarpower'),
+    TechNode('chest', 'storage', 3, 0, ('workbench',), 10, deprecated_by='garage'),
     TechNode('solarpower', 'power', 5, 9, ('workbench',), deprecated_by='soppower'),
     TechNode('house', 'trophy', 7, 0, ('solarpower',)),
     TechNode('garage', 'storage', 7, 0, ('solarpower',), 25),
