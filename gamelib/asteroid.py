@@ -31,6 +31,7 @@ class Asteroid:
         self.asteroid.set_material(mat)
         self.asteroid.set_effect(core.CompassEffect.make(core.NodePath(),
                                  core.CompassEffect.P_scale))
+        self.asteroid.set_pos(self.xoff, self.yoff, -self.planet.size * 4.2 - self.xoff)
         self.asteroid.node().set_bounds(core.OmniBoundingVolume())
 
         self._orbit_ival = LerpHprInterval(self.rotation, random.uniform(8, 12), (0, 360, 0))
