@@ -1,5 +1,6 @@
 import math
 import sys
+import os
 
 from direct.showbase.ShowBase import ShowBase
 import panda3d
@@ -78,6 +79,11 @@ class GameApp(ShowBase):
         self.accept('shift-a', self.render.analyze)
         self.disable_mouse()
 
+        self.setCursor(False)
+        self.accept('mouse1', self.setCursor, [True])
+        self.accept('mouse1-up', self.setCursor, [False])
+        self.accept('reset_cursor', self.setCursor, [False])
+
         self.task_mgr.add(self.__update)
 
     def refresh(self):
@@ -129,6 +135,23 @@ class GameApp(ShowBase):
             islice.flip(False, True, False)
             texture.load(islice, tileidx, 0)
         return texture
+
+    def setCursor(self, clicked):
+        if clicked:
+            x11Cur = os.path.join("cursor", "cursorClick.x11")
+            winCur = os.path.join("cursor", "cursorClick.cur")
+        else:
+            x11Cur = os.path.join("cursor", "cursorNormal.x11")
+            winCur = os.path.join("cursor", "cursorNormal.cur")
+
+        base.win.clearRejectedProperties()
+        props = panda3d.core.WindowProperties()
+        # check for the os and set the specific cursor file
+        if sys.platform.startswith('linux'):
+            props.setCursorFilename(x11Cur)
+        else:
+            props.setCursorFilename(winCur)
+        base.win.requestProperties(props)
 
     def screenshot(self, *args, embedLUT=False, **kwargs): # pylint:disable=invalid-name, arguments-differ
         filename = super().screenshot(*args, **kwargs)

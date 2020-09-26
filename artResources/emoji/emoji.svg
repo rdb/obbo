@@ -29,10 +29,10 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="24.109572"
-     inkscape:cx="16.149481"
+     inkscape:cx="9.3472035"
      inkscape:cy="12.424047"
      inkscape:document-units="mm"
-     inkscape:current-layer="g878"
+     inkscape:current-layer="layer4"
      showgrid="false"
      units="px"
      inkscape:window-width="1920"
@@ -106,7 +106,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="Smile"
-     style="display:none">
+     style="display:inline">
     <circle
        transform="rotate(-3.8248322)"
        r="0.79853666"
@@ -129,7 +129,7 @@
        transform="rotate(-3.8248322)" />
   </g>
   <g
-     style="display:inline"
+     style="display:none"
      inkscape:label="Laugh"
      id="g878"
      inkscape:groupmode="layer">
@@ -159,13 +159,13 @@
      id="g886"
      inkscape:label="Oh"
      style="display:none">
-    <ellipse
+    <circle
        transform="rotate(-3.8248322)"
        cy="4.8722601"
        cx="1.5452074"
        id="circle880"
        style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.60504377;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       r="0.79853666" />
+       r="0" />
     <path
        sodipodi:nodetypes="sss"
        inkscape:connector-curvature="0"
@@ -177,6 +177,13 @@
        id="circle884"
        cx="6.0040488"
        cy="4.6424198"
+       r="0.79853666"
+       transform="rotate(-3.8248322)" />
+    <circle
+       style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.60504377;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="circle860"
+       cx="1.5452074"
+       cy="4.8722601"
        r="0.79853666"
        transform="rotate(-3.8248322)" />
   </g>

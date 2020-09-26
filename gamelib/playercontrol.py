@@ -135,6 +135,7 @@ class PlayerControl(FSM, DirectObject):
         props.set_cursor_hidden(False)
         props.set_mouse_mode(self.default_mouse_mode)
         base.win.request_properties(props)
+        base.messenger.send("reset_cursor")
 
         self.player.charge_ctr.play_rate = (self.player.charge_ctr.num_frames / self.player.charge_ctr.frame_rate) / CHARGE_MAX_TIME
 
@@ -449,6 +450,7 @@ class PlayerControl(FSM, DirectObject):
         props.set_cursor_hidden(False)
         props.set_mouse_mode(self.default_mouse_mode)
         base.win.request_properties(props)
+        base.messenger.send("reset_cursor")
 
         self.ignore('mouse3-up')
 
@@ -514,6 +516,7 @@ class PlayerControl(FSM, DirectObject):
         props.set_cursor_hidden(False)
         props.set_mouse_mode(self.default_mouse_mode)
         base.win.request_properties(props)
+        base.messenger.send("reset_cursor")
 
     def enterReel(self, asteroid=None):
         if asteroid is not None:
