@@ -33,6 +33,8 @@ BUILD_TIME = 2.25
 CAST_TIME = 1.0
 CAST_MIN_DISTANCE = 3.0
 CAST_MAX_DISTANCE = 15.0
+CAST_BOB_MAGNITUDE = 0.5
+CAST_BOB_TIME = 0.4
 
 MAGNET_SNAP_TIME = 0.15
 
@@ -85,6 +87,8 @@ class PlayerControl(FSM, DirectObject):
         bobbercol.set_into_collide_mask(0b0000)
         self.bobber_collider = self.bobber.attach_new_node(bobbercol)
         # self.bobber_collider.show()
+        self.bobber_bob_ival = None
+        self.bobber_cast_complete = False
         self.asteroid_handler = core.CollisionHandlerQueue()
 
         # Create fishing line.
@@ -459,6 +463,7 @@ class PlayerControl(FSM, DirectObject):
         self.bobber.set_hpr(0, 0, 0)
 
         self.player.cast_ctr.play()
+        self.bobber_cast_complete = False
         Sequence(
             Wait(5 / self.player.cast_ctr.frame_rate),
             Func(self.fling_bobber, distance),
@@ -469,6 +474,7 @@ class PlayerControl(FSM, DirectObject):
         props.set_cursor_hidden(True)
         props.set_mouse_mode(core.WindowProperties.M_relative)
         base.win.request_properties(props)
+        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
 
     def fling_bobber(self, distance):
         self.bobber.wrt_reparent_to(self.player.model)
@@ -478,14 +484,38 @@ class PlayerControl(FSM, DirectObject):
         self.bobber.set_pos(rod_tip_pos + direction * 3)
         self.bobber.look_at(rod_tip_pos + direction * distance)
 
-        self.traverser.add_collider(self.bobber_collider, self.asteroid_handler)
         Sequence(
             Parallel(
                 LerpPosInterval(self.bobber, CAST_TIME, rod_tip_pos + direction * distance, blendType='easeOut'),
                 LerpHprInterval(self.bobber, CAST_TIME, (self.bobber.get_h(), self.bobber.get_p(), 360 * distance * BOBBER_SPIN_SPEED), blendType='easeOut'),
             ),
             Func(self.sfx["obbo_cast"].stop),
+            Func(self.cast_complete)
         ).start()
+
+    def cast_complete(self):
+        self.bobber_cast_complete = True
+
+    def start_bob(self):
+        if not self.bobber_cast_complete:
+            return
+        if self.down_time is None and self.bobber_bob_ival is None:
+            up = self.bobber.get_quat().get_right() + self.bobber.get_quat().get_up()
+            up.normalize()
+            up *= CAST_BOB_MAGNITUDE
+            start = self.bobber.get_pos()
+            top = start + up
+            down = start - up
+            self.bobber_bob_ival = Sequence(
+                LerpPosInterval(self.bobber, CAST_BOB_TIME, top, startPos=start, blendType='easeOut'),
+                LerpPosInterval(self.bobber, CAST_BOB_TIME, start, startPos=top, blendType='easeIn'),
+                LerpPosInterval(self.bobber, CAST_BOB_TIME, down, startPos=start, blendType='easeOut'),
+                LerpPosInterval(self.bobber, CAST_BOB_TIME, start, startPos=down, blendType='easeIn'),
+            )
+            self.bobber_bob_ival.loop()
+        elif self.down_time is not None and self.bobber_bob_ival is not None:
+            self.bobber_bob_ival.finish()
+            self.bobber_bob_ival = None
 
     def updateCast(self, dt):
         self.update_cast_cam()
@@ -493,6 +523,7 @@ class PlayerControl(FSM, DirectObject):
 
         if self.down_time is not None:
             self.updateReel(dt)
+        self.start_bob()
 
         self.traverser.traverse(self.universe.root)
         self.asteroid_handler.sort_entries()
@@ -508,6 +539,10 @@ class PlayerControl(FSM, DirectObject):
             self.request('Reel', hit_asteroids[0])
 
     def exitCast(self):
+        if self.bobber_bob_ival is not None:
+            self.bobber_bob_ival.finish()
+            self.bobber_bob_ival = None
+        self.bobber_cast_complete = False
         self.sfx["obbo_cast"].stop()
         self.traverser.remove_collider(self.bobber_collider)
         props = core.WindowProperties()
