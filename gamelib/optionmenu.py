@@ -170,7 +170,9 @@ class OptionMenu(DirectObject, OptionGUI):
         base.win.requestProperties(props)
 
     def cbGraphicModeChanged(self, args=None):
-        ConfigVariableBool('potato-mode').setValue(self.cbGraphicMode['isChecked'])
+        potato_mode = self.cbGraphicMode['isChecked']
+        base.set_graphics_quality(potato_mode)
+        ConfigVariableBool('potato-mode').setValue(potato_mode)
 
     def cmbResolutionChanged(self, args):
         resx = int(args.split("x")[0])

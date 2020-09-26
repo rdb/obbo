@@ -43,11 +43,11 @@ class GameApp(ShowBase):
         ShowBase.__init__(self)
         pman.shim.init(self)
         potato_mode = panda3d.core.ConfigVariableBool('potato-mode', False).get_value()
-        self.luttext = self.load_lut('lut.png')
+        self.luttex = self.load_lut('lut.png')
         self.render_pipeline = renderer.Pipeline(
-            lut_texture=self.luttext,
-            enable_shadows=not potato_mode,
+            lut_texture=self.luttex,
         )
+        self.set_graphics_quality(potato_mode)
         self.accept('escape', sys.exit)
 
         self.set_background_color(srgb_color(0x292931))
@@ -100,6 +100,10 @@ class GameApp(ShowBase):
         self.accept('reset_cursor', self.setCursor, [False])
 
         self.task_mgr.add(self.__update)
+
+    def set_graphics_quality(self, is_low):
+        rpipe = self.render_pipeline
+        rpipe.enable_shadows = not is_low
 
     def refresh(self):
         import limeade
