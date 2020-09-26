@@ -95,7 +95,6 @@ class Pipeline:
             window=None,
             camera_node=None,
             taskmgr=None,
-            max_lights=1,
             exposure=0.0,
             enable_shadows=True,
             soft_shadows=True,
@@ -119,7 +118,7 @@ class Pipeline:
         self.render_node = render_node
         self.window = window
         self.camera_node = camera_node
-        self.max_lights = max_lights
+        self.max_lights = 1
         self.enable_shadows = enable_shadows
         self.enable_specular = enable_specular
         self.soft_shadows = soft_shadows

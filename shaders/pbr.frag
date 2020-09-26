@@ -5,9 +5,7 @@
 
 #version 120
 
-#ifndef MAX_LIGHTS
-    #define MAX_LIGHTS 8
-#endif
+#define MAX_LIGHTS 1
 
 const float WRAPPED_LAMBERT_W = 0.1;
 const float DIFFUSE_STEP_EDGE = 0.01;
@@ -72,55 +70,49 @@ void main() {
     vec4 color = vec4(vec3(0.0), base_color.a);
 
     float n_dot_v = saturate(abs(dot(n, v)));
-    for (int i = 0; i < p3d_LightSource.length(); ++i) {
-        vec3 lightcol = p3d_LightSource[i].diffuse.rgb;
+    vec3 lightcol = p3d_LightSource[0].diffuse.rgb;
 
-        if (dot(lightcol, lightcol) < LIGHT_CUTOFF) {
-            continue;
-        }
+    vec3 l = normalize(p3d_LightSource[0].position.xyz - v_position * p3d_LightSource[0].position.w);
+    vec3 h = normalize(l + v);
 
-        vec3 l = normalize(p3d_LightSource[i].position.xyz - v_position * p3d_LightSource[i].position.w);
-        vec3 h = normalize(l + v);
-
-        // Shadows
-        float spotcos = dot(normalize(p3d_LightSource[i].spotDirection), -l);
-        float spotcutoff = p3d_LightSource[i].spotCosCutoff;
-        float shadowSpot = smoothstep(spotcutoff-SPOTSMOOTH, spotcutoff+SPOTSMOOTH, spotcos);
+    // Shadows
+    float spotcos = dot(normalize(p3d_LightSource[0].spotDirection), -l);
+    float spotcutoff = p3d_LightSource[0].spotCosCutoff;
+    float shadowSpot = smoothstep(spotcutoff-SPOTSMOOTH, spotcutoff+SPOTSMOOTH, spotcos);
 #ifdef ENABLE_SHADOWS
 #ifdef SOFT_SHADOWS
-        float shadowCaster =
-            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, 0.001, 0, 0)).r +
-            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0.001, 0, 0, 0)).r +
-            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(-0.001, 0, 0, 0)).r +
-            shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i] + vec4(0, -0.001, 0, 0)).r;
-        shadowCaster *= 0.25;
+    float shadowCaster =
+        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, 0.001, 0, 0)).r +
+        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0.001, 0, 0, 0)).r +
+        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(-0.001, 0, 0, 0)).r +
+        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, -0.001, 0, 0)).r;
+    shadowCaster *= 0.25;
 #else
-        float shadowCaster = shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i]).r;
+    float shadowCaster = shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0]).r;
 #endif // SOFT_SHADOWS
 #else
-        float shadowCaster = 1.0;
+    float shadowCaster = 1.0;
 #endif
-        float shadow = shadowSpot * shadowCaster;
+    float shadow = shadowSpot * shadowCaster;
 
-        // wrapped lambert diffuse
-        float w = WRAPPED_LAMBERT_W;
-        float diffuse = saturate((dot(n, l) + w) / ((1 + w) * (1 + w)));
-        float stepped_diffuse = min(step(DIFFUSE_STEP_EDGE, diffuse) + w, 1);
-        vec3 diffuse_contrib = diffuse_color * stepped_diffuse;
+    // wrapped lambert diffuse
+    float w = WRAPPED_LAMBERT_W;
+    float diffuse = saturate((dot(n, l) + w) / ((1 + w) * (1 + w)));
+    float stepped_diffuse = min(step(DIFFUSE_STEP_EDGE, diffuse) + w, 1);
+    vec3 diffuse_contrib = diffuse_color * stepped_diffuse;
 
-        // Blinn Phong specular
-        float alpha2 = alpha_roughness * alpha_roughness;
-        float shininess = 2.0 / alpha2 - 2.0;
-        float n_dot_h = clamp(dot(n, h), 0.001, 1.0);
-        float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
-        float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
-        vec3 spec_contrib = vec3(stepped_specular);
+    // Blinn Phong specular
+    float alpha2 = alpha_roughness * alpha_roughness;
+    float shininess = 2.0 / alpha2 - 2.0;
+    float n_dot_h = clamp(dot(n, h), 0.001, 1.0);
+    float specular = pow(n_dot_h, shininess) / (4 * PI * alpha2);
+    float stepped_specular = min(step(SPECULAR_STEP_EDGE, specular), SPECULAR_CONTRIB_MAX);
+    vec3 spec_contrib = vec3(stepped_specular);
 
-        color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
+    color.rgb += (diffuse_contrib + spec_contrib) * lightcol * shadow;
 
-        float rim_light_term = max(RIM_LIGHT_WIDTH - n_dot_v, 0.0);
-        color.rgb += mix(RIM_LIGHT_COLOR, diffuse_color, RIM_LIGHT_DIFFUSE_BLEND) * rim_light_term;
-    }
+    float rim_light_term = max(RIM_LIGHT_WIDTH - n_dot_v, 0.0);
+    color.rgb += mix(RIM_LIGHT_COLOR, diffuse_color, RIM_LIGHT_DIFFUSE_BLEND) * rim_light_term;
 
     // Ambient
     color.rgb += diffuse_color * p3d_LightModel.ambient.rgb;

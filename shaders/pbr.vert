@@ -1,8 +1,6 @@
 #version 120
 
-#ifndef MAX_LIGHTS
-    #define MAX_LIGHTS 8
-#endif
+#define MAX_LIGHTS 1
 
 #ifdef ENABLE_SHADOWS
 uniform struct p3d_LightSourceParameters {
@@ -52,9 +50,7 @@ void main() {
     v_normal = normalize(p3d_NormalMatrix * p3d_Normal);
     v_texcoord = p3d_MultiTexCoord0 + uv_shift;
 #ifdef ENABLE_SHADOWS
-    for (int i = 0; i < p3d_LightSource.length(); ++i) {
-        v_shadow_pos[i] = p3d_LightSource[i].shadowViewMatrix * vert_pos4;
-    }
+    v_shadow_pos[0] = p3d_LightSource[0].shadowViewMatrix * vert_pos4;
 #endif
 
     gl_Position = p3d_ProjectionMatrix * vert_pos4;
