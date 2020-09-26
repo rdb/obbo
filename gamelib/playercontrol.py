@@ -634,7 +634,7 @@ class PlayerControl(FSM, DirectObject):
         for item in items:
             self.accept_once(item.event, self.build, [item.event, asset_slot])
         self.down_pos = None
-        self.pie_menu.show()
+        self.pie_menu.show(0, 0)
 
     def updateBuild(self, dt):
         def finish_building(task):
