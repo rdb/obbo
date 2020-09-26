@@ -20,6 +20,16 @@ class HUD(DirectObject):
         self.accept('shake', self.shake)
         base.taskMgr.do_method_later(1, self.update, 'hud_update')
 
+    def hide(self):
+        self.blocks.hide()
+        self.power.hide()
+        self.message.hide()
+
+    def show(self):
+        self.blocks.show()
+        self.power.show()
+        self.message.show()
+
     def update_hud(self, elem, val1, val2=None):
         if elem == 'blocks':
             prev = self.blocks.text

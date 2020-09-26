@@ -190,6 +190,7 @@ class PlayerControl(FSM, DirectObject):
         self.sfx["menu_spam"].set_volume(0.4)
 
     def enterIntro(self):
+        self.universe.hud.hide()
         self.ship.reparent_to(self.ship_root)
 
         base.camera.reparent_to(self.cam_dummy)
@@ -232,7 +233,7 @@ class PlayerControl(FSM, DirectObject):
         self.player.root.show()
         base.transitions.fadeIn(2.0)
         base.camera.set_pos((0, -30, 30))
-
+        self.universe.hud.show()
         taskMgr.do_method_later(1, self.universe.planet.sprout_build_slots, 'bs_spawner')
 
     def grow(self):

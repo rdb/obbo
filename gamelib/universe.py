@@ -113,6 +113,7 @@ class Universe(FSM, DirectObject):
             return task.done
 
     def handle_victory(self):
+        self.player_control.universe.hud.hide()
         self.player_control.player.root.hide()
         base.gamestate = EndingCutscene(self.planet, EndState, state_args=[self])
 
