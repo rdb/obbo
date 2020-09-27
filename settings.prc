@@ -11,3 +11,4 @@ cam-default-pos 0 -18 10
 cam-charging-pos -12, 0, 7
 
 audio-sfx-volume 0.5
+audio-library-name p3openal_audio

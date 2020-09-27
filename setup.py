@@ -92,7 +92,7 @@ setup(
             'gui_apps': {
                 APP_NAME: CONFIG['run']['main_file'],
             },
-            'log_filename': 'obbo.log',
+            'log_filename': '$USER_APPDATA/obbo.log',
             'exclude_modules': {
                 '*': [
                     'limeade',
