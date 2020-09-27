@@ -22,6 +22,7 @@ class SDistBuilt(sdist.sdist):
         with open('MANIFEST.in', 'w') as mfile:
             mfile.write(manifest)
 
+        self.formats = ['zip']
         super().run()
 
         with open('MANIFEST.in', 'w') as mfile:
@@ -109,6 +110,11 @@ setup(
                     'artResources/Icon/icon256.png',
                 ],
             },
+        },
+        'bdist_apps': {
+            'installers': {
+                'manylinux1_x86_64': 'zip',
+            }
         },
     }
 )
