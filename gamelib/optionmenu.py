@@ -142,6 +142,8 @@ class OptionMenu(DirectObject, OptionGUI):
 
         base.set_bgm('credits')
 
+        self.accept('escape', self.back)
+
     def cleanup(self):
         self.root.remove_node()
         self.picker.remove_node()
@@ -162,10 +164,14 @@ class OptionMenu(DirectObject, OptionGUI):
             npname = entry.getIntoNodePath().name
 
             if npname == 'BackSignSign':
-                self.writeConfig()
-                base.change_state('MainMenu')
-                # self.cleanup()
+                self.back()
                 break
+
+    def back(self):
+        self.ignore('escape')
+        self.writeConfig()
+        base.change_state('MainMenu')
+        # self.cleanup()
 
     def sliderMusicVolumeChanged(self):
         volume = round(self.sliderMusicVolume["value"], 2)
