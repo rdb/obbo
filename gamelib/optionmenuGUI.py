@@ -188,8 +188,8 @@ class GUI:
             uncheckedImage='textures/checkbox_unchecked.png',
             image_scale=LVecBase3f(1, 1, 1),
             image_pos=LPoint3f(0, 0, 0),
-            text='Invert Y Axis',
-            text_pos=(-4.5, -0.23),
+            text='Invert Y Axis (fishing)',
+            text_pos=(-6.5, -0.23),
             text_fg=(0, 0, 0, 1),
             parent=rootParent,
         )
