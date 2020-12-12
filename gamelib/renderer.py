@@ -16,7 +16,7 @@ class CommonFiltersEx(CommonFilters):
             return retval
 
         lut_texture = self.configuration.get('ColorGrade', None)
-        if lut_texture is not None:
+        if False and lut_texture is not None:
             shader = self.finalQuad.get_shader()
             text = shader.get_text()
             text = text.replace(

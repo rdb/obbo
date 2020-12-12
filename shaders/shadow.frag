@@ -1,4 +1,4 @@
-#version 120
+#version 330
 
 uniform struct p3d_MaterialParameters {
     vec4 baseColor;
@@ -13,10 +13,10 @@ uniform vec4 p3d_ColorScale;
 #define p3d_TextureEmission p3d_Texture3
 
 uniform sampler2D p3d_TextureBaseColor;
-varying vec4 v_color;
-varying vec2 v_texcoord;
+in vec4 v_color;
+in vec2 v_texcoord;
 
 void main() {
-    vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
+    vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture(p3d_TextureBaseColor, v_texcoord);
     gl_FragColor = base_color;
 }

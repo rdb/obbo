@@ -1,4 +1,4 @@
-#version 120
+#version 330
 
 #define MAX_LIGHTS 1
 
@@ -23,20 +23,20 @@ uniform mat4 p3d_ModelViewMatrix;
 uniform mat4 p3d_ModelMatrix;
 uniform mat3 p3d_NormalMatrix;
 
-attribute vec4 p3d_Vertex;
-attribute vec4 p3d_Color;
-attribute vec3 p3d_Normal;
-attribute vec2 p3d_MultiTexCoord0;
+in vec4 p3d_Vertex;
+in vec4 p3d_Color;
+in vec3 p3d_Normal;
+in vec2 p3d_MultiTexCoord0;
 
 uniform vec2 uv_shift;
 
 
-varying vec3 v_position;
-varying vec4 v_color;
-varying vec3 v_normal;
-varying vec2 v_texcoord;
+out vec3 v_position;
+out vec4 v_color;
+out vec3 v_normal;
+out vec2 v_texcoord;
 #ifdef ENABLE_SHADOWS
-varying vec4 v_shadow_pos[MAX_LIGHTS];
+out vec4 v_shadow_pos[MAX_LIGHTS];
 #endif
 
 void main() {

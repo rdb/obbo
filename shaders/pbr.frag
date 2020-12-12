@@ -3,7 +3,7 @@
 //  * https://github.com/Moguri/panda3d-simplepbr/
 //  * https://kink3d.github.io/blog/2017/10/04/Physically-Based-Toon-Shading-In-Unity
 
-#version 120
+#version 330
 
 #define MAX_LIGHTS 1
 
@@ -47,12 +47,12 @@ const float PI = 3.141592653589793;
 const float SPOTSMOOTH = 0.001;
 const float LIGHT_CUTOFF = 0.001;
 
-varying vec3 v_position;
-varying vec4 v_color;
-varying vec3 v_normal;
-varying vec2 v_texcoord;
+in vec3 v_position;
+in vec4 v_color;
+in vec3 v_normal;
+in vec2 v_texcoord;
 #ifdef ENABLE_SHADOWS
-varying vec4 v_shadow_pos[MAX_LIGHTS];
+in vec4 v_shadow_pos[MAX_LIGHTS];
 #endif
 
 float saturate(float val) {
@@ -60,7 +60,7 @@ float saturate(float val) {
 }
 
 void main() {
-    vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture2D(p3d_TextureBaseColor, v_texcoord);
+    vec4 base_color = p3d_Material.baseColor * v_color * p3d_ColorScale * texture(p3d_TextureBaseColor, v_texcoord);
     vec3 diffuse_color = base_color.rgb * (vec3(1.0) - F0);
     float perceptual_roughness = saturate(base_color.a);
     float alpha_roughness = max(perceptual_roughness * perceptual_roughness, 0.01);
@@ -82,13 +82,13 @@ void main() {
 #ifdef ENABLE_SHADOWS
 #ifdef SOFT_SHADOWS
     float shadowCaster =
-        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, 0.001, 0, 0)).r +
-        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0.001, 0, 0, 0)).r +
-        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(-0.001, 0, 0, 0)).r +
-        shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, -0.001, 0, 0)).r;
+        textureProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, 0.001, 0, 0)) +
+        textureProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0.001, 0, 0, 0)) +
+        textureProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(-0.001, 0, 0, 0)) +
+        textureProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0] + vec4(0, -0.001, 0, 0));
     shadowCaster *= 0.25;
 #else
-    float shadowCaster = shadow2DProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0]).r;
+    float shadowCaster = textureProj(p3d_LightSource[0].shadowMap, v_shadow_pos[0]).r;
 #endif // SOFT_SHADOWS
 #else
     float shadowCaster = 1.0;
@@ -116,6 +116,10 @@ void main() {
 
     // Ambient
     color.rgb += diffuse_color * p3d_LightModel.ambient.rgb;
+
+    if (color.a < 0.5) {
+      discard;
+    }
 
     gl_FragColor = color;
 }
